@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(npx vercel:*)",
+      "Bash(tee:*)",
+      "Bash(python3:*)",
+      "Bash(code --list-extensions:*)",
+      "Bash(vercel:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite build:*)",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(pkill:*)",
+      "WebFetch(domain:politika-plum.vercel.app)",
+      "Bash(gh auth status:*)",
+      "Bash(brew install:*)",
+      "Bash(unzip:*)",
+      "Bash(~/bin/gh auth status:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

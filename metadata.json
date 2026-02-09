@@ -1,0 +1,9 @@
+{
+  "name": "Politika",
+  "description": "Uma plataforma de inteligência artificial estratégica para análise de dados políticos e tendências eleitorais na Bahia, permitindo análise de perfis sociais e monitoramento de sentimentos em tempo real.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

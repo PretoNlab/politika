@@ -1,0 +1,3 @@
+Current progress of the build:
+- Project initialized
+- UI/UX Architect skill added

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Politika</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#136dec",
+            "primary-soft": "rgba(19, 109, 236, 0.1)",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101822",
+            "text-heading": "#0d131b",
+            "text-subtle": "#4c6c9a",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"],
+            "sans": ["Space Grotesk", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "3xl": "1.5rem",
+            "full": "9999px"
+          },
+          keyframes: {
+            "fade-up": {
+              "0%": { opacity: "0", transform: "translateY(10px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            },
+            "reveal": {
+              "0%": { transform: "scale(0.95)", opacity: "0" },
+              "100%": { transform: "scale(1)", opacity: "1" }
+            }
+          },
+          animation: {
+            "fade-up": "fade-up 0.5s ease-out forwards",
+            "reveal": "reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+          }
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Space Grotesk", sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .dark .glass-card {
+      background: rgba(16, 24, 34, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    @media print {
+      header, footer, nav { display: none !important; }
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      main { padding: 0 !important; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body
+  class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
