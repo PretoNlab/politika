@@ -157,3 +157,15 @@ export interface SentimentHistory {
   timestamp: string;
 }
 
+// ============================================
+// Briefing Types (QG Page)
+// ============================================
+
+export type BriefingStatus = 'calm' | 'alert' | 'crisis';
+
+export interface BriefingResult {
+  status: BriefingStatus;
+  summary: string;
+  recommendations: string[];
+}
+

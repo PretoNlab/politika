@@ -46,6 +46,10 @@ export const RATE_LIMITS = {
   sentimentAnalysis: {
     maxCalls: 10,
     windowMs: 120000 // 2 minutos
+  },
+  briefing: {
+    maxCalls: 3,
+    windowMs: 300000 // 5 minutos
   }
 };
 
@@ -57,7 +61,8 @@ export const STORAGE_KEYS = {
     `politika_news_cache_${region}_${keywords.join('_')}`,
   onboardingCompleted: 'politika_onboarding_completed',
   pulseCache: (term: string, articlesHash: string) =>
-    `politika_pulse_sentiment_${term}_${articlesHash}`
+    `politika_pulse_sentiment_${term}_${articlesHash}`,
+  briefingCache: 'politika_briefing_cache'
 };
 
 // Timeouts
@@ -120,7 +125,8 @@ export const CRISIS_SEVERITY_LEVELS = [
 
 // Cache TTL
 export const CACHE_TTL = {
-  sentiment: 30 * 60 * 1000 // 30 minutos
+  sentiment: 30 * 60 * 1000, // 30 minutos
+  briefing: 10 * 60 * 1000 // 10 minutos
 };
 
 // Paleta de cores para termos no Pulse Monitor

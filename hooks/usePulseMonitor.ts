@@ -37,7 +37,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   const { news, loading: isNewsLoading, refetch: refetchNews } = useNews({
     region,
     watchwords,
-    limit: 20,
+    limit: 0, // sem truncar — deduplicação feita no service
     autoFetch: true
   });
 

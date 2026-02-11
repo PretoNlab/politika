@@ -220,6 +220,47 @@ export const analyzeSentiment = async (
 };
 
 /**
+ * Gera briefing situacional baseado no estado atual do monitoramento
+ */
+export const generateBriefing = async (
+  metricsSnapshot: {
+    totalMentions: number;
+    avgSentiment: number | null;
+    hottestTerm: string | null;
+    overallTrend: 'up' | 'down' | 'steady';
+  },
+  alertsSummary: {
+    total: number;
+    dangerCount: number;
+    opportunityCount: number;
+    topAlert?: string;
+  },
+  topArticleTitles: string[]
+): Promise<{ status: string; summary: string; recommendations: string[] }> => {
+  // Short-circuit: sem dados suficientes, retorna resposta estática
+  if (metricsSnapshot.totalMentions === 0 && alertsSummary.total === 0) {
+    return {
+      status: 'calm',
+      summary: 'Nenhuma atividade relevante detectada no momento. Todos os termos monitorados estao sem alteracoes significativas.',
+      recommendations: []
+    };
+  }
+
+  const sanitizedTitles = topArticleTitles
+    .slice(0, 10)
+    .map(t => sanitizeInput(t, { maxLength: 200 }));
+
+  return callApi({
+    action: 'briefing',
+    data: {
+      metrics: metricsSnapshot,
+      alerts: alertsSummary,
+      topArticles: sanitizedTitles
+    }
+  });
+};
+
+/**
  * Chat com contexto de análise
  */
 export const chatWithAnalysis = async (

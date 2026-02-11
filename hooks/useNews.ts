@@ -54,7 +54,7 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
 
     try {
       const data = await fetchGoogleNews(region, watchwords);
-      setNews(data.slice(0, limit));
+      setNews(limit ? data.slice(0, limit) : data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar notícias';
       setError(errorMessage);

@@ -162,6 +162,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case 'chat':
         return await handleChat(ai, data, res);
 
+      case 'briefing':
+        return await handleBriefing(ai, data, res);
+
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
@@ -566,4 +569,81 @@ async function handleChat(
     success: true,
     data: response.text
   });
+}
+
+async function handleBriefing(
+  ai: GoogleGenAI,
+  data: {
+    metrics: {
+      totalMentions: number;
+      avgSentiment: number | null;
+      hottestTerm: string | null;
+      overallTrend: string;
+    };
+    alerts: {
+      total: number;
+      dangerCount: number;
+      opportunityCount: number;
+      topAlert?: string;
+    };
+    topArticles: string[];
+  },
+  res: VercelResponse
+) {
+  const { metrics, alerts, topArticles } = data;
+
+  if (!metrics || typeof metrics !== 'object') {
+    return res.status(400).json({ error: 'Metrics data is required' });
+  }
+
+  const articlesContext = topArticles && topArticles.length > 0
+    ? `\nManchetes recentes:\n${topArticles.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}`
+    : '';
+
+  const prompt = `Voce e um consultor politico senior monitorando a situacao na Bahia.
+Com base nos dados abaixo, gere um briefing executivo de 2-3 frases em portugues brasileiro.
+
+Dados do Monitoramento:
+- Total de mencoes nas ultimas 24h: ${metrics.totalMentions}
+- Sentimento medio: ${metrics.avgSentiment !== null ? (metrics.avgSentiment * 100).toFixed(0) + '%' : 'sem dados'}
+- Tendencia geral: ${metrics.overallTrend}
+- Termo mais quente: ${metrics.hottestTerm || 'nenhum'}
+- Alertas ativos: ${alerts?.total || 0} (${alerts?.dangerCount || 0} perigos, ${alerts?.opportunityCount || 0} oportunidades)
+${alerts?.topAlert ? `- Alerta principal: ${alerts.topAlert}` : ''}
+${articlesContext}
+
+${BAHIA_CONTEXT}
+
+Regras:
+1. Se ha alertas de perigo ou sentimento muito negativo (< -30%), status = "crisis"
+2. Se ha alertas moderados ou sentimento em queda, status = "alert"
+3. Se tudo esta estavel ou positivo, status = "calm"
+4. O "summary" deve ser direto, em linguagem de briefing militar/politico, 2-3 frases
+5. As "recommendations" devem ser 1-3 acoes concretas e curtas`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          status: { type: Type.STRING },
+          summary: { type: Type.STRING },
+          recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+        },
+        required: ['status', 'summary', 'recommendations']
+      }
+    }
+  });
+
+  const result = safeParseAIResponse(response.text, ['status', 'summary', 'recommendations']);
+
+  // Valida campo status
+  if (!['calm', 'alert', 'crisis'].includes(result.status)) {
+    result.status = 'alert';
+  }
+
+  return res.status(200).json({ success: true, data: result });
 }

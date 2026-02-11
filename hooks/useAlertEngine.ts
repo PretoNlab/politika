@@ -132,12 +132,12 @@ export const useAlertEngine = ({
             case 'sentiment_rise':
                 baseActions.push(
                     { id: 'content', label: '✍️ Gerar Post', type: 'generate_content', payload: { term } },
-                    { id: 'context', label: '📊 Ver Contexto', type: 'analyze', route: '/pulse' }
+                    { id: 'context', label: '📊 Ver Contexto', type: 'analyze', route: '/' }
                 );
                 break;
             case 'trending_topic':
                 baseActions.push(
-                    { id: 'analyze', label: '🔍 Analisar', type: 'analyze', route: '/pulse' },
+                    { id: 'analyze', label: '🔍 Analisar', type: 'analyze', route: '/' },
                     { id: 'content', label: '✍️ Capitalizar', type: 'generate_content', payload: { term } }
                 );
                 break;
