@@ -18,7 +18,7 @@ export interface NewsArticle {
 
 const CACHE_KEY_PREFIX = 'politika_news_cache_';
 const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas
-const MAX_ARTICLES_PER_TERM = 15;
+const MAX_ARTICLES_PER_TERM = 25;
 
 const NEWS_API_URL = import.meta.env.PROD
     ? '/api/news'

@@ -74,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const currentYear = new Date().getFullYear().toString();
     const filtered = items
       .filter(a => a.pubDate.includes(currentYear))
-      .slice(0, 15);
+      .slice(0, 25);
 
     return res.status(200).json({ success: true, data: filtered });
   } catch (error: any) {

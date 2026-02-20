@@ -2,12 +2,32 @@ import React, { useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
 import UserMenu from './UserMenu';
+import OnboardingChecklist from './OnboardingChecklist';
+import { useLifecycleStore } from '../store/lifecycleStore';
+import { useLifecycleSignals } from '../hooks/useLifecycleSignals';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { activeWorkspace, workspaces, setActiveWorkspace } = useWorkspace();
   const [showWorkspaceMenu, setShowWorkspaceMenu] = React.useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Lifecycle: track page visits and milestone signals
+  const recordPageVisit = useLifecycleStore(s => s.recordPageVisit);
+  const completeStep = useLifecycleStore(s => s.completeStep);
+  useLifecycleSignals();
+
+  useEffect(() => {
+    recordPageVisit(location.pathname);
+
+    // Auto-complete onboarding steps based on page visits
+    const pathToStep: Record<string, string> = {
+      '/pulse': 'visit_radar',
+      '/crisis': 'visit_warroom',
+    };
+    const stepId = pathToStep[location.pathname];
+    if (stepId) completeStep(stepId);
+  }, [location.pathname, recordPageVisit, completeStep]);
 
   // Close menu on click outside
   useEffect(() => {
@@ -90,6 +110,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </span>
                 QG
               </Link>
+              <Link to="/pulse" className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/pulse') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+                <span className="material-symbols-outlined text-sm">radar</span>
+                Radar
+              </Link>
               <Link to="/analyze" className={`text-sm font-medium transition-all hover:scale-105 ${isActive('/analyze') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>Analisar</Link>
               <Link to="/crisis" className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-600'}`}>
                 <span className="material-symbols-outlined text-lg text-red-600">warning</span>
@@ -122,6 +146,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Acesso Restrito - Equipe de Campanha</p>
         </div>
       </footer>
+
+      <OnboardingChecklist />
     </div>
   );
 };

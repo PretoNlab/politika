@@ -3,11 +3,16 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import { useGenerationStore } from '../store/generationStore';
+import { generatePoliticalInsight } from '../services/geminiClient';
+import { useLifecycleStore } from '../store/lifecycleStore';
 
 export interface Workspace {
     id: string;
     name: string;
+    state: string;
     region: string;
+    customContext?: string;
     watchwords: string[];
     status: 'active' | 'archived';
     createdAt: string;
@@ -18,7 +23,7 @@ interface WorkspaceContextType {
     activeWorkspace: Workspace | null;
     loading: boolean;
     setActiveWorkspace: (workspace: Workspace) => void;
-    addWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>) => void;
+    addWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => void;
     updateWorkspace: (id: string, updates: Partial<Omit<Workspace, 'id' | 'createdAt'>>) => void;
     deleteWorkspace: (id: string) => void;
 }
@@ -32,6 +37,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
     const [loading, setLoading] = useState(true);
+    const { startGeneration, finishGeneration, failGeneration } = useGenerationStore();
+    const completeLifecycleStep = useLifecycleStore(s => s.completeStep);
 
     const loadWorkspaces = useCallback(async () => {
         if (!user) return;
@@ -49,7 +56,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             const mapped: Workspace[] = (data || []).map(row => ({
                 id: row.id,
                 name: row.name,
-                region: row.region,
+                state: row.state || 'Bahia',
+                region: row.region || '',
+                customContext: row.custom_context || undefined,
                 watchwords: row.watchwords || [],
                 status: row.status,
                 createdAt: row.created_at,
@@ -78,7 +87,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspace.id);
     };
 
-    const addWorkspace = async (newWorkspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>) => {
+    const addWorkspace = async (newWorkspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => {
         if (!user) return;
 
         try {
@@ -87,7 +96,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 .insert({
                     user_id: user.id,
                     name: newWorkspace.name,
+                    state: newWorkspace.state,
                     region: newWorkspace.region,
+                    custom_context: newWorkspace.customContext || null,
                     watchwords: newWorkspace.watchwords,
                     status: 'active',
                 })
@@ -99,17 +110,43 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             const workspace: Workspace = {
                 id: data.id,
                 name: data.name,
-                region: data.region,
+                state: data.state || 'Bahia',
+                region: data.region || '',
+                customContext: data.custom_context || undefined,
                 watchwords: data.watchwords || [],
                 status: data.status,
                 createdAt: data.created_at,
             };
 
             setWorkspaces(prev => [workspace, ...prev]);
+            completeLifecycleStep('create_workspace');
 
             if (!activeWorkspace) {
                 setActiveWorkspace(workspace);
             }
+
+            // PLG Aha Moment Implementation: trigger background analysis if candidate is provided
+            if (candidateHandle) {
+                startGeneration(workspace.id, candidateHandle);
+
+                generatePoliticalInsight(candidateHandle, {
+                    state: workspace.state,
+                    region: workspace.region,
+                    customContext: workspace.customContext,
+                }).then(insightData => {
+                    if (insightData) {
+                        finishGeneration(insightData as any); // Type cast since services/geminiClient returns an untyped object or DetailedAnalysis 
+                        toast.success('Dossiê Estratégico gerado com sucesso!', { duration: 5000 });
+                    } else {
+                        throw new Error('Retorno vazio da análise');
+                    }
+                }).catch(err => {
+                    console.error('Error generating initial insight:', err);
+                    failGeneration('Falha ao gerar o dossiê inicial.');
+                    toast.error('O workspace foi criado, mas houve uma falha ao gerar a análise automática.');
+                });
+            }
+
         } catch (err: any) {
             console.error('Failed to add workspace:', err);
             toast.error('Erro ao criar workspace');
@@ -122,7 +159,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         try {
             const dbUpdates: Record<string, any> = {};
             if (updates.name !== undefined) dbUpdates.name = updates.name;
+            if (updates.state !== undefined) dbUpdates.state = updates.state;
             if (updates.region !== undefined) dbUpdates.region = updates.region;
+            if (updates.customContext !== undefined) dbUpdates.custom_context = updates.customContext;
             if (updates.watchwords !== undefined) dbUpdates.watchwords = updates.watchwords;
             if (updates.status !== undefined) dbUpdates.status = updates.status;
 

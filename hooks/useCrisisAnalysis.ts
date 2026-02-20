@@ -4,6 +4,9 @@ import { generateCrisisResponse, evaluateResponse } from '../services/geminiClie
 import { CrisisAnalysis } from '../types';
 import { useRateLimit } from './useRateLimit';
 import { isValidFileSize, isValidMimeType } from '../utils/security';
+import { useWorkspace } from '../context/WorkspaceContext';
+import { useUsageStore } from '../store/usageStore';
+import { useUsageGate } from './useUsageGate';
 
 interface MediaFile {
   data: string;
@@ -48,6 +51,15 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CrisisAnalysis | null>(null);
   const [evaluation, setEvaluation] = useState<any | null>(null);
+  const { activeWorkspace } = useWorkspace();
+  const incrementUsage = useUsageStore(s => s.increment);
+  const crisisGate = useUsageGate('crises');
+
+  const workspaceContext = activeWorkspace ? {
+    state: activeWorkspace.state,
+    region: activeWorkspace.region,
+    customContext: activeWorkspace.customContext,
+  } : undefined;
 
   // Rate limiting: 5 análises por minuto
   const checkRateLimit = useRateLimit({
@@ -97,6 +109,12 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
       }
     }
 
+    // Verifica limite do free tier
+    if (!crisisGate.canProceed) {
+      toast.error(`Limite mensal atingido (${crisisGate.usage}/${crisisGate.limit} análises de crise)`);
+      return;
+    }
+
     // Verifica rate limiting
     if (!checkRateLimit()) return;
 
@@ -115,9 +133,10 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
         mimeType: mediaFile.mimeType
       } : undefined;
 
-      const data = await generateCrisisResponse(incident, mediaData, location);
+      const data = await generateCrisisResponse(incident, mediaData, location, workspaceContext) as CrisisAnalysis;
 
       if (data && data.incidentSummary) {
+        incrementUsage('crises');
         setResult(data);
         toast.success('Análise de crise concluída!');
       } else {
@@ -134,7 +153,7 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
     } finally {
       setLoading(false);
     }
-  }, [checkRateLimit, getGeolocation]);
+  }, [checkRateLimit, getGeolocation, crisisGate, incrementUsage]);
 
   const evaluateResponseDraft = useCallback(async (proposedDraft: string): Promise<void> => {
     if (!proposedDraft.trim() || !result) {
@@ -145,7 +164,7 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
     setEvalLoading(true);
 
     try {
-      const data = await evaluateResponse(result.incidentSummary, proposedDraft);
+      const data = await evaluateResponse(result.incidentSummary, proposedDraft, workspaceContext);
       setEvaluation(data);
       toast.success('Avaliação concluída!');
     } catch (err) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import CommandCenter from './components/CommandCenter';
@@ -8,7 +8,7 @@ import History from './components/History';
 import InsightsDetail from './components/InsightsDetail';
 import ComparisonDetail from './components/ComparisonDetail';
 import CrisisManagement from './components/CrisisManagement';
-
+import PulseMonitor from './components/PulseMonitor';
 import Workspaces from './components/Workspaces';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './components/Login';
@@ -46,10 +46,10 @@ const App: React.FC = () => {
               <Route path="/" element={<CommandCenter />} />
               <Route path="/analyze" element={<Dashboard />} />
               <Route path="/history" element={<History />} />
-              <Route path="/insight-detail" element={<InsightsDetail />} />
-              <Route path="/comparison-detail" element={<ComparisonDetail />} />
+              <Route path="/insight-detail/:id?" element={<InsightsDetail />} />
+              <Route path="/comparison-detail/:id?" element={<ComparisonDetail />} />
               <Route path="/crisis" element={<CrisisManagement />} />
-              <Route path="/pulse" element={<Navigate to="/" replace />} />
+              <Route path="/pulse" element={<PulseMonitor />} />
               <Route path="/workspaces" element={<Workspaces />} />
             </Route>
           </Routes>

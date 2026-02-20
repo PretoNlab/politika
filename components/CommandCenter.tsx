@@ -7,16 +7,18 @@ import { useAlertEngine } from '../hooks/useAlertEngine';
 import { useBriefing } from '../hooks/useBriefing';
 import { TERM_COLORS } from '../constants';
 import type { PolitikaAlert, TaggedNewsArticle, BriefingResult, TermMetrics } from '../types';
+import { useGenerationStore } from '../store/generationStore';
+import { supabase } from '../lib/supabase';
 
 // ============================================
 // Severity & Briefing Style Maps
 // ============================================
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string; iconColor: string }> = {
-  danger:      { bg: 'bg-red-50 dark:bg-red-900/20',         border: 'border-red-200 dark:border-red-800',         icon: 'error',       iconColor: 'text-red-500'     },
-  warning:     { bg: 'bg-amber-50 dark:bg-amber-900/20',     border: 'border-amber-200 dark:border-amber-800',     icon: 'warning',     iconColor: 'text-amber-500'   },
+  danger: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', icon: 'error', iconColor: 'text-red-500' },
+  warning: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', icon: 'warning', iconColor: 'text-amber-500' },
   opportunity: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', icon: 'trending_up', iconColor: 'text-emerald-500' },
-  info:        { bg: 'bg-blue-50 dark:bg-blue-900/20',       border: 'border-blue-200 dark:border-blue-800',       icon: 'info',        iconColor: 'text-blue-500'    },
+  info: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', icon: 'info', iconColor: 'text-blue-500' },
 };
 
 const BRIEFING_STYLES: Record<string, { bg: string; border: string; icon: string; iconColor: string; pulseColor: string; label: string }> = {
@@ -193,11 +195,10 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
   <div className="flex flex-wrap gap-3">
     <button
       onClick={() => onSelect(null)}
-      className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${
-        activeTerm === null
-          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg shadow-slate-900/20'
-          : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
-      }`}
+      className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${activeTerm === null
+        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg shadow-slate-900/20'
+        : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
+        }`}
     >
       Todos
     </button>
@@ -207,18 +208,17 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
       const isActive = activeTerm === term;
       const sentimentColor = !m?.sentiment ? 'bg-slate-400'
         : m.sentiment.score > 0.2 ? 'bg-emerald-500'
-        : m.sentiment.score < -0.2 ? 'bg-red-500'
-        : 'bg-amber-500';
+          : m.sentiment.score < -0.2 ? 'bg-red-500'
+            : 'bg-amber-500';
 
       return (
         <button
           key={term}
           onClick={() => onSelect(isActive ? null : term)}
-          className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${
-            isActive
-              ? 'text-white shadow-lg'
-              : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
-          }`}
+          className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${isActive
+            ? 'text-white shadow-lg'
+            : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
+            }`}
           style={isActive ? { backgroundColor: color, borderColor: color } : undefined}
         >
           <span className={`size-2 rounded-full ${m?.sentimentLoading ? 'animate-pulse bg-slate-400' : sentimentColor}`} />
@@ -243,15 +243,14 @@ interface CompactTermCardProps {
 const CompactTermCard: React.FC<CompactTermCardProps> = ({ term, metrics: m, color, isExpanded, onToggleExpand }) => {
   const sentColor = !m.sentiment ? '#94a3b8'
     : m.sentiment.score > 0.2 ? '#10b981'
-    : m.sentiment.score < -0.2 ? '#ef4444'
-    : '#f59e0b';
+      : m.sentiment.score < -0.2 ? '#ef4444'
+        : '#f59e0b';
 
   return (
     <button
       onClick={onToggleExpand}
-      className={`w-full text-left p-4 bg-white dark:bg-slate-900 rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-md ${
-        isExpanded ? 'border-primary shadow-lg' : 'border-slate-100 dark:border-slate-800 hover:border-primary/50'
-      }`}
+      className={`w-full text-left p-4 bg-white dark:bg-slate-900 rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-md ${isExpanded ? 'border-primary shadow-lg' : 'border-slate-100 dark:border-slate-800 hover:border-primary/50'
+        }`}
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-black uppercase tracking-widest" style={{ color }}>
@@ -272,7 +271,7 @@ const CompactTermCard: React.FC<CompactTermCardProps> = ({ term, metrics: m, col
       <p className="text-[10px] text-text-subtle dark:text-slate-400 mt-0.5">
         {m.sentimentLoading ? 'Analisando...'
           : m.sentiment ? m.sentiment.classification
-          : m.mentions > 0 ? 'Aguardando analise' : 'Sem mencoes'}
+            : m.mentions > 0 ? 'Aguardando analise' : 'Sem mencoes'}
       </p>
     </button>
   );
@@ -535,6 +534,34 @@ const CommandCenter: React.FC = () => {
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null);
   const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
 
+  const { isGenerating, generatingHandle, initialData, clearState } = useGenerationStore();
+
+  const saveToHistory = async (type: 'insight' | 'comparison', handle: string, result: any) => {
+    if (!user) return;
+    try {
+      await supabase.from('analyses').insert({
+        user_id: user.id,
+        workspace_id: activeWorkspace?.id || null,
+        type,
+        handle,
+        result,
+      });
+    } catch (e) {
+      console.error('Failed to save analysis:', e);
+    }
+  };
+
+  // PLG Aha Moment handler
+  useEffect(() => {
+    if (initialData && generatingHandle) {
+      const dataToPass = initialData;
+      const handleToPass = generatingHandle;
+      clearState();
+      saveToHistory('insight', handleToPass, dataToPass);
+      navigate('/insight-detail', { state: { result: dataToPass, handle: handleToPass } });
+    }
+  }, [initialData, generatingHandle, navigate, clearState]);
+
   const {
     terms, activeTerm, setActiveTerm,
     metrics, globalMetrics,
@@ -613,7 +640,26 @@ const CommandCenter: React.FC = () => {
         onRefresh={handleRefresh}
       />
 
-      {!activeWorkspace ? (
+      {/* PLG AHA MOMENT: Loading State for Background Generation */}
+      {isGenerating && (
+        <div className="bg-primary/5 border border-primary/20 p-8 rounded-[3rem] text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-primary/20">
+            <div className="h-full bg-primary animate-progress-indeterminate"></div>
+          </div>
+          <div className="size-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 relative">
+            <span className="material-symbols-outlined text-3xl animate-pulse">neurology</span>
+            <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+            Gerando Dossiê Estratégico Inicial...
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto">
+            A Inteligência Artificial está analisando o histórico, o tom dominante e as vulnerabilidades de <strong className="text-primary">@{generatingHandle}</strong>. Você será redirecionado assim que estiver pronto.
+          </p>
+        </div>
+      )}
+
+      {!activeWorkspace && !isGenerating ? (
         /* No workspace CTA */
         <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-16 border border-slate-100 dark:border-slate-800 shadow-sm text-center space-y-6">
           <div className="size-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto text-primary">
@@ -636,7 +682,7 @@ const CommandCenter: React.FC = () => {
             Criar Projeto
           </Link>
         </div>
-      ) : (
+      ) : !isGenerating ? (
         <>
           {/* LAYER 2: Panorama */}
 
@@ -842,7 +888,7 @@ const CommandCenter: React.FC = () => {
             </Link>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 };

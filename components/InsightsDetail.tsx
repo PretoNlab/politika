@@ -1,17 +1,68 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, Link, Navigate } from 'react-router-dom';
+import { useLocation, useParams, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DetailedAnalysis } from '../types';
 import { chatWithAnalysis } from '../services/geminiClient';
+import { supabase } from '../lib/supabase';
+import ShareToolbar from './ShareToolbar';
+import { useUsageStore } from '../store/usageStore';
+import { useUsageGate } from '../hooks/useUsageGate';
+import { useLifecycleStore } from '../store/lifecycleStore';
 
 const CHAT_STORAGE_PREFIX = 'politika_chat_';
 
 const InsightsDetail: React.FC = () => {
   const location = useLocation();
-  const state = location.state as { result: DetailedAnalysis; handle: string };
+  const { id } = useParams<{ id: string }>();
+  const locationState = location.state as { result: DetailedAnalysis; handle: string } | null;
 
-  const chatKey = state?.handle ? `${CHAT_STORAGE_PREFIX}${state.handle}` : '';
+  const [result, setResult] = useState<DetailedAnalysis | null>(locationState?.result || null);
+  const [handle, setHandle] = useState<string>(locationState?.handle || '');
+  const [analysisId, setAnalysisId] = useState<string>(id || '');
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  // Fetch from Supabase if no location.state but we have an ID
+  useEffect(() => {
+    if (result) return;
+    if (!id) {
+      setFetchError(true);
+      return;
+    }
+
+    const fetchAnalysis = async () => {
+      setFetchLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('analyses')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error || !data) {
+          setFetchError(true);
+          return;
+        }
+
+        setResult(data.result as DetailedAnalysis);
+        setHandle(data.handle || '');
+        setAnalysisId(data.id);
+      } catch {
+        setFetchError(true);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+
+    fetchAnalysis();
+  }, [id, result]);
+
+  const incrementUsage = useUsageStore(s => s.increment);
+  const chatGate = useUsageGate('chats');
+  const completeLifecycleStep = useLifecycleStore(s => s.completeStep);
+
+  const chatKey = handle ? `${CHAT_STORAGE_PREFIX}${handle}` : '';
 
   const [chatMessages, setChatMessages] = useState<{ role: string, text: string }[]>(() => {
     if (!chatKey) return [];
@@ -42,14 +93,30 @@ const InsightsDetail: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isTyping]);
 
-  if (!state || !state.result) {
+  if (fetchError) {
     return <Navigate to="/" />;
   }
 
-  const { result, handle } = state;
+  if (fetchLoading) {
+    return (
+      <div className="max-w-[1200px] mx-auto px-6 py-20 flex flex-col items-center gap-4">
+        <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <p className="text-sm font-medium text-slate-500">Carregando análise...</p>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return <Navigate to="/" />;
+  }
 
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
+
+    if (!chatGate.canProceed) {
+      toast.error(`Limite mensal de chat atingido (${chatGate.usage}/${chatGate.limit})`);
+      return;
+    }
 
     const newMessages = [...chatMessages, { role: 'user', text }];
     setChatMessages(newMessages);
@@ -63,7 +130,9 @@ const InsightsDetail: React.FC = () => {
         parts: m.text
       }));
 
-      const response = await chatWithAnalysis(handle, result, text, history);
+      const response = await chatWithAnalysis(handle, result, text, history) as string;
+      incrementUsage('chats');
+      completeLifecycleStep('use_chat');
       setChatMessages([...newMessages, { role: 'assistant', text: response || 'Desculpe, tive um problema ao processar.' }]);
     } catch (error) {
       console.error(error);
@@ -79,13 +148,16 @@ const InsightsDetail: React.FC = () => {
     <div className="max-w-[1200px] mx-auto px-6 py-8 flex flex-col lg:flex-row gap-8">
       {/* Left Column: Report */}
       <div className="flex-1 space-y-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Link to="/" className="text-slate-500 hover:text-primary text-sm flex items-center gap-1 transition-colors">
-            <span className="material-symbols-outlined text-sm">home</span>
-            Dashboard
-          </Link>
-          <span className="text-slate-400 text-xs">/</span>
-          <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">Análise @{handle}</span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="text-slate-500 hover:text-primary text-sm flex items-center gap-1 transition-colors">
+              <span className="material-symbols-outlined text-sm">home</span>
+              Dashboard
+            </Link>
+            <span className="text-slate-400 text-xs">/</span>
+            <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">Análise @{handle}</span>
+          </div>
+          {analysisId && <ShareToolbar analysisId={analysisId} type="insight" />}
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">

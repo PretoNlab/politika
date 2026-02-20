@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
 import type {
     PolitikaAlert,
     AlertAction,
@@ -301,6 +302,39 @@ export const useAlertEngine = ({
         // Add new alerts if any
         if (newAlerts.length > 0) {
             setAlerts(prev => [...newAlerts, ...prev]);
+
+            // Lifecycle Signals: Trigger prominent toast notifications for new alerts
+            newAlerts.forEach(alert => {
+                const toastContent = `${alert.title}\n${alert.description}`;
+                if (alert.severity === 'danger') {
+                    toast.error(toastContent, {
+                        duration: 8000,
+                        icon: '🚨',
+                        style: {
+                            border: '1px solid #ef4444',
+                            padding: '16px',
+                            color: '#7f1d1d',
+                            fontWeight: 'bold'
+                        },
+                    });
+                } else if (alert.severity === 'opportunity') {
+                    toast.success(toastContent, {
+                        duration: 6000,
+                        icon: '📈',
+                        style: {
+                            border: '1px solid #10b981',
+                            padding: '16px',
+                            color: '#064e3b',
+                            fontWeight: 'bold'
+                        },
+                    });
+                } else {
+                    toast(alert.title, {
+                        duration: 4000,
+                        icon: 'ℹ️'
+                    });
+                }
+            });
         }
     }, [metrics, globalMetrics, allArticles, isLoading, getSentimentHistory, saveSentimentHistory, createAlert]);
 

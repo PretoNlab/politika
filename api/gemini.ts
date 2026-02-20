@@ -14,6 +14,67 @@ const getAI = () => {
 };
 
 /**
+ * Constrói o contexto político regional dinamicamente com base no estado do workspace.
+ * Permite que a plataforma opere como consultor nacional.
+ */
+function buildRegionalContext(
+  state: string = 'Brasil',
+  region: string = '',
+  customContext?: string
+): string {
+  const stateContexts: Record<string, string> = {
+    'Acre': 'Estado de fronteira amazônica com forte influência da economia florestal e agropecuária. Eleitorado sensível a temas ambientais e desenvolvimento regional. Rio Branco concentra força eleitoral decisiva.',
+    'Alagoas': 'Política marcada por oligarquias históricas e forte clientelismo. Eleitorado sensível a programas sociais. Maceió versus interior são dinâmicas opostas. Seca e desigualdade são temas centrais.',
+    'Amapá': 'Estado jovem com forte presença federal e militar. Macapá tem predominância eleitoral. Temas amazônicos e de infraestrutura (energia, conectividade) dominam o debate.',
+    'Amazonas': 'Zona Franca de Manaus é tema central e divisor de águas. Eleitorado urbano em Manaus versus comunidades ribeirinhas com dinâmicas distintas. Meio ambiente e desenvolvimento equilibrados.',
+    'Bahia': 'Comunicação via WhatsApp extremamente rápida e volátil. Instagram/TikTok ditam o ritmo da pauta política. O eleitor baiano valoriza autenticidade; silêncio é interpretado como culpa. Regiões (Oeste, Recôncavo, Salvador, Sul) com culturas políticas distintas.',
+    'Ceará': 'Tradição de gestão progressista com resultados em indicadores sociais. Eleitorado urbano sofisticado em Fortaleza. Interior com forte cultura de política de base. Seca e recursos hídricos são temas permanentes.',
+    'Distrito Federal': 'Eleitorado peculiar: servidores públicos federais concentrados, alta renda e escolaridade média. Política nacional domina o debate local. Cidades-satélites com dinâmicas próprias distintas do Plano Piloto.',
+    'Espírito Santo': 'Estado equilibrado entre agronegócio (interior) e indústria/porto (Vitória/Grande Vitória). Eleitorado pragmático com baixa volatilidade. Segurança pública é tema constante.',
+    'Goiás': 'Agronegócio de alta produtividade é base eleitoral dominante. Goiânia tem eleitorado urbano e conservador. Interior com forte tradição religiosa e ruralismo. Infraestrutura logística é tema central.',
+    'Maranhão': 'Oligarquia Sarney moldou a política por décadas. Eleitorado sensível a programas sociais. São Luís versus interior com diferenças culturais marcantes. Pobreza e desenvolvimento são temas permanentes.',
+    'Mato Grosso': 'Agronegócio de exportação é o motor político. Eleitorado conservador e ruralista dominante. Cuiabá com crescimento urbano recente. Desmatamento e sustentabilidade são temas de pressão externa.',
+    'Mato Grosso do Sul': 'Estado de fronteira com forte presença indígena e agronegócio. Campo Grande tem eleitorado equilibrado. Questão fundiária e segurança na fronteira são temas sensíveis.',
+    'Minas Gerais': 'Política de coalizão histórica e eleitorado indecisos ("povo de Minas não decide cedo"). Interior conservador versus RMBH progressista. Agronegócio, mineração e indústria como bases eleitorais distintas.',
+    'Pará': 'Região amazônica com conflitos fundiários históricos. Belém ganhou projeção com COP30. Eleitorado sensível a desenvolvimento versus preservação. Interior com forte influência religiosa e ruralista.',
+    'Paraíba': 'Tradição de famílias políticas consolidadas. João Pessoa com eleitorado universitário expressivo. Semiárido e políticas de convivência com a seca são temas permanentes.',
+    'Paraná': 'Estado desenvolvido com eleitorado sofisticado e conservador. Curitiba tem tradição de voto anti-establishment. Agronegócio forte no interior. MST e questão agrária são temas sensíveis.',
+    'Pernambuco': 'Polo político e econômico do Nordeste. Recife com eleitorado urbano e progressista. Interior com forte cultura de política de base. Suape e desenvolvimento industrial são temas centrais.',
+    'Piauí': 'Um dos estados mais pobres; programas sociais têm impacto eleitoral decisivo. Teresina concentra poder eleitoral. Interior profundo com forte clientelismo e influência religiosa.',
+    'Rio de Janeiro': 'Milícias e crime organizado influenciam eleições em múltiplas regiões. Capital com eleitorado fragmentado. Interior com dinâmicas municipais autônomas. Segurança pública e crise fiscal são temas permanentes.',
+    'Rio Grande do Norte': 'Estado com tradição de ruptura com oligarquias. Natal tem eleitorado universitário expressivo. Energia eólica é tema de desenvolvimento local. Seca e recursos hídricos são constantes.',
+    'Rio Grande do Sul': 'Eleitorado europeu e gaúcho com forte identidade regional. Porto Alegre com tradição de esquerda alternada com direita. Interior conservador e ruralista. Reconstrução pós-enchentes é tema imediato.',
+    'Rondônia': 'Colonização recente com eleitorado heterogêneo. Agropecuária e extrativismo como bases econômicas. Porto Velho com crescimento acelerado. Infraestrutura e energia (hidrelétricas) são temas centrais.',
+    'Roraima': 'Estado marcado pela imigração venezuelana e questão indígena Yanomami. Boa Vista com eleitorado concentrado. Segurança de fronteira é tema permanente e sensível.',
+    'Santa Catarina': 'Estado mais conservador do Sul; eleitorado pró-mercado e empreendedor. Indústria diversificada e turismo como bases eleitorais. Florianópolis com eleitorado urbano e de alta renda.',
+    'São Paulo': 'Eleitorado fragmentado e urbano é o maior desafio. Mídia tradicional ainda relevante em SP capital. Interior paulista com dinâmicas municipais autônomas. Mobilidade urbana, segurança e saúde dominam pauta.',
+    'Sergipe': 'Menor estado do Brasil com política concentrada em Aracaju. Petróleo offshore é tema de desenvolvimento. Eleitorado sensível a programas sociais e gestão eficiente.',
+    'Tocantins': 'Estado jovem com fronteira agronegócio-cerrado-amazônia. Palmas é capital planejada com eleitorado de servidores. Agropecuária e desenvolvimento logístico são temas centrais.',
+  };
+
+  const baseContext = stateContexts[state]
+    ? `Contexto político de ${state}: ${stateContexts[state]}`
+    : `Contexto nacional brasileiro: Eleitor valoriza transparência, resultados concretos e boa comunicação nas redes sociais. Ciclo de notícias é determinado pelo Twitter/X, Instagram e WhatsApp. Polarização nacional exige posicionamento claro.`;
+
+  const regionNote = region
+    ? ` Foco específico na região/cidade: ${region}.`
+    : '';
+
+  const custom = customContext
+    ? ` Contexto adicional fornecido pelo consultor: ${customContext}`
+    : '';
+
+  return `${baseContext}${regionNote}${custom}`;
+}
+
+function buildExpertInstructions(state: string = 'Brasil'): string {
+  return `Instruções de Especialista:
+1. Ciência Política: Analise como um cientista político especialista em ${state}.
+2. Psicologia de Marketing: Identifique gatilhos de persuasão específicos para este eleitorado.
+3. Copywriting: Crie textos persuasivos e culturalmente adequados para o público-alvo.`;
+}
+
+/**
  * Autentica a request verificando o JWT do Supabase
  */
 async function authenticateRequest(req: VercelRequest): Promise<string> {
@@ -75,20 +136,11 @@ function safeParseAIResponse(text: string | undefined, requiredFields: string[])
   return parsed;
 }
 
-const BAHIA_CONTEXT = `
-Contexto Estratégico Bahia:
-- Comunicação via WhatsApp é extremamente rápida e volátil.
-- Redes sociais (Instagram/TikTok) ditam o ritmo da pauta política.
-- O eleitor baiano valoriza a autenticidade e a resposta rápida; o silêncio é interpretado como culpa.
-- Regiões (Oeste, Recôncavo, Salvador, Sul) possuem culturas políticas distintas.
-`;
-
-const EXPERT_INSTRUCTIONS = `
-Instruções de Especialista:
-1. Ciência Política: Analise o perfil como um cientista político focado na Bahia.
-2. Psicologia de Marketing: Identifique gatilhos de persuasão.
-3. Copywriting: Textos persuasivos para o público-alvo.
-`;
+interface WorkspaceContext {
+  state?: string;
+  region?: string;
+  customContext?: string;
+}
 
 const ALLOWED_ORIGIN = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -131,7 +183,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Request body is required' });
     }
 
-    const { action, data } = body;
+    const { action, data, workspaceContext } = body;
 
     if (!action || typeof action !== 'string') {
       return res.status(400).json({ error: 'Action is required' });
@@ -141,29 +193,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Data is required' });
     }
 
+    // Contexto regional do workspace ativo
+    const wsCtx: WorkspaceContext = workspaceContext && typeof workspaceContext === 'object'
+      ? workspaceContext
+      : {};
+
     const ai = getAI();
 
     switch (action) {
       case 'politicalInsight':
-        return await handlePoliticalInsight(ai, data, res);
+        return await handlePoliticalInsight(ai, data, res, wsCtx);
 
       case 'comparativeInsight':
-        return await handleComparativeInsight(ai, data, res);
+        return await handleComparativeInsight(ai, data, res, wsCtx);
 
       case 'crisisResponse':
-        return await handleCrisisResponse(ai, data, res);
+        return await handleCrisisResponse(ai, data, res, wsCtx);
 
       case 'evaluateResponse':
-        return await handleEvaluateResponse(ai, data, res);
+        return await handleEvaluateResponse(ai, data, res, wsCtx);
 
       case 'sentiment':
-        return await handleSentiment(ai, data, res);
+        return await handleSentiment(ai, data, res, wsCtx);
 
       case 'chat':
-        return await handleChat(ai, data, res);
+        return await handleChat(ai, data, res, wsCtx);
 
       case 'briefing':
-        return await handleBriefing(ai, data, res);
+        return await handleBriefing(ai, data, res, wsCtx);
 
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -179,7 +236,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function handlePoliticalInsight(
   ai: GoogleGenAI,
   data: { handle: string },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { handle } = data;
 
@@ -191,9 +249,12 @@ async function handlePoliticalInsight(
     return res.status(400).json({ error: 'Handle too long (max 100 chars)' });
   }
 
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const expertInstructions = buildExpertInstructions(wsCtx.state);
+
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Analise o perfil @${handle} no contexto da Bahia. ${BAHIA_CONTEXT}. ${EXPERT_INSTRUCTIONS} Retorne JSON com gatilhos psicológicos detalhados.`,
+    contents: `Analise o perfil @${handle}. ${regionalContext}. ${expertInstructions} Retorne JSON com gatilhos psicológicos detalhados.`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -257,7 +318,8 @@ async function handlePoliticalInsight(
 async function handleComparativeInsight(
   ai: GoogleGenAI,
   data: { handles: string[] },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { handles } = data;
 
@@ -273,9 +335,12 @@ async function handleComparativeInsight(
     return res.status(400).json({ error: 'Invalid handle format' });
   }
 
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const expertInstructions = buildExpertInstructions(wsCtx.state);
+
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Compare os perfis: ${handles.join(', ')} na Bahia. ${BAHIA_CONTEXT}. ${EXPERT_INSTRUCTIONS} Analise a alavancagem psicológica do Candidato A sobre os outros. Retorne JSON.`,
+    contents: `Compare os perfis: ${handles.join(', ')}. ${regionalContext}. ${expertInstructions} Analise a alavancagem psicológica do Candidato A sobre os outros. Retorne JSON.`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -332,7 +397,8 @@ async function handleCrisisResponse(
     mediaData?: { data: string; mimeType: string };
     location?: { latitude: number; longitude: number };
   },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { incident, mediaData, location } = data;
 
@@ -344,12 +410,15 @@ async function handleCrisisResponse(
     return res.status(400).json({ error: 'Incident too long (max 5000 chars)' });
   }
 
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
   const parts: any[] = [{
-    text: `Você é um Spin Doctor baiano. Analise a crise e retorne um objeto JSON estrito.
+    text: `Você é um Spin Doctor especialista em ${stateName}. Analise a crise e retorne um objeto JSON estrito.
     Se houver mídia, analise tom de voz e imagem.
     Incidente: "${incident}"
 
-    ${BAHIA_CONTEXT}
+    ${regionalContext}
 
     REGRAS DE RESPOSTA:
     1. Retorne APENAS um objeto JSON.
@@ -429,7 +498,8 @@ async function handleCrisisResponse(
 async function handleEvaluateResponse(
   ai: GoogleGenAI,
   data: { incident: string; proposedResponse: string },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { incident, proposedResponse } = data;
 
@@ -441,12 +511,15 @@ async function handleEvaluateResponse(
     return res.status(400).json({ error: 'Input too long' });
   }
 
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const expertInstructions = buildExpertInstructions(wsCtx.state);
+
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: `Analise a eficácia desta resposta para o incidente: "${incident}".
     Resposta Proposta: "${proposedResponse}"
-    ${BAHIA_CONTEXT}
-    ${EXPERT_INSTRUCTIONS}
+    ${regionalContext}
+    ${expertInstructions}
     Retorne JSON.`,
     config: {
       responseMimeType: 'application/json',
@@ -473,7 +546,8 @@ async function handleEvaluateResponse(
 async function handleSentiment(
   ai: GoogleGenAI,
   data: { term: string; articleTitles: string[] },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { term, articleTitles } = data;
 
@@ -494,19 +568,12 @@ async function handleSentiment(
   }
 
   const titlesText = articleTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Analise o sentimento político sobre o termo "${term}" com base nestas manchetes de notícias da Bahia:
-
-${titlesText}
-
-${BAHIA_CONTEXT}
-
-Retorne um JSON com:
-- score: número de -1.0 (muito negativo) a 1.0 (muito positivo)
-- classification: "Positivo", "Neutro" ou "Negativo"
-- summary: resumo de 1-2 frases do sentimento predominante sobre "${term}"`,
+    contents: `Analise o sentimento político sobre o termo "${term}" com base nestas manchetes de notícias relacionadas a ${stateName}:\n\n${titlesText}\n\n${regionalContext}\n\nRetorne um JSON com:\n- score: número de -1.0 (muito negativo) a 1.0 (muito positivo)\n- classification: "Positivo", "Neutro" ou "Negativo"\n- summary: resumo de 1-2 frases do sentimento predominante sobre "${term}"`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -533,7 +600,8 @@ async function handleChat(
     message: string;
     history: any[];
   },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { handle, analysis, message, history } = data;
 
@@ -554,7 +622,10 @@ async function handleChat(
     parts: [{ text: h.parts }]
   }));
 
-  const systemInstruction = `Você é um consultor político sênior na Bahia. Contexto @${handle}: ${JSON.stringify(analysis).slice(0, 5000)}. ${BAHIA_CONTEXT}`;
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const systemInstruction = `Você é um consultor político sênior especialista em ${stateName}. Contexto @${handle}: ${JSON.stringify(analysis).slice(0, 5000)}. ${regionalContext}`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
@@ -588,7 +659,8 @@ async function handleBriefing(
     };
     topArticles: string[];
   },
-  res: VercelResponse
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
 ) {
   const { metrics, alerts, topArticles } = data;
 
@@ -600,7 +672,10 @@ async function handleBriefing(
     ? `\nManchetes recentes:\n${topArticles.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}`
     : '';
 
-  const prompt = `Voce e um consultor politico senior monitorando a situacao na Bahia.
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Voce e um consultor politico senior monitorando a situacao em ${stateName}.
 Com base nos dados abaixo, gere um briefing executivo de 2-3 frases em portugues brasileiro.
 
 Dados do Monitoramento:
@@ -612,7 +687,7 @@ Dados do Monitoramento:
 ${alerts?.topAlert ? `- Alerta principal: ${alerts.topAlert}` : ''}
 ${articlesContext}
 
-${BAHIA_CONTEXT}
+${regionalContext}
 
 Regras:
 1. Se ha alertas de perigo ou sentimento muito negativo (< -30%), status = "crisis"

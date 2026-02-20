@@ -3,6 +3,9 @@ import toast from 'react-hot-toast';
 import { generatePoliticalInsight, generateComparativeInsight } from '../services/geminiClient';
 import { DetailedAnalysis, ComparativeAnalysis } from '../types';
 import { useRateLimit } from './useRateLimit';
+import { useWorkspace } from '../context/WorkspaceContext';
+import { useUsageStore } from '../store/usageStore';
+import { useUsageGate } from './useUsageGate';
 
 interface UsePoliticalAnalysisReturn {
   loading: boolean;
@@ -28,6 +31,16 @@ interface UsePoliticalAnalysisReturn {
 export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { activeWorkspace } = useWorkspace();
+  const incrementUsage = useUsageStore(s => s.increment);
+  const analysisGate = useUsageGate('analyses');
+  const comparisonGate = useUsageGate('comparisons');
+
+  const workspaceContext = activeWorkspace ? {
+    state: activeWorkspace.state,
+    region: activeWorkspace.region,
+    customContext: activeWorkspace.customContext,
+  } : undefined;
 
   // Rate limiting: 10 análises por minuto
   const checkRateLimit = useRateLimit({
@@ -42,6 +55,12 @@ export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
       return null;
     }
 
+    // Verifica limite do free tier
+    if (!analysisGate.canProceed) {
+      toast.error(`Limite mensal atingido (${analysisGate.usage}/${analysisGate.limit} análises)`);
+      return null;
+    }
+
     // Verifica rate limiting
     if (!checkRateLimit()) return null;
 
@@ -49,11 +68,12 @@ export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
     setError(null);
 
     try {
-      const result = await generatePoliticalInsight(handle);
+      const result = await generatePoliticalInsight(handle, workspaceContext);
 
       if (result) {
+        incrementUsage('analyses');
         toast.success('Análise concluída com sucesso!');
-        return result;
+        return result as DetailedAnalysis;
       } else {
         toast.error('Não foi possível gerar a análise');
         return null;
@@ -67,13 +87,19 @@ export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
     } finally {
       setLoading(false);
     }
-  }, [checkRateLimit]);
+  }, [checkRateLimit, analysisGate, incrementUsage]);
 
   const compareCandidates = useCallback(async (handles: string[]): Promise<ComparativeAnalysis | null> => {
     const validHandles = handles.filter(h => h.trim() !== '');
 
     if (validHandles.length < 2) {
       toast.error('Digite pelo menos 2 candidatos para comparar');
+      return null;
+    }
+
+    // Verifica limite do free tier
+    if (!comparisonGate.canProceed) {
+      toast.error(`Limite mensal atingido (${comparisonGate.usage}/${comparisonGate.limit} comparações)`);
       return null;
     }
 
@@ -84,11 +110,12 @@ export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
     setError(null);
 
     try {
-      const result = await generateComparativeInsight(validHandles);
+      const result = await generateComparativeInsight(validHandles, workspaceContext);
 
       if (result) {
+        incrementUsage('comparisons');
         toast.success('Comparação concluída com sucesso!');
-        return result;
+        return result as ComparativeAnalysis;
       } else {
         toast.error('Não foi possível gerar a comparação');
         return null;
@@ -102,7 +129,7 @@ export const usePoliticalAnalysis = (): UsePoliticalAnalysisReturn => {
     } finally {
       setLoading(false);
     }
-  }, [checkRateLimit]);
+  }, [checkRateLimit, comparisonGate, incrementUsage]);
 
   return {
     loading,

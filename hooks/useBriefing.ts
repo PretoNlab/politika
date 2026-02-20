@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { generateBriefing } from '../services/geminiClient';
 import { CACHE_TTL, STORAGE_KEYS } from '../constants';
 import type { BriefingResult, BriefingStatus, PolitikaAlert, TaggedNewsArticle } from '../types';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 const BRIEFING_DEBOUNCE_MS = 5000;
 
@@ -104,6 +105,13 @@ export const useBriefing = ({
   const [isBriefingLoading, setIsBriefingLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlightRef = useRef(false);
+  const { activeWorkspace } = useWorkspace();
+
+  const workspaceContext = activeWorkspace ? {
+    state: activeWorkspace.state,
+    region: activeWorkspace.region,
+    customContext: activeWorkspace.customContext,
+  } : undefined;
 
   const activeAlerts = useMemo(() => alerts.filter(a => !a.isActioned), [alerts]);
   const dangerCount = useMemo(() => activeAlerts.filter(a => a.severity === 'danger' || a.severity === 'warning').length, [activeAlerts]);
@@ -139,7 +147,8 @@ export const useBriefing = ({
       const result = await generateBriefing(
         globalMetrics,
         { total: activeAlerts.length, dangerCount, opportunityCount, topAlert },
-        allArticles.slice(0, 10).map(a => a.title)
+        allArticles.slice(0, 10).map(a => a.title),
+        workspaceContext
       );
 
       const normalized: BriefingResult = {

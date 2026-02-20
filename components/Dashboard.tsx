@@ -6,6 +6,8 @@ import { usePoliticalAnalysis } from '../hooks/usePoliticalAnalysis';
 import { useNews } from '../hooks/useNews';
 import { supabase } from '../lib/supabase';
 import { LOADING_STEPS } from '../constants';
+import { useGenerationStore } from '../store/generationStore';
+import { useLifecycleStore } from '../store/lifecycleStore';
 
 const Dashboard: React.FC = () => {
   const [handles, setHandles] = useState<string[]>(['']);
@@ -19,11 +21,32 @@ const Dashboard: React.FC = () => {
 
   // Custom hooks
   const { analyzeCandidate, compareCandidates, loading } = usePoliticalAnalysis();
+  const { isGenerating, generatingHandle, initialData, clearState } = useGenerationStore();
+  const completeStep = useLifecycleStore(s => s.completeStep);
+  const incrementTotalAnalyses = useLifecycleStore(s => s.incrementTotalAnalyses);
   const { news, loading: loadingNews } = useNews({
     region: activeWorkspace?.region,
     watchwords: activeWorkspace?.watchwords || [],
     limit: 3
   });
+
+  // PLG Aha Moment handler
+  useEffect(() => {
+    if (initialData && generatingHandle) {
+      const dataToPass = initialData;
+      const handleToPass = generatingHandle;
+
+      // Clear the store so it doesn't fire again on navigation back
+      clearState();
+
+      // Save to history and navigate with the persisted ID
+      (async () => {
+        const savedId = await saveToHistory('insight', handleToPass, dataToPass);
+        const path = savedId ? `/insight-detail/${savedId}` : '/insight-detail';
+        navigate(path, { state: { result: dataToPass, handle: handleToPass } });
+      })();
+    }
+  }, [initialData, generatingHandle, navigate, clearState]);
 
   // Load history from Supabase
   useEffect(() => {
@@ -61,8 +84,8 @@ const Dashboard: React.FC = () => {
     };
   }, []);
 
-  const saveToHistory = async (type: 'insight' | 'comparison', handle: string, result: any) => {
-    if (!user) return;
+  const saveToHistory = async (type: 'insight' | 'comparison', handle: string, result: any): Promise<string | null> => {
+    if (!user) return null;
 
     try {
       const { data, error } = await supabase
@@ -80,9 +103,15 @@ const Dashboard: React.FC = () => {
       if (error) throw error;
       if (data) {
         setHistory(prev => [data, ...prev].slice(0, 5));
+        // Lifecycle tracking
+        completeStep('first_analysis');
+        incrementTotalAnalyses();
+        return data.id;
       }
+      return null;
     } catch (e) {
       console.error('Failed to save analysis:', e);
+      return null;
     }
   };
 
@@ -121,14 +150,16 @@ const Dashboard: React.FC = () => {
       if (activeHandles.length === 1) {
         const result = await analyzeCandidate(activeHandles[0]);
         if (result) {
-          saveToHistory('insight', activeHandles[0], result);
-          navigate('/insight-detail', { state: { result, handle: activeHandles[0] } });
+          const savedId = await saveToHistory('insight', activeHandles[0], result);
+          const path = savedId ? `/insight-detail/${savedId}` : '/insight-detail';
+          navigate(path, { state: { result, handle: activeHandles[0] } });
         }
       } else {
         const result = await compareCandidates(activeHandles);
         if (result) {
-          saveToHistory('comparison', activeHandles.join(' vs '), result);
-          navigate('/comparison-detail', { state: { result } });
+          const savedId = await saveToHistory('comparison', activeHandles.join(' vs '), result);
+          const path = savedId ? `/comparison-detail/${savedId}` : '/comparison-detail';
+          navigate(path, { state: { result } });
         }
       }
     } finally {
@@ -217,6 +248,25 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
+      {/* PLG AHA MOMENT: Loading State for Background Generation */}
+      {isGenerating && (
+        <div className="bg-primary/5 border border-primary/20 p-8 rounded-[3rem] text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-primary/20">
+            <div className="h-full bg-primary animate-progress-indeterminate"></div>
+          </div>
+          <div className="size-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 relative">
+            <span className="material-symbols-outlined text-3xl animate-pulse">neurology</span>
+            <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+            Gerando Dossiê Estratégico Inicial...
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto">
+            A Inteligência Artificial está analisando o histórico, o tom dominante e as vulnerabilidades de <strong className="text-primary">@{generatingHandle}</strong>. Você será redirecionado assim que estiver pronto.
+          </p>
+        </div>
+      )}
+
       {/* Recent News */}
       {activeWorkspace && (
         <div className="space-y-4">
@@ -284,9 +334,9 @@ const Dashboard: React.FC = () => {
                 key={item.id}
                 onClick={() => {
                   if (item.type === 'insight') {
-                    navigate('/insight-detail', { state: { result: item.result, handle: item.handle } });
+                    navigate(`/insight-detail/${item.id}`, { state: { result: item.result, handle: item.handle } });
                   } else {
-                    navigate('/comparison-detail', { state: { result: item.result } });
+                    navigate(`/comparison-detail/${item.id}`, { state: { result: item.result } });
                   }
                 }}
                 className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between hover:border-primary transition-colors cursor-pointer"

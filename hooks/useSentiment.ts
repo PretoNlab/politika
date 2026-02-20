@@ -3,6 +3,7 @@ import { analyzeSentiment } from '../services/geminiClient';
 import { useRateLimit } from './useRateLimit';
 import { RATE_LIMITS, STORAGE_KEYS, CACHE_TTL } from '../constants';
 import type { SentimentResult } from '../types';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 /**
  * Generates a simple hash of article titles for cache key.
@@ -64,6 +65,13 @@ export const useSentiment = (): UseSentimentReturn => {
     errorMessage: 'Muitas análises de sentimento em pouco tempo.'
   });
   const inFlightRef = useRef<Set<string>>(new Set());
+  const { activeWorkspace } = useWorkspace();
+
+  const workspaceContext = activeWorkspace ? {
+    state: activeWorkspace.state,
+    region: activeWorkspace.region,
+    customContext: activeWorkspace.customContext,
+  } : undefined;
 
   const analyze = useCallback(async (
     term: string,
@@ -90,7 +98,7 @@ export const useSentiment = (): UseSentimentReturn => {
     setLoadingTerms(prev => new Set(prev).add(term));
 
     try {
-      const result = await analyzeSentiment(term, articleTitles) as SentimentResult;
+      const result = await analyzeSentiment(term, articleTitles, workspaceContext) as SentimentResult;
       setCachedSentiment(term, articlesHash, result);
       setResults(prev => ({ ...prev, [term]: result }));
       return result;

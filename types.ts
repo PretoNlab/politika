@@ -169,3 +169,13 @@ export interface BriefingResult {
   recommendations: string[];
 }
 
+
+export interface AnalysisHistoryItem {
+  id: string;
+  user_id: string;
+  workspace_id: string | null;
+  type: 'insight' | 'comparison';
+  handle: string;
+  result: DetailedAnalysis | ComparativeAnalysis;
+  created_at: string;
+}

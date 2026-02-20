@@ -16,9 +16,16 @@ const API_TIMEOUT_MS = TIMEOUTS.apiRequest || 60000;
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1000;
 
+export interface WorkspaceContext {
+  state?: string;
+  region?: string;
+  customContext?: string;
+}
+
 interface ApiRequest {
   action: string;
   data: any;
+  workspaceContext?: WorkspaceContext;
 }
 
 interface ApiResponse<T = any> {
@@ -69,8 +76,21 @@ async function callApi<T>(request: ApiRequest): Promise<T> {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-        const err = new Error(error.error || `API request failed with status ${response.status}`);
+        let errorMessage = `Erro na API: status ${response.status}`;
+
+        if (response.status === 404) {
+          errorMessage = 'O endpoint da API não foi encontrado. Certifique-se de que o backend está rodando (tente usar `vercel dev`).';
+        } else {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (e) {
+            // Se não for JSON, mantém a mensagem genérica com o status
+            errorMessage = `A API retornou uma resposta inválida (status ${response.status}).`;
+          }
+        }
+
+        const err = new Error(errorMessage);
         if (attempt < MAX_RETRIES && isRetryable(err, response.status)) {
           lastError = err;
           clearTimeout(timeoutId);
@@ -113,7 +133,10 @@ async function callApi<T>(request: ApiRequest): Promise<T> {
 /**
  * Gera análise política de um candidato
  */
-export const generatePoliticalInsight = async (handle: string) => {
+export const generatePoliticalInsight = async (
+  handle: string,
+  workspaceContext?: WorkspaceContext
+) => {
   // Sanitiza o handle antes de enviar
   const sanitizedHandle = sanitizeHandle(handle);
 
@@ -123,14 +146,18 @@ export const generatePoliticalInsight = async (handle: string) => {
 
   return callApi({
     action: 'politicalInsight',
-    data: { handle: sanitizedHandle }
+    data: { handle: sanitizedHandle },
+    workspaceContext,
   });
 };
 
 /**
  * Gera análise comparativa entre candidatos
  */
-export const generateComparativeInsight = async (handles: string[]) => {
+export const generateComparativeInsight = async (
+  handles: string[],
+  workspaceContext?: WorkspaceContext
+) => {
   // Sanitiza todos os handles
   const sanitizedHandles = handles
     .map(h => sanitizeHandle(h))
@@ -142,7 +169,8 @@ export const generateComparativeInsight = async (handles: string[]) => {
 
   return callApi({
     action: 'comparativeInsight',
-    data: { handles: sanitizedHandles }
+    data: { handles: sanitizedHandles },
+    workspaceContext,
   });
 };
 
@@ -152,7 +180,8 @@ export const generateComparativeInsight = async (handles: string[]) => {
 export const generateCrisisResponse = async (
   incident: string,
   mediaData?: { data: string; mimeType: string },
-  location?: { latitude: number; longitude: number }
+  location?: { latitude: number; longitude: number },
+  workspaceContext?: WorkspaceContext
 ) => {
   // Sanitiza o incidente
   const sanitizedIncident = sanitizeInput(incident, { maxLength: 3000 });
@@ -167,7 +196,8 @@ export const generateCrisisResponse = async (
       incident: sanitizedIncident,
       mediaData,
       location
-    }
+    },
+    workspaceContext,
   });
 };
 
@@ -176,7 +206,8 @@ export const generateCrisisResponse = async (
  */
 export const evaluateResponse = async (
   incident: string,
-  proposedResponse: string
+  proposedResponse: string,
+  workspaceContext?: WorkspaceContext
 ) => {
   const sanitizedIncident = sanitizeInput(incident, { maxLength: 3000 });
   const sanitizedResponse = sanitizeInput(proposedResponse, { maxLength: 5000 });
@@ -186,7 +217,8 @@ export const evaluateResponse = async (
     data: {
       incident: sanitizedIncident,
       proposedResponse: sanitizedResponse
-    }
+    },
+    workspaceContext,
   });
 };
 
@@ -195,7 +227,8 @@ export const evaluateResponse = async (
  */
 export const analyzeSentiment = async (
   term: string,
-  articleTitles: string[]
+  articleTitles: string[],
+  workspaceContext?: WorkspaceContext
 ): Promise<{ score: number; classification: string; summary: string }> => {
   if (!term || term.trim().length === 0) {
     throw new Error('Termo é obrigatório para análise de sentimento');
@@ -215,7 +248,8 @@ export const analyzeSentiment = async (
     data: {
       term: sanitizedTerm,
       articleTitles: sanitizedTitles
-    }
+    },
+    workspaceContext,
   });
 };
 
@@ -235,7 +269,8 @@ export const generateBriefing = async (
     opportunityCount: number;
     topAlert?: string;
   },
-  topArticleTitles: string[]
+  topArticleTitles: string[],
+  workspaceContext?: WorkspaceContext
 ): Promise<{ status: string; summary: string; recommendations: string[] }> => {
   // Short-circuit: sem dados suficientes, retorna resposta estática
   if (metricsSnapshot.totalMentions === 0 && alertsSummary.total === 0) {
@@ -256,7 +291,8 @@ export const generateBriefing = async (
       metrics: metricsSnapshot,
       alerts: alertsSummary,
       topArticles: sanitizedTitles
-    }
+    },
+    workspaceContext,
   });
 };
 
@@ -267,7 +303,8 @@ export const chatWithAnalysis = async (
   handle: string,
   analysis: any,
   message: string,
-  history: any[]
+  history: any[],
+  workspaceContext?: WorkspaceContext
 ) => {
   // Sanitiza handle e mensagem
   const sanitizedHandle = sanitizeHandle(handle);
@@ -291,6 +328,7 @@ export const chatWithAnalysis = async (
       analysis,
       message: sanitizedMessage,
       history: sanitizedHistory
-    }
+    },
+    workspaceContext,
   });
 };

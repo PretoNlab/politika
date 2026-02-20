@@ -60,7 +60,7 @@ const History: React.FC = () => {
               : `Análise individual do perfil ${item.handle}`,
             date: new Date(item.created_at).toLocaleDateString('pt-BR'),
             status: 'Concluído',
-            navigateTo: item.type === 'comparison' ? '/comparison-detail' : '/insight-detail',
+            navigateTo: item.type === 'comparison' ? `/comparison-detail/${item.id}` : `/insight-detail/${item.id}`,
             navigationState: item.type === 'comparison'
               ? { result: item.result }
               : { result: item.result, handle: item.handle },

@@ -22,7 +22,16 @@
       "Bash(unzip:*)",
       "Bash(~/bin/gh auth status:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Politika - Political Intelligence Platform\n\nPlatform for political analysis focused on Bahia, Brazil.\nBuilt with React 19, TypeScript, Vite, Google Gemini AI, and Supabase.\nDeployed on Vercel with secure backend proxy pattern.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(~/bin/gh repo create politika --public --description \"Politika - Political Intelligence Platform for Bahia, Brazil. Built with React, TypeScript, Gemini AI & Supabase.\" --source=. --push)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx vite:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(kill:*)"
     ]
   }
 }

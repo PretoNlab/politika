@@ -141,6 +141,32 @@ export const TERM_COLORS = [
   '#84cc16', // lima
 ];
 
+// Free tier limits (mensal)
+export const FREE_TIER_LIMITS = {
+  analyses: 15,
+  comparisons: 5,
+  crises: 10,
+  chats: 50,
+} as const;
+
+export type UsageCategory = keyof typeof FREE_TIER_LIMITS;
+
+// Onboarding / Lifecycle
+export const ONBOARDING_STEPS = [
+  { id: 'create_workspace', label: 'Criar um Workspace', icon: 'folder_shared' },
+  { id: 'first_analysis', label: 'Fazer primeira análise', icon: 'analytics' },
+  { id: 'visit_radar', label: 'Visitar o Radar', icon: 'radar' },
+  { id: 'visit_warroom', label: 'Abrir o War Room', icon: 'warning' },
+  { id: 'use_chat', label: 'Usar o Chat Estratégico', icon: 'forum' },
+] as const;
+
+export const MILESTONE_THRESHOLDS = [
+  { count: 1, id: 'first_analysis', title: 'Primeira Análise!', description: 'Você completou sua primeira análise estratégica.' },
+  { count: 5, id: 'fifth_analysis', title: '5 Análises!', description: 'Você está se tornando um estrategista experiente.' },
+  { count: 10, id: 'tenth_analysis', title: '10 Análises!', description: 'Nível expert. Sua visão política está afiada.' },
+  { count: 25, id: 'twentyfifth_analysis', title: '25 Análises!', description: 'Mestre estrategista. Ninguém escapa do seu radar.' },
+] as const;
+
 // Onboarding steps para PulseMonitor
 export const PULSE_ONBOARDING_STEPS = [
   {

@@ -1,33 +1,83 @@
 
-import React from 'react';
-import { useLocation, Link, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useParams, Link, Navigate } from 'react-router-dom';
 import { ComparativeAnalysis } from '../types';
+import { supabase } from '../lib/supabase';
+import ShareToolbar from './ShareToolbar';
 
 const ComparisonDetail: React.FC = () => {
   const location = useLocation();
-  const state = location.state as { result: ComparativeAnalysis };
+  const { id } = useParams<{ id: string }>();
+  const locationState = location.state as { result: ComparativeAnalysis } | null;
 
-  if (!state || !state.result) return <Navigate to="/" />;
+  const [result, setResult] = useState<ComparativeAnalysis | null>(locationState?.result || null);
+  const [analysisId, setAnalysisId] = useState<string>(id || '');
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
-  const { result } = state;
+  // Fetch from Supabase if no location.state but we have an ID
+  useEffect(() => {
+    if (result) return;
+    if (!id) {
+      setFetchError(true);
+      return;
+    }
 
-  if (!result.candidates || result.candidates.length === 0) {
-    return <Navigate to="/" />;
+    const fetchAnalysis = async () => {
+      setFetchLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('analyses')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error || !data) {
+          setFetchError(true);
+          return;
+        }
+
+        setResult(data.result as ComparativeAnalysis);
+        setAnalysisId(data.id);
+      } catch {
+        setFetchError(true);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+
+    fetchAnalysis();
+  }, [id, result]);
+
+  if (fetchError) return <Navigate to="/" />;
+
+  if (fetchLoading) {
+    return (
+      <div className="max-w-[1200px] mx-auto px-6 py-20 flex flex-col items-center gap-4">
+        <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <p className="text-sm font-medium text-slate-500">Carregando análise comparativa...</p>
+      </div>
+    );
   }
 
-  const mainCandidate = result.candidates[0];
+  if (!result || !result.candidates || result.candidates.length === 0) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-10 space-y-12 animate-reveal">
       {/* Breadcrumb & Header */}
       <header className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="text-slate-500 hover:text-primary text-sm flex items-center gap-1 transition-colors">
-            <span className="material-symbols-outlined text-sm">home</span>
-            Dashboard
-          </Link>
-          <span className="text-slate-400 text-xs">/</span>
-          <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">Battle Card Comparativo</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="text-slate-500 hover:text-primary text-sm flex items-center gap-1 transition-colors">
+              <span className="material-symbols-outlined text-sm">home</span>
+              Dashboard
+            </Link>
+            <span className="text-slate-400 text-xs">/</span>
+            <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">Battle Card Comparativo</span>
+          </div>
+          {analysisId && <ShareToolbar analysisId={analysisId} type="comparison" />}
         </div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">

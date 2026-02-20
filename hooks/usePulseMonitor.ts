@@ -3,9 +3,9 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { useNews } from './useNews';
 import { useSentiment } from './useSentiment';
 import { tagArticlesWithTerms, computeTimeDistribution } from '../services/newsService';
-import { buildTrendFromArticles, computeTrendDirection } from '../services/trendsService';
+import { buildTrendFromArticles, computeTrendDirection, buildDailyTrendFromArticles, groupArticlesByDay } from '../services/trendsService';
 import type { TaggedNewsArticle, TermMetrics, SentimentResult } from '../types';
-import type { TrendPoint } from '../services/trendsService';
+import type { TrendPoint, DailyTrendPoint, DayGroup } from '../services/trendsService';
 
 interface UsePulseMonitorReturn {
   terms: string[];
@@ -25,6 +25,11 @@ interface UsePulseMonitorReturn {
   isLoading: boolean;
   isNewsLoading: boolean;
   refresh: () => Promise<void>;
+  // 15-day daily data
+  dailyTrendPoints: DailyTrendPoint[];
+  dailyPulseData: number[];
+  articlesByDay: DayGroup[];
+  dailyTrendDirection: 'up' | 'down' | 'steady';
 }
 
 export const usePulseMonitor = (): UsePulseMonitorReturn => {
@@ -136,6 +141,29 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
     return { totalMentions, avgSentiment, hottestTerm, overallTrend };
   }, [taggedArticles, sentimentResults, watchwords, metrics, pulseData]);
 
+  // 15-day daily waveform
+  const { dailyPulseData, dailyTrendPoints } = useMemo(() => {
+    const source = activeTerm
+      ? taggedArticles.filter(a => a.matchedTerms.includes(activeTerm))
+      : taggedArticles;
+    const points = buildDailyTrendFromArticles(source);
+    return { dailyPulseData: points.map(p => p.value), dailyTrendPoints: points };
+  }, [taggedArticles, activeTerm]);
+
+  // Articles grouped by day (most recent first)
+  const articlesByDay = useMemo(() => {
+    const source = activeTerm
+      ? taggedArticles.filter(a => a.matchedTerms.includes(activeTerm))
+      : taggedArticles;
+    return groupArticlesByDay(source);
+  }, [taggedArticles, activeTerm]);
+
+  // 15-day trend direction
+  const dailyTrendDirection = useMemo(
+    () => computeTrendDirection(dailyPulseData),
+    [dailyPulseData]
+  );
+
   const refresh = useCallback(async () => {
     sentimentTriggeredRef.current = '';
     await refetchNews();
@@ -153,6 +181,10 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
     trendPoints,
     isLoading: isNewsLoading,
     isNewsLoading,
-    refresh
+    refresh,
+    dailyTrendPoints,
+    dailyPulseData,
+    articlesByDay,
+    dailyTrendDirection
   };
 };

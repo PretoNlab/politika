@@ -2,8 +2,28 @@ import React, { useState } from 'react';
 import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
 import type { TaggedNewsArticle } from '../types';
+import type { DailyTrendPoint, DayGroup } from '../services/trendsService';
 
-// --- Sub-components ---
+// ============================================
+// Helpers
+// ============================================
+
+function formatRelativeTime(pubDate: string): string {
+  const date = new Date(pubDate);
+  if (isNaN(date.getTime())) return '';
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  if (diffMins < 60) return diffMins <= 1 ? 'agora' : `${diffMins}min`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'ontem';
+  return `${diffDays}d`;
+}
+
+// ============================================
+// Sub-components
+// ============================================
 
 interface MetricProps {
   label: string;
@@ -84,6 +104,26 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
   </div>
 );
 
+const HighlightedTitle: React.FC<{ title: string; terms: string[] }> = ({ title, terms }) => {
+  if (terms.length === 0) return <>{title}</>;
+
+  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const parts = title.split(pattern);
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        const isMatch = terms.some(t => t.toLowerCase() === part.toLowerCase());
+        return isMatch ? (
+          <mark key={i} className="bg-primary/20 text-primary rounded px-0.5 font-black">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        );
+      })}
+    </>
+  );
+};
+
 interface OnboardingModalProps {
   show: boolean;
   step: number;
@@ -141,7 +181,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
               onClick={isLastStep ? onClose : onNext}
               className="flex-[2] py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 shadow-xl shadow-primary/20"
             >
-              {isLastStep ? 'Entendido!' : 'Próximo'}
+              {isLastStep ? 'Entendido!' : 'Proximo'}
             </button>
           </div>
         </div>
@@ -150,30 +190,211 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
   );
 };
 
-/**
- * Highlights matched terms in article title.
- */
-const HighlightedTitle: React.FC<{ title: string; terms: string[] }> = ({ title, terms }) => {
-  if (terms.length === 0) return <>{title}</>;
+// ============================================
+// DailyWaveform — 15-day bar chart
+// ============================================
 
-  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-  const parts = title.split(pattern);
+interface DailyWaveformProps {
+  dailyTrendPoints: DailyTrendPoint[];
+  activeTerm: string | null;
+  terms: string[];
+  isLoading: boolean;
+}
+
+const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeTerm, terms, isLoading }) => {
+  const barColor = activeTerm
+    ? TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]
+    : undefined;
 
   return (
-    <>
-      {parts.map((part, i) => {
-        const isMatch = terms.some(t => t.toLowerCase() === part.toLowerCase());
-        return isMatch ? (
-          <mark key={i} className="bg-primary/20 text-primary rounded px-0.5 font-black">{part}</mark>
-        ) : (
-          <span key={i}>{part}</span>
-        );
-      })}
-    </>
+    <div className="bg-text-heading rounded-[3rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl">
+      <div className="absolute top-0 right-0 p-8 opacity-10">
+        <span className="material-symbols-outlined text-9xl">radar</span>
+      </div>
+
+      <div className="relative space-y-6 flex flex-col">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <h3 className="text-sm font-black uppercase tracking-widest text-primary">
+              Radar 15 Dias
+            </h3>
+            <p className="text-[10px] font-medium text-slate-400 max-w-xs leading-normal">
+              Volume diario de noticias{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+            {activeTerm && (
+              <div
+                className="flex items-center gap-1.5 p-1 px-3 rounded-full border border-white/10 uppercase"
+                style={{ backgroundColor: `${TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]}20` }}
+              >
+                <span
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length] }}
+                />
+                {activeTerm}
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 p-1 px-3 bg-white/5 rounded-full border border-white/10 uppercase">
+              <span className="size-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(19,109,236,0.8)]"></span>
+              Cobertura
+            </div>
+          </div>
+        </div>
+
+        {/* Bar chart — 15 bars */}
+        <div className="flex items-end gap-2 min-h-[220px] border-b border-white/10 pb-4">
+          {isLoading ? (
+            <div className="w-full h-full flex items-center justify-center opacity-20">
+              <span className="text-xs font-black uppercase tracking-[0.2em] animate-pulse">
+                Carregando dados reais...
+              </span>
+            </div>
+          ) : dailyTrendPoints.length > 0 && dailyTrendPoints.some(p => p.value > 0) ? (
+            dailyTrendPoints.map((point, i) => (
+              <div
+                key={i}
+                className={`flex-1 rounded-t-lg transition-all duration-500 opacity-60 hover:opacity-100 group/bar relative cursor-default ${!barColor ? 'bg-primary' : ''}`}
+                style={{
+                  height: `${Math.max(point.value, 4)}%`,
+                  ...(barColor ? { backgroundColor: barColor } : {})
+                }}
+              >
+                {/* Hover tooltip */}
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg">
+                  <span className="text-slate-500">{point.label}</span>
+                  <span className="mx-1">—</span>
+                  <span>{point.count} {point.count === 1 ? 'artigo' : 'artigos'}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="w-full h-full flex items-center justify-center opacity-30">
+              <span className="text-xs font-black uppercase tracking-[0.2em]">
+                Sem dados no periodo
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Day labels */}
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+          {dailyTrendPoints.length > 0 && (
+            <>
+              <span>{dailyTrendPoints[0]?.label}</span>
+              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length / 4)]?.label}</span>
+              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length / 2)]?.label}</span>
+              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length * 3 / 4)]?.label}</span>
+              <span>{dailyTrendPoints[dailyTrendPoints.length - 1]?.label}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
-// --- Main component ---
+// ============================================
+// DayGroupedNewsFeed — articles grouped by day
+// ============================================
+
+interface DayGroupedNewsFeedProps {
+  articlesByDay: DayGroup[];
+  terms: string[];
+  activeTerm: string | null;
+  isLoading: boolean;
+}
+
+const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, terms, activeTerm, isLoading }) => (
+  <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 md:p-10 border border-slate-100 dark:border-slate-800 shadow-sm">
+    <div className="flex items-center justify-between mb-8">
+      <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
+        <span className="material-symbols-outlined text-sm">newspaper</span>
+        Noticias por Dia
+      </h3>
+      <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+    </div>
+
+    <div className="space-y-8 max-h-[700px] overflow-y-auto custom-scrollbar">
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : articlesByDay.length > 0 ? (
+        articlesByDay.map(group => (
+          <div key={group.date}>
+            {/* Day header */}
+            <div className="flex items-center gap-3 mb-4">
+              <h4 className="text-sm font-black text-text-heading dark:text-white uppercase tracking-widest">
+                {group.label}
+              </h4>
+              <span className="text-[10px] font-bold text-text-subtle dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+                {group.articles.length} {group.articles.length === 1 ? 'artigo' : 'artigos'}
+              </span>
+              <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+            </div>
+
+            {/* Articles for this day */}
+            <div className="space-y-2 pl-3 border-l-2 border-slate-100 dark:border-slate-800">
+              {group.articles.map((article, idx) => (
+                <a
+                  key={idx}
+                  href={article.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-primary/5 transition-all group"
+                >
+                  <p className="text-xs font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                    <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <p className="text-[10px] text-text-subtle dark:text-slate-500">{article.source}</p>
+                    <span className="text-[10px] text-text-subtle/50 dark:text-slate-600">
+                      {formatRelativeTime(article.pubDate)}
+                    </span>
+                    {article.matchedTerms.length > 0 && (
+                      <div className="flex gap-1 ml-auto">
+                        {article.matchedTerms.map(t => (
+                          <span
+                            key={t}
+                            className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <span className="material-symbols-outlined text-primary text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                      arrow_outward
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-5xl mb-3">
+            article
+          </span>
+          <p className="text-sm text-text-subtle dark:text-slate-500">
+            {activeTerm
+              ? `Nenhuma noticia encontrada para "${activeTerm}"`
+              : 'Nenhuma noticia encontrada'}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+// ============================================
+// Main Component — Radar de Noticias
+// ============================================
 
 const PulseMonitor: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -186,7 +407,9 @@ const PulseMonitor: React.FC = () => {
     metrics,
     globalMetrics,
     filteredArticles,
-    pulseData,
+    dailyTrendPoints,
+    articlesByDay,
+    dailyTrendDirection,
     isLoading,
     isNewsLoading,
     refresh
@@ -194,7 +417,7 @@ const PulseMonitor: React.FC = () => {
 
   const formatSentiment = (score: number | null): string => {
     if (score === null) return '—';
-    const pct = Math.round((score + 1) * 50); // -1→0%, 0→50%, 1→100%
+    const pct = Math.round((score + 1) * 50);
     return `${pct}%`;
   };
 
@@ -220,16 +443,16 @@ const PulseMonitor: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="size-3 bg-primary rounded-full animate-ping"></span>
+            <span className="material-symbols-outlined text-primary text-lg">radar</span>
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-              Live Sentiment Feed
+              Radar de Noticias
             </span>
           </div>
-          <h2 className="text-5xl font-black text-text-heading dark:text-white tracking-tighter uppercase font-display">
-            Sentiment Pulse
+          <h2 className="text-4xl md:text-5xl font-black text-text-heading dark:text-white tracking-tighter">
+            Ultimos 15 Dias
           </h2>
           <p className="text-text-subtle dark:text-slate-400 font-medium max-w-lg">
-            Monitoramento por termo em tempo real. Cada watchword do seu workspace é rastreada individualmente com análise de sentimento via IA.
+            Monitoramento continuo das suas watchwords. Cada mencao rastreada e classificada por sentimento via IA.
           </p>
         </div>
 
@@ -263,15 +486,15 @@ const PulseMonitor: React.FC = () => {
       )}
 
       {/* Primary Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
         <MetricCard
-          label="Total de Menções"
+          label="Mencoes (15d)"
           value={isNewsLoading ? '...' : `${globalMetrics.totalMentions}`}
-          trend={globalMetrics.overallTrend}
+          trend={dailyTrendDirection}
           color="bg-primary text-primary"
         />
         <MetricCard
-          label="Sentimento Médio"
+          label="Sentimento Medio"
           value={isNewsLoading ? '...' : formatSentiment(globalMetrics.avgSentiment)}
           trend={sentimentTrend()}
           color="bg-emerald-500 text-emerald-500"
@@ -283,168 +506,20 @@ const PulseMonitor: React.FC = () => {
           color="bg-amber-500 text-amber-500"
         />
         <MetricCard
-          label="Artigos Filtrados"
+          label="Total Artigos"
           value={isNewsLoading ? '...' : `${filteredArticles.length}`}
           trend="steady"
           color="bg-blue-500 text-blue-500"
         />
       </div>
 
-      {/* Main Visualization Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Real-time Waveform */}
-        <div className="lg:col-span-2 bg-text-heading rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-8 opacity-20">
-            <span className="material-symbols-outlined text-9xl">insights</span>
-          </div>
-
-          <div className="relative space-y-8 h-full flex flex-col">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <h3 className="text-sm font-black uppercase tracking-widest text-primary">
-                  Waveform de Ressonância
-                </h3>
-                <p className="text-[10px] font-medium text-slate-400 max-w-xs leading-normal">
-                  Distribuição horária de menções{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
-                </p>
-              </div>
-              <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
-                {activeTerm && (
-                  <div
-                    className="flex items-center gap-1.5 p-1 px-3 rounded-full border border-white/10 uppercase"
-                    style={{ backgroundColor: `${TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]}20` }}
-                  >
-                    <span
-                      className="size-1.5 rounded-full"
-                      style={{ backgroundColor: TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length] }}
-                    />
-                    {activeTerm}
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 p-1 px-3 bg-white/5 rounded-full border border-white/10 uppercase">
-                  <span className="size-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(19,109,236,0.8)]"></span>
-                  Interesse Ativo
-                </div>
-              </div>
-            </div>
-
-            {/* Chart Area */}
-            <div className="flex-1 flex items-end gap-1 min-h-[200px] border-b border-white/10 pb-4">
-              {isNewsLoading ? (
-                <div className="w-full h-full flex items-center justify-center opacity-20">
-                  <span className="text-xs font-black uppercase tracking-[0.2em] animate-pulse">
-                    Carregando dados reais...
-                  </span>
-                </div>
-              ) : pulseData.length > 0 && pulseData.some(v => v > 0) ? (
-                pulseData.map((val, i) => {
-                  const barColor = activeTerm
-                    ? TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]
-                    : undefined;
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-1 rounded-t-lg transition-all duration-500 opacity-60 hover:opacity-100 group/bar relative ${!barColor ? 'bg-primary' : ''}`}
-                      style={{
-                        height: `${Math.max(val, 2)}%`,
-                        ...(barColor ? { backgroundColor: barColor } : {})
-                      }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">
-                        {`${i.toString().padStart(2, '0')}h — ${Math.round(val)}%`}
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-30">
-                  <span className="text-xs font-black uppercase tracking-[0.2em]">
-                    Sem dados de distribuição temporal
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 pt-4">
-              <span>00h</span>
-              <span>06h</span>
-              <span>12h</span>
-              <span>18h</span>
-              <span>23h</span>
-            </div>
-          </div>
-        </div>
-
-        {/* News Feed */}
-        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col space-y-6">
-          <div className="flex justify-between items-start">
-            <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">newspaper</span>
-              Notícias {activeTerm ? `— ${activeTerm}` : 'em Tempo Real'}
-            </h3>
-            <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
-          </div>
-
-          <div className="flex-1 space-y-4 overflow-y-auto max-h-[400px] custom-scrollbar">
-            {isNewsLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : filteredArticles.length > 0 ? (
-              filteredArticles.map((item: TaggedNewsArticle, idx: number) => (
-                <a
-                  key={idx}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-4 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-primary/5 transition-all group"
-                >
-                  <p className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
-                    <HighlightedTitle
-                      title={item.title.split(' - ')[0]}
-                      terms={item.matchedTerms}
-                    />
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{item.source}</p>
-                      {item.matchedTerms.length > 0 && (
-                        <div className="flex gap-1">
-                          {item.matchedTerms.map(t => (
-                            <span
-                              key={t}
-                              className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full text-white"
-                              style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <span className="material-symbols-outlined text-primary text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                      arrow_outward
-                    </span>
-                  </div>
-                </a>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-5xl mb-3">
-                  article
-                </span>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {activeTerm
-                    ? `Nenhuma notícia encontrada para "${activeTerm}"`
-                    : 'Nenhuma notícia encontrada'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* 15-Day Waveform */}
+      <DailyWaveform
+        dailyTrendPoints={dailyTrendPoints}
+        activeTerm={activeTerm}
+        terms={terms}
+        isLoading={isNewsLoading}
+      />
 
       {/* Per-term Sentiment Cards */}
       {terms.length > 0 && Object.keys(metrics).length > 0 && (
@@ -453,7 +528,7 @@ const PulseMonitor: React.FC = () => {
             <div>
               <h3 className="text-2xl font-black text-text-heading dark:text-white">Sentimento por Termo</h3>
               <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">
-                Análise de sentimento via IA para cada watchword do seu workspace
+                Analise de sentimento via IA para cada watchword do seu workspace
               </p>
             </div>
             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
@@ -510,7 +585,7 @@ const PulseMonitor: React.FC = () => {
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                     {m.sentimentLoading ? 'Analisando...'
                       : m.sentiment ? m.sentiment.classification
-                      : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
+                      : m.mentions > 0 ? 'Aguardando analise' : 'Sem mencoes'}
                   </p>
                   {m.sentiment?.summary && (
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 line-clamp-2 leading-relaxed">
@@ -523,6 +598,14 @@ const PulseMonitor: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Day-Grouped News Feed */}
+      <DayGroupedNewsFeed
+        articlesByDay={articlesByDay}
+        terms={terms}
+        activeTerm={activeTerm}
+        isLoading={isNewsLoading}
+      />
     </div>
   );
 };
