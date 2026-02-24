@@ -31,6 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const origin = req.headers.origin || '';
     const allowedOrigins = [
         'https://politika-plum.vercel.app',
+        'https://iapolitika.com.br',
+        'https://www.iapolitika.com.br',
         'http://localhost:3000',
         'http://localhost:5173',
     ];
