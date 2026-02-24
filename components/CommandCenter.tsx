@@ -428,6 +428,19 @@ const MiniWaveform: React.FC<MiniWaveformProps> = ({ pulseData, activeTerm, term
   </div>
 );
 
+// --- Relative Time Helper ---
+
+const relativeTime = (dateStr: string): string => {
+  const now = Date.now();
+  const d = new Date(dateStr).getTime();
+  if (isNaN(d)) return '';
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return `${Math.floor(diff / 60)}min`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+};
+
 // --- HighlightedTitle ---
 
 const HighlightedTitle: React.FC<{ title: string; terms: string[] }> = ({ title, terms }) => {
@@ -484,14 +497,29 @@ const CompactAlertCard: React.FC<CompactAlertCardProps> = ({ alert, isExpanded, 
       {/* Expanded content */}
       {isExpanded && (
         <div className="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 space-y-3 animate-fade-up">
-          <p className="text-xs text-text-subtle dark:text-slate-400">{alert.description}</p>
+          <p className="text-xs text-text-subtle dark:text-slate-400 leading-relaxed">{alert.description}</p>
 
           {alert.relatedArticles.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-500">Artigos que geraram este alerta</p>
               {alert.relatedArticles.slice(0, 3).map((article, i) => (
                 <a key={i} href={article.link} target="_blank" rel="noopener noreferrer"
-                  className="block text-[10px] text-text-subtle dark:text-slate-500 hover:text-primary transition-colors truncate">
-                  {article.title.split(' - ')[0]}
+                  className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl hover:bg-primary/5 transition-colors group">
+                  <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm">article</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                      {article.title.split(' - ')[0]}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-text-subtle dark:text-slate-500">{article.source}</span>
+                      {(article as any).pubDate && (
+                        <span className="text-[10px] text-text-subtle/60 dark:text-slate-600">{relativeTime((article as any).pubDate)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary transition-colors text-sm flex-shrink-0">open_in_new</span>
                 </a>
               ))}
             </div>
@@ -727,74 +755,13 @@ const CommandCenter: React.FC = () => {
             />
           )}
 
-          {/* Waveform + News Feed */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <MiniWaveform
-                pulseData={pulseData}
-                activeTerm={activeTerm}
-                terms={terms}
-                isLoading={isNewsLoading}
-              />
-            </div>
-
-            {/* News Feed */}
-            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">newspaper</span>
-                  Noticias
-                </h3>
-                <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              </div>
-              <div className="flex-1 space-y-3 overflow-y-auto max-h-[350px]">
-                {isNewsLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
-                    ))}
-                  </div>
-                ) : filteredArticles.length > 0 ? (
-                  filteredArticles.slice(0, 8).map((article: TaggedNewsArticle, idx: number) => (
-                    <a
-                      key={idx}
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-3 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-primary/5 transition-all group"
-                    >
-                      <p className="text-xs font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
-                        <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <p className="text-[10px] text-text-subtle dark:text-slate-500">{article.source}</p>
-                        {article.matchedTerms.length > 0 && (
-                          <div className="flex gap-1">
-                            {article.matchedTerms.map(t => (
-                              <span
-                                key={t}
-                                className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full text-white"
-                                style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </a>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-4xl mb-2">article</span>
-                    <p className="text-xs text-text-subtle dark:text-slate-500">
-                      {activeTerm ? `Nenhuma noticia para "${activeTerm}"` : 'Nenhuma noticia encontrada'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* Waveform — full width */}
+          <MiniWaveform
+            pulseData={pulseData}
+            activeTerm={activeTerm}
+            terms={terms}
+            isLoading={isNewsLoading}
+          />
 
           {/* Alerts Section */}
           {activeAlerts.length > 0 && (
@@ -840,6 +807,145 @@ const CommandCenter: React.FC = () => {
               </p>
             </div>
           )}
+
+          {/* ═══ LIVE FEED ═══ */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            {/* Feed Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="size-9 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-lg">rss_feed</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-text-heading dark:text-white tracking-tight">Feed ao Vivo</h3>
+                  <p className="text-[10px] text-text-subtle dark:text-slate-400 font-medium">
+                    {filteredArticles.length} artigos · atualizado {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Ao vivo</span>
+              </div>
+            </div>
+
+            {/* Feed Filters */}
+            {terms.length > 0 && (
+              <div className="flex gap-2 px-6 py-3 border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
+                <button
+                  onClick={() => setActiveTerm(null)}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 ${activeTerm === null
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow'
+                      : 'bg-slate-100 dark:bg-slate-800 text-text-subtle dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                >
+                  Todos
+                </button>
+                {terms.map((term, idx) => {
+                  const color = TERM_COLORS[idx % TERM_COLORS.length];
+                  const isActive = activeTerm === term;
+                  return (
+                    <button
+                      key={term}
+                      onClick={() => setActiveTerm(isActive ? null : term)}
+                      className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 flex items-center gap-1.5`}
+                      style={isActive
+                        ? { backgroundColor: color, color: '#fff' }
+                        : { backgroundColor: `${color}18`, color }}
+                    >
+                      <span className="size-1.5 rounded-full" style={{ backgroundColor: isActive ? '#fff' : color }} />
+                      {term}
+                      {metrics[term] && <span className="opacity-70">({metrics[term].mentions})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Feed Articles */}
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {isNewsLoading ? (
+                <div className="p-6 space-y-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex gap-4 animate-pulse">
+                      <div className="size-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-3/4" />
+                        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredArticles.length > 0 ? (
+                filteredArticles.slice(0, 12).map((article: TaggedNewsArticle, idx: number) => (
+                  <a
+                    key={idx}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+                  >
+                    {/* Source icon */}
+                    <div className="size-10 rounded-xl bg-primary/8 dark:bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
+                      <span className="material-symbols-outlined text-primary text-base">article</span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                        <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
+                      </p>
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        <span className="text-[11px] font-medium text-text-subtle dark:text-slate-400">{article.source}</span>
+                        {(article as any).pubDate && (
+                          <span className="text-[11px] text-text-subtle/60 dark:text-slate-500">{relativeTime((article as any).pubDate)}</span>
+                        )}
+                        {article.matchedTerms.length > 0 && (
+                          <div className="flex gap-1 flex-wrap">
+                            {article.matchedTerms.map((t, ti) => (
+                              <span
+                                key={t}
+                                className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full text-white"
+                                style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <span className="material-symbols-outlined text-slate-200 dark:text-slate-700 group-hover:text-primary transition-all text-base flex-shrink-0 group-hover:translate-x-0.5">
+                      open_in_new
+                    </span>
+                  </a>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <span className="material-symbols-outlined text-slate-200 dark:text-slate-700 text-5xl mb-3">newspaper</span>
+                  <p className="text-sm font-bold text-text-subtle dark:text-slate-500">
+                    {activeTerm ? `Nenhum artigo para "${activeTerm}"` : 'Nenhum artigo encontrado'}
+                  </p>
+                  <p className="text-xs text-text-subtle/60 dark:text-slate-600 mt-1">Adicione watchwords ao workspace para monitorar</p>
+                </div>
+              )}
+            </div>
+
+            {/* Feed Footer */}
+            {filteredArticles.length > 12 && (
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs text-text-subtle dark:text-slate-500 font-medium">
+                  Mostrando 12 de {filteredArticles.length} artigos
+                </span>
+                <a href="#/pulse" className="text-xs font-black text-primary hover:underline flex items-center gap-1">
+                  Ver todos no Radar
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+              </div>
+            )}
+          </div>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

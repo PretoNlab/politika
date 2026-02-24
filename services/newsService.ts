@@ -3,7 +3,14 @@
  * News Service - Politika
  * Handles real-time news ingestion via Google News RSS
  *
- * Pipeline: backend proxy (primário) → CORS proxies (fallback) → cache 2h
+ * Pipeline: backend proxy (primário) → CORS proxies (fallback) → cache 30min
+ *
+ * v2 melhorias:
+ * - Cache reduzido de 2h → 30min (dados mais frescos)
+ * - Campo description (snippet) incluído
+ * - Breaking news detection (< 2h)
+ * - Ranking por relevância (termo no título = prioridade)
+ * - Deduplicação por link + título
  */
 
 import type { TaggedNewsArticle } from '../types';
@@ -14,11 +21,15 @@ export interface NewsArticle {
     link: string;
     pubDate: string;
     source: string;
+    description?: string;
+    isBreaking?: boolean;
+    relevanceScore?: number;
 }
 
-const CACHE_KEY_PREFIX = 'politika_news_cache_';
-const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas
-const MAX_ARTICLES_PER_TERM = 25;
+const CACHE_KEY_PREFIX = 'politika_news_cache_v2_';
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos (era 2h)
+const MAX_ARTICLES_PER_TERM = 50;       // era 25
+const BREAKING_NEWS_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 horas
 
 const NEWS_API_URL = import.meta.env.PROD
     ? '/api/news'
@@ -61,7 +72,10 @@ async function fetchViaBackend(region: string, term: string): Promise<NewsArticl
  * Fallback: busca RSS via CORS proxy público.
  */
 async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArticle[]> {
-    const query = encodeURIComponent(`${term} ${region}`);
+    // Query enriquecida igual ao backend
+    const electoralContext = 'eleição política candidato';
+    const queryStr = `"${term}" ${electoralContext} ${region}`;
+    const query = encodeURIComponent(queryStr);
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 
     for (const makeProxy of CORS_PROXIES) {
@@ -83,7 +97,11 @@ async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArti
                     title: item.querySelector("title")?.textContent || '',
                     link: item.querySelector("link")?.textContent || '',
                     pubDate: item.querySelector("pubDate")?.textContent || '',
-                    source: item.querySelector("source")?.textContent || 'Google News'
+                    source: item.querySelector("source")?.textContent || 'Google News',
+                    description: item.querySelector("description")?.textContent
+                        ?.replace(/<[^>]+>/g, '')
+                        .trim()
+                        .slice(0, 300) || '',
                 }))
                 .filter(a => a.pubDate.includes(currentYear) && a.title.length > 0)
                 .slice(0, MAX_ARTICLES_PER_TERM);
@@ -93,6 +111,54 @@ async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArti
     }
 
     return [];
+}
+
+/**
+ * Calcula o score de relevância de um artigo para um termo.
+ * - Título contém o termo: +3
+ * - Descrição contém o termo: +1
+ * - Artigo mais recente: +1 (últimas 6h)
+ * - Breaking news (< 2h): +2
+ */
+function computeRelevanceScore(article: NewsArticle, term: string): number {
+    const titleLower = article.title.toLowerCase();
+    const termLower = term.toLowerCase();
+    const descLower = (article.description || '').toLowerCase();
+
+    let score = 0;
+
+    if (titleLower.includes(termLower)) score += 3;
+    if (descLower.includes(termLower)) score += 1;
+
+    if (article.pubDate) {
+        const pubTime = new Date(article.pubDate).getTime();
+        const now = Date.now();
+        const ageMs = now - pubTime;
+
+        if (ageMs < BREAKING_NEWS_THRESHOLD_MS) {
+            score += 2; // Breaking
+        } else if (ageMs < 6 * 60 * 60 * 1000) {
+            score += 1; // Recente (< 6h)
+        }
+    }
+
+    return score;
+}
+
+/**
+ * Enriquece artigos com isBreaking e relevanceScore.
+ */
+function enrichArticles(articles: NewsArticle[], term: string): NewsArticle[] {
+    const now = Date.now();
+    return articles.map(article => {
+        const pubTime = article.pubDate ? new Date(article.pubDate).getTime() : 0;
+        const ageMs = pubTime ? now - pubTime : Infinity;
+        return {
+            ...article,
+            isBreaking: ageMs < BREAKING_NEWS_THRESHOLD_MS,
+            relevanceScore: computeRelevanceScore(article, term),
+        };
+    });
 }
 
 /**
@@ -121,29 +187,37 @@ async function fetchNewsForTerm(region: string, term: string): Promise<NewsArtic
         articles = await fetchViaBackend(region, term);
     } catch (err) {
         console.warn(`Backend news failed for "${term}", trying CORS proxies:`, err);
-        // Fallback pra CORS proxies
         articles = await fetchViaCORSProxy(region, term);
     }
 
-    if (articles.length > 0) {
+    // Enriquecer com isBreaking e relevanceScore
+    const enriched = enrichArticles(articles, term);
+
+    if (enriched.length > 0) {
         localStorage.setItem(cacheKey, JSON.stringify({
-            articles,
+            articles: enriched,
             timestamp: Date.now()
         }));
     }
 
-    return articles;
+    return enriched;
 }
 
 /**
- * Deduplica artigos por título normalizado.
+ * Deduplica artigos por link (primário) e título (secundário).
  */
 function deduplicateArticles(articles: NewsArticle[]): NewsArticle[] {
-    const seen = new Set<string>();
+    const seenLinks = new Set<string>();
+    const seenTitles = new Set<string>();
     return articles.filter(article => {
-        const key = article.title.toLowerCase().trim();
-        if (seen.has(key)) return false;
-        seen.add(key);
+        const linkKey = article.link.toLowerCase().trim();
+        const titleKey = article.title.toLowerCase().trim();
+
+        if (linkKey && seenLinks.has(linkKey)) return false;
+        if (seenTitles.has(titleKey)) return false;
+
+        if (linkKey) seenLinks.add(linkKey);
+        seenTitles.add(titleKey);
         return true;
     });
 }
@@ -151,13 +225,15 @@ function deduplicateArticles(articles: NewsArticle[]): NewsArticle[] {
 /**
  * Fetches Google News para todos os watchwords em paralelo.
  * Backend como fonte primária, CORS proxies como fallback.
+ * Artigos ordenados por relevanceScore desc, depois por data.
  */
 export const fetchGoogleNews = async (region: string, watchwords: string[]): Promise<NewsArticle[]> => {
-    if (!region || watchwords.length === 0) return [];
+    if (watchwords.length === 0) return [];
+    const safeRegion = region?.trim() || 'Brasil';
 
     try {
         const results = await Promise.allSettled(
-            watchwords.map(term => fetchNewsForTerm(region, term))
+            watchwords.map(term => fetchNewsForTerm(safeRegion, term))
         );
 
         const allArticles: NewsArticle[] = [];
@@ -168,7 +244,19 @@ export const fetchGoogleNews = async (region: string, watchwords: string[]): Pro
         }
 
         const unique = deduplicateArticles(allArticles);
+
+        // Ordenar: breaking news primeiro, depois por relevanceScore, depois por data
         unique.sort((a, b) => {
+            // Breaking news primeiro
+            if (a.isBreaking && !b.isBreaking) return -1;
+            if (!a.isBreaking && b.isBreaking) return 1;
+
+            // Depois por relevanceScore (maior = mais relevante)
+            const scoreA = a.relevanceScore ?? 0;
+            const scoreB = b.relevanceScore ?? 0;
+            if (scoreB !== scoreA) return scoreB - scoreA;
+
+            // Por último, por data
             const dateA = new Date(a.pubDate).getTime();
             const dateB = new Date(b.pubDate).getTime();
             return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
@@ -190,10 +278,15 @@ export const tagArticlesWithTerms = (
 ): TaggedNewsArticle[] => {
     return articles.map(article => {
         const titleLower = article.title.toLowerCase();
+        const descLower = (article.description || '').toLowerCase();
         const matchedTerms = watchwords.filter(term =>
-            titleLower.includes(term.toLowerCase())
+            titleLower.includes(term.toLowerCase()) ||
+            descLower.includes(term.toLowerCase())
         );
-        return { ...article, matchedTerms };
+        return {
+            ...article,
+            matchedTerms,
+        };
     });
 };
 

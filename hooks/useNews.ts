@@ -36,6 +36,8 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     autoFetch = true
   } = options;
 
+  const safeRegion = region?.trim() || 'Brasil';
+
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,16 +46,12 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
   const watchwordsKey = useMemo(() => watchwords.join(','), [watchwords]);
 
   const fetchNews = async () => {
-    if (!region) {
-      setNews([]);
-      return;
-    }
 
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchGoogleNews(region, watchwords);
+      const data = await fetchGoogleNews(safeRegion, watchwords);
       setNews(limit ? data.slice(0, limit) : data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar notícias';
@@ -65,10 +63,10 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
   };
 
   useEffect(() => {
-    if (autoFetch && region) {
+    if (autoFetch && watchwords.length > 0) {
       fetchNews();
     }
-  }, [region, watchwordsKey, limit, autoFetch]);
+  }, [safeRegion, watchwordsKey, limit, autoFetch]);
 
   return {
     news,

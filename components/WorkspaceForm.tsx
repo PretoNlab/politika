@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspace, Workspace } from '../context/WorkspaceContext';
 
 interface WorkspaceFormProps {
@@ -16,6 +16,37 @@ const BRAZILIAN_STATES = [
     'Santa Catarina', 'São Paulo', 'Sergipe', 'Tocantins',
 ];
 
+/**
+ * Gera sugestões de watchwords baseadas no nome do candidato, estado e região.
+ * Lógica local — sem necessidade de API.
+ */
+function generateSmartWatchwords(candidateName: string, state: string, region: string): string[] {
+    if (!candidateName.trim()) return [];
+
+    const firstName = candidateName.trim().split(' ')[0];
+    const fullName = candidateName.trim();
+    const locationFocus = region.trim() || state;
+
+    const suggestions = [
+        // Nome do candidato
+        fullName,
+        // Primeiro nome (como é chamado popularmente)
+        ...(firstName !== fullName ? [firstName] : []),
+        // Contexto eleitoral local
+        `eleição ${locationFocus}`,
+        `candidato ${locationFocus}`,
+        // Temas clássicos da política local
+        `vereador ${locationFocus}`,
+        `prefeito ${locationFocus}`,
+        // Críticas comuns
+        `${fullName} projeto`,
+        `${fullName} proposta`,
+    ];
+
+    // Remover duplicatas e retornar os 6 mais relevantes
+    return [...new Set(suggestions)].slice(0, 6);
+}
+
 const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace }) => {
     const { addWorkspace, updateWorkspace } = useWorkspace();
     const isEditing = !!editWorkspace;
@@ -23,9 +54,45 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
     const [name, setName] = useState(editWorkspace?.name || '');
     const [state, setState] = useState(editWorkspace?.state || 'Bahia');
     const [region, setRegion] = useState(editWorkspace?.region || '');
-    const [candidateHandle, setCandidateHandle] = useState(''); // NEW FIELD for PLG Onboarding
+    const [candidateHandle, setCandidateHandle] = useState('');
+    const [candidateName, setCandidateName] = useState(''); // Nome completo para sugestões
     const [customContext, setCustomContext] = useState(editWorkspace?.customContext || '');
     const [watchwords, setWatchwords] = useState(editWorkspace?.watchwords.join(', ') || '');
+    const [suggestedWatchwords, setSuggestedWatchwords] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Gerar sugestões automaticamente quando o nome do candidato muda
+    useEffect(() => {
+        if (!isEditing && candidateName.trim().length > 2) {
+            const suggestions = generateSmartWatchwords(candidateName, state, region);
+            setSuggestedWatchwords(suggestions);
+            setShowSuggestions(true);
+        } else {
+            setSuggestedWatchwords([]);
+            setShowSuggestions(false);
+        }
+    }, [candidateName, state, region, isEditing]);
+
+    const handleAcceptAllSuggestions = () => {
+        const currentWatchwords = watchwords
+            .split(',')
+            .map(w => w.trim())
+            .filter(w => w !== '');
+        const merged = [...new Set([...currentWatchwords, ...suggestedWatchwords])];
+        setWatchwords(merged.join(', '));
+        setShowSuggestions(false);
+    };
+
+    const handleAcceptSuggestion = (suggestion: string) => {
+        const currentWatchwords = watchwords
+            .split(',')
+            .map(w => w.trim())
+            .filter(w => w !== '');
+        if (!currentWatchwords.includes(suggestion)) {
+            const merged = [...currentWatchwords, suggestion];
+            setWatchwords(merged.join(', '));
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,7 +114,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                 region,
                 customContext: customContext.trim() || undefined,
                 watchwords: parsed,
-            }, candidateHandle); // Pass handle to addWorkspace to trigger the generation
+            }, candidateHandle);
             onClose();
         }
     };
@@ -83,7 +150,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                         />
                     </div>
 
-                    {/* Candidate Handle - MUST HAVE FOR PLG AHA MOMENT */}
+                    {/* Candidate Handle - AHA MOMENT */}
                     {!isEditing && (
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1 flex items-center gap-1">
@@ -99,6 +166,24 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                                 className="w-full px-5 py-4 bg-blue-50/50 dark:bg-blue-900/20 border-2 border-primary/20 rounded-2xl focus:ring-2 focus:ring-primary transition-all text-text-heading dark:text-white font-bold"
                             />
                             <p className="text-[10px] text-slate-500 ml-2">Iremos gerar um Dossiê Estratégico automaticamente ao criar o projeto.</p>
+                        </div>
+                    )}
+
+                    {/* Nome do Candidato para Sugestões (apenas criação) */}
+                    {!isEditing && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[12px]">person_search</span>
+                                Nome do Candidato
+                                <span className="text-slate-400 normal-case font-normal">(para sugestões)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={candidateName}
+                                onChange={(e) => setCandidateName(e.target.value)}
+                                placeholder="Ex: João Silva"
+                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all text-text-heading dark:text-white font-bold"
+                            />
                         </div>
                     )}
 
@@ -139,7 +224,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                         />
                     </div>
 
-                    {/* Watchwords */}
+                    {/* Watchwords com Sugestões Inteligentes */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1">Watchwords <span className="text-slate-400 normal-case font-normal">(separadas por vírgula)</span></label>
                         <textarea
@@ -148,6 +233,47 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                             placeholder="Ex: prefeitura, saúde, candidato, segurança"
                             className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all text-sm text-text-heading dark:text-white font-medium h-20"
                         />
+
+                        {/* Sugestões automáticas */}
+                        {showSuggestions && suggestedWatchwords.length > 0 && (
+                            <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
+                                        Sugestões inteligentes
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleAcceptAllSuggestions}
+                                        className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                                    >
+                                        Adicionar todas
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {suggestedWatchwords.map((suggestion) => {
+                                        const alreadyAdded = watchwords
+                                            .split(',')
+                                            .map(w => w.trim())
+                                            .includes(suggestion);
+                                        return (
+                                            <button
+                                                key={suggestion}
+                                                type="button"
+                                                disabled={alreadyAdded}
+                                                onClick={() => handleAcceptSuggestion(suggestion)}
+                                                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${alreadyAdded
+                                                        ? 'bg-primary/10 text-primary/40 cursor-default'
+                                                        : 'bg-white dark:bg-slate-800 text-primary border border-primary/20 hover:border-primary hover:shadow-sm'
+                                                    }`}
+                                            >
+                                                {alreadyAdded ? '✓ ' : '+ '}{suggestion}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <button type="submit" className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-primary/20">

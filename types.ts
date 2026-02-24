@@ -68,6 +68,9 @@ export interface TaggedNewsArticle {
   pubDate: string;
   source: string;
   matchedTerms: string[];
+  description?: string;   // Snippet/resume do artigo (extraído do RSS)
+  isBreaking?: boolean;  // true se publicado há menos de 2h
+  relevanceScore?: number; // Pontuação de relevância (maior = mais relevante)
 }
 
 export interface SentimentResult {
