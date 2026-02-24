@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useCrisisAnalysis } from '../hooks/useCrisisAnalysis';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { ALL_ALLOWED_MEDIA_TYPES, FILE_SIZE_LIMITS } from '../constants';
 import { isValidFileSize, isValidMimeType } from '../utils/security';
 
@@ -21,6 +22,7 @@ const CrisisManagement: React.FC = () => {
     evaluateResponseDraft,
     reset
   } = useCrisisAnalysis();
+  const { track } = useAnalytics();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,6 +71,9 @@ const CrisisManagement: React.FC = () => {
   };
 
   const handleAnalyze = async () => {
+    track('crisis_analysed', {
+      scenario_keywords: input.trim().split(' ').slice(0, 5),
+    });
     await analyzeCrisis(input, mediaFile || undefined);
   };
 
@@ -116,11 +121,10 @@ const CrisisManagement: React.FC = () => {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-dashed transition-all font-bold ${
-              mediaFile
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-dashed transition-all font-bold ${mediaFile
                 ? 'border-primary bg-primary/5 text-primary'
                 : 'border-slate-200 dark:border-slate-700 text-slate-500'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined">
               {mediaFile ? 'check_circle' : 'upload_file'}
@@ -241,15 +245,14 @@ const CrisisManagement: React.FC = () => {
                   Severidade
                 </span>
                 <div
-                  className={`px-6 py-3 rounded-full font-black text-lg ${
-                    result.severityLevel === 'Crítico'
+                  className={`px-6 py-3 rounded-full font-black text-lg ${result.severityLevel === 'Crítico'
                       ? 'bg-red-600 text-white'
                       : result.severityLevel === 'Alto'
-                      ? 'bg-orange-500 text-white'
-                      : result.severityLevel === 'Médio'
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-green-500 text-white'
-                  }`}
+                        ? 'bg-orange-500 text-white'
+                        : result.severityLevel === 'Médio'
+                          ? 'bg-yellow-500 text-white'
+                          : 'bg-green-500 text-white'
+                    }`}
                 >
                   {result.severityLevel}
                 </div>

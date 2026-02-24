@@ -4,6 +4,7 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { useAuth } from '../context/AuthContext';
 import { usePoliticalAnalysis } from '../hooks/usePoliticalAnalysis';
 import { useNews } from '../hooks/useNews';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { supabase } from '../lib/supabase';
 import { LOADING_STEPS } from '../constants';
 import { useGenerationStore } from '../store/generationStore';
@@ -17,6 +18,7 @@ const Dashboard: React.FC = () => {
   const { activeWorkspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { track } = useAnalytics();
   const stepTimerRef = useRef<number | null>(null);
 
   // Custom hooks
@@ -144,12 +146,28 @@ const Dashboard: React.FC = () => {
     const activeHandles = handles.filter(h => h.trim() !== '');
     if (activeHandles.length === 0) return;
 
+    const analysisType = activeHandles.length === 1 ? 'individual' : 'comparison';
+    const startTime = Date.now();
+
+    track('analysis_requested', {
+      type: analysisType,
+      handle_count: activeHandles.length,
+      workspace_id: activeWorkspace?.id,
+      workspace_region: activeWorkspace?.region,
+    });
+
     startStepper();
 
     try {
       if (activeHandles.length === 1) {
         const result = await analyzeCandidate(activeHandles[0]);
         if (result) {
+          track('analysis_completed', {
+            type: 'individual',
+            handle: activeHandles[0],
+            workspace_id: activeWorkspace?.id,
+            duration_ms: Date.now() - startTime,
+          });
           const savedId = await saveToHistory('insight', activeHandles[0], result);
           const path = savedId ? `/insight-detail/${savedId}` : '/insight-detail';
           navigate(path, { state: { result, handle: activeHandles[0] } });
@@ -157,6 +175,12 @@ const Dashboard: React.FC = () => {
       } else {
         const result = await compareCandidates(activeHandles);
         if (result) {
+          track('analysis_completed', {
+            type: 'comparison',
+            handle: activeHandles.join(' vs '),
+            workspace_id: activeWorkspace?.id,
+            duration_ms: Date.now() - startTime,
+          });
           const savedId = await saveToHistory('comparison', activeHandles.join(' vs '), result);
           const path = savedId ? `/comparison-detail/${savedId}` : '/comparison-detail';
           navigate(path, { state: { result } });

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useWorkspace, Workspace } from '../context/WorkspaceContext';
 import WorkspaceForm from './WorkspaceForm';
 import { useNavigate } from 'react-router-dom';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const Workspaces: React.FC = () => {
     const { workspaces, activeWorkspace, setActiveWorkspace, deleteWorkspace } = useWorkspace();
@@ -9,8 +10,13 @@ const Workspaces: React.FC = () => {
     const [workspaceToEdit, setWorkspaceToEdit] = useState<Workspace | undefined>(undefined);
     const [workspaceToDelete, setWorkspaceToDelete] = useState<Workspace | null>(null);
     const navigate = useNavigate();
+    const { track } = useAnalytics();
 
     const handleSelect = (workspace: Workspace) => {
+        track('workspace_switched', {
+            workspace_id: workspace.id,
+            workspace_region: workspace.region,
+        });
         setActiveWorkspace(workspace);
         navigate('/');
     };
@@ -22,6 +28,7 @@ const Workspaces: React.FC = () => {
 
     const confirmDelete = () => {
         if (workspaceToDelete) {
+            track('workspace_deleted', { workspace_id: workspaceToDelete.id });
             deleteWorkspace(workspaceToDelete.id);
             setWorkspaceToDelete(null);
         }

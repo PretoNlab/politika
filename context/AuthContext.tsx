@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import * as Sentry from '@sentry/react';
+import posthog from '../lib/posthog';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -26,6 +27,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         Sentry.setUser({ id: session.user.id, email: session.user.email });
+        posthog.identify(session.user.id, {
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name,
+        });
       }
       setLoading(false);
     });
@@ -36,8 +41,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         Sentry.setUser({ id: session.user.id, email: session.user.email });
+        posthog.identify(session.user.id, {
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name,
+        });
       } else {
         Sentry.setUser(null);
+        posthog.reset();
       }
     });
 

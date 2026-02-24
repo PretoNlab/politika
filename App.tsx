@@ -1,5 +1,5 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import CommandCenter from './components/CommandCenter';
@@ -17,6 +17,23 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { AuthProvider } from './context/AuthContext';
 import { WorkspaceProvider } from './context/WorkspaceContext';
+import { initPostHog } from './lib/posthog';
+import { useAnalytics } from './hooks/useAnalytics';
+
+// Inicializa PostHog o mais cedo possível
+initPostHog();
+
+// Rastreia page views automaticamente em cada mudança de rota
+const PageViewTracker: React.FC = () => {
+  const location = useLocation();
+  const { pageview } = useAnalytics();
+
+  useEffect(() => {
+    pageview(location.pathname);
+  }, [location.pathname]);
+
+  return null;
+};
 
 const ProtectedLayout: React.FC = () => {
   return (
@@ -35,6 +52,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
+          <PageViewTracker />
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
