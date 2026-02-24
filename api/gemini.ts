@@ -67,11 +67,19 @@ function buildRegionalContext(
   return `${baseContext}${regionNote}${custom}`;
 }
 
+/**
+ * Define a persona de alto nível da IA: Um Oficial de Inteligência Política (Chief of Intelligence).
+ * Foco em estratégia pura, identificação de riscos e comando de ação.
+ */
 function buildExpertInstructions(state: string = 'Brasil'): string {
-  return `Instruções de Especialista:
-1. Ciência Política: Analise como um cientista político especialista em ${state}.
-2. Psicologia de Marketing: Identifique gatilhos de persuasão específicos para este eleitorado.
-3. Copywriting: Crie textos persuasivos e culturalmente adequados para o público-alvo.`;
+  return `VOCÊ É O CHIEF OF INTELLIGENCE & SENIOR STRATEGIST.
+Sua missão é dar poder de decisão ao candidato, não apenas descrever fatos.
+ESTILO DE PENSAMENTO:
+1. Ofensiva Narrativa: Onde o adversário está vulnerável hoje?
+2. Defesa Proativa: Qual ataque está sendo gestado e como neutralizá-lo?
+3. Dialeto Regional: Use o contexto de ${state} para moldar o tom. Evite generalismos.
+4. Curto e Grosso: Políticos não têm tempo. Seja cirúrgico.
+5. Vácuo de Narrativa: Identifique sobre o que NINGUÉM está falando, mas que o eleitor está sentindo.`;
 }
 
 /**
@@ -252,9 +260,30 @@ async function handlePoliticalInsight(
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const expertInstructions = buildExpertInstructions(wsCtx.state);
 
+  // Exemplo de tom de análise esperado (Few-shot)
+  const analysisExample = `Exemplo de Output Desejado:
+  {
+    "headline": "Dominância Frágil: @handle lidera, mas deixa flanco aberto em segurança",
+    "tone": "Oficial de Inteligência - Assertivo",
+    "psychologicalTriggers": [{"trigger": "Prova Social", "application": "Explorar o apoio de lideranças do interior de ${wsCtx.state || 'Brasil'}"}],
+    "strategicRisk": "Vácuo narrativo identificado: o silêncio de @handle sobre o tema X será preenchido pela oposição em 48h."
+  }`;
+
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Analise o perfil @${handle}. ${regionalContext}. ${expertInstructions} Retorne JSON com gatilhos psicológicos detalhados.`,
+    contents: `ANÁLISE ESTRATÉGICA DE PERFIL: @${handle}. 
+    ${regionalContext}. 
+    ${expertInstructions}
+    
+    ${analysisExample}
+    
+    TAREFA: Realize um Deep Dive no perfil. Identifique o "Ponto de Quebra" da narrativa atual dele.
+    COMO PENSAR: Se você fosse o estrategista da oposição, onde você bateria hoje? Se fosse o estrategista dele, qual vácuo você preencheria?
+    
+    REQUISITOS JSON: 
+    - headlines: Impacto imediato.
+    - strategicRisk: Qual o maior perigo para a reputação dele AGORA em ${wsCtx.state || 'sua região'}.
+    - psychTriggers: Use gatilhos que funcionem com o eleitor real, não termos acadêmicos.`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -420,10 +449,13 @@ async function handleCrisisResponse(
 
     ${regionalContext}
 
-    REGRAS DE RESPOSTA:
+    REGRAS DE RESPOSTA (SPIN DOCTOR MODE):
     1. Retorne APENAS um objeto JSON.
     2. Use exatamente estas chaves: incidentSummary, severityLevel (Baixo, Médio, Alto, Crítico), targetAudienceImpact, narrativeRisk, responses (array de objetos com strategyName, description, actionPoints, suggestedScript), immediateAdvice.
-    3. NÃO adicione explicações fora do JSON.`
+    3. Isole o "Vetor de Crise": Isso é um ataque de reputação ou um erro de gestão?
+    4. Proponha uma "Vacina Narrativa": Como mudar o assunto sem parecer fuga?
+    5. NÃO adicione explicações fora do JSON.
+    6. Se houver mídia, CRITIQUE o tom de voz e a postura corporal/visual. Estão passando confiança ou medo?`,
   }];
 
   if (mediaData) {
@@ -573,7 +605,21 @@ async function handleSentiment(
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Analise o sentimento político sobre o termo "${term}" com base nestas manchetes de notícias relacionadas a ${stateName}:\n\n${titlesText}\n\n${regionalContext}\n\nRetorne um JSON com:\n- score: número de -1.0 (muito negativo) a 1.0 (muito positivo)\n- classification: "Positivo", "Neutro" ou "Negativo"\n- summary: resumo de 1-2 frases do sentimento predominante sobre "${term}"`,
+    contents: `VOCÊ É O RADAR DE INTELIGÊNCIA. 
+    Analise o sentimento político sobre o termo "${term}" com base nestas manchetes de ${stateName}:
+    
+    ${titlesText}
+    
+    ${regionalContext}
+    
+    TAREFA: Diferencie RUÍDO de CRISE REAL.
+    - Se o sentimento for negativo, avalie o RISCO DE CONTÁGIO (Quão rápido isso explode no WhatsApp da região?).
+    - Se for positivo, identifique a OPORTUNIDADE DE CAPITALIZAÇÃO.
+    
+    Retorne um JSON com:
+    - score: número de -1.0 a 1.0.
+    - classification: "Positivo", "Neutro" ou "Negativo".
+    - summary: Fato -> Impacto -> Recomendação (1-2 frases).`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -689,12 +735,13 @@ ${articlesContext}
 
 ${regionalContext}
 
-Regras:
-1. Se ha alertas de perigo ou sentimento muito negativo (< -30%), status = "crisis"
-2. Se ha alertas moderados ou sentimento em queda, status = "alert"
-3. Se tudo esta estavel ou positivo, status = "calm"
-4. O "summary" deve ser direto, em linguagem de briefing militar/politico, 2-3 frases
-5. As "recommendations" devem ser 1-3 acoes concretas e curtas`;
+Regras de SitRep (Situation Report):
+1. STATUS: 
+   - "crisis" (Fogo no WhatsApp, sentimento < -30%, ataques diretos sem resposta)
+   - "alert" (Tendência de queda, boatos surgindo, perda de espaço na mídia)
+   - "calm" (Cenário sob controle, dominância de narrativa)
+2. SUMMARY (2-3 frases): Linguagem de comando. Fato -> Risco -> Ação.
+3. RECOMMENDATIONS: Ações táticas imediatas (ex: "Poste um vídeo de bastidor AGORA", "Não responda ao ataque X para não dar palco").`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
