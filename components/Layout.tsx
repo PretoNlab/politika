@@ -48,7 +48,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Header */}
       <header className="w-full h-20 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-6">
         <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/dashboard" className="flex items-center gap-3 group">
             <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
               <span className="material-symbols-outlined">radar</span>
             </div>
@@ -103,7 +103,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
 
             <nav className="hidden md:flex items-center gap-9">
-              <Link to="/" className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <Link to="/dashboard" className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/dashboard') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>

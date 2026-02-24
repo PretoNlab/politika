@@ -22,7 +22,7 @@ const Login: React.FC = () => {
         if (error) {
           toast.error(error);
         } else {
-          navigate('/', { replace: true });
+          navigate('/dashboard', { replace: true });
         }
       } else {
         if (!fullName.trim()) {
@@ -65,21 +65,19 @@ const Login: React.FC = () => {
           <div className="flex mb-8 bg-slate-50 dark:bg-slate-800 rounded-xl p-1">
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                isLogin
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${isLogin
                   ? 'bg-white dark:bg-slate-700 text-text-heading dark:text-white shadow-sm'
                   : 'text-text-subtle dark:text-slate-400'
-              }`}
+                }`}
             >
               Entrar
             </button>
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                !isLogin
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${!isLogin
                   ? 'bg-white dark:bg-slate-700 text-text-heading dark:text-white shadow-sm'
                   : 'text-text-subtle dark:text-slate-400'
-              }`}
+                }`}
             >
               Criar Conta
             </button>

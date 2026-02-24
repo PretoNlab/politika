@@ -13,6 +13,7 @@ import Workspaces from './components/Workspaces';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import Landing from './pages/Landing';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { AuthProvider } from './context/AuthContext';
@@ -55,13 +56,14 @@ const App: React.FC = () => {
           <PageViewTracker />
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedLayout />}>
-              <Route path="/" element={<CommandCenter />} />
+              <Route path="/dashboard" element={<CommandCenter />} />
               <Route path="/analyze" element={<Dashboard />} />
               <Route path="/history" element={<History />} />
               <Route path="/insight-detail/:id?" element={<InsightsDetail />} />

@@ -85,8 +85,14 @@ type ShareEvents = {
     };
 };
 
+type TrackingEvents = {
+    landing_cta_clicked: {
+        source: string;
+    };
+};
+
 type AllEvents = AuthEvents & AnalysisEvents & BriefingEvents & AlertEvents &
-    CrisisEvents & PulseEvents & WorkspaceEvents & ShareEvents;
+    CrisisEvents & PulseEvents & WorkspaceEvents & ShareEvents & TrackingEvents;
 
 // ─── Hook principal ──────────────────────────────────────────────────────────
 
