@@ -168,7 +168,10 @@ const History: React.FC = () => {
       )}
 
       <div className="pt-10 text-center">
-        <button className="px-10 py-5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-2xl">
+        <button
+          onClick={() => window.print()}
+          className="px-10 py-5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-2xl"
+        >
           Exportar Inteligência Completa
         </button>
       </div>

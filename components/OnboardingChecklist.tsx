@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLifecycleStore } from '../store/lifecycleStore';
 import { ONBOARDING_STEPS } from '../constants';
 
@@ -8,16 +8,19 @@ const OnboardingChecklist: React.FC = () => {
   const dismissOnboarding = useLifecycleStore(s => s.dismissOnboarding);
   const [collapsed, setCollapsed] = useState(false);
 
-  if (onboardingCompleted) return null;
-
   const completedCount = ONBOARDING_STEPS.filter(s => completedSteps.includes(s.id)).length;
   const totalSteps = ONBOARDING_STEPS.length;
   const percentage = Math.round((completedCount / totalSteps) * 100);
 
-  // Auto-dismiss when all steps completed
-  if (completedCount === totalSteps && !onboardingCompleted) {
-    setTimeout(() => dismissOnboarding(), 3000);
-  }
+  // Auto-dismiss when all steps completed (com cleanup)
+  useEffect(() => {
+    if (completedCount === totalSteps && !onboardingCompleted) {
+      const timer = setTimeout(() => dismissOnboarding(), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [completedCount, totalSteps, onboardingCompleted, dismissOnboarding]);
+
+  if (onboardingCompleted) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-40 w-80">
@@ -84,7 +87,7 @@ const OnboardingChecklist: React.FC = () => {
 
             {completedCount === totalSteps && (
               <div className="text-center py-3">
-                <p className="text-xs font-bold text-emerald-600">Parabéns! Onboarding completo!</p>
+                <p className="text-xs font-bold text-emerald-600">Parabéns! Tudo pronto!</p>
               </div>
             )}
 

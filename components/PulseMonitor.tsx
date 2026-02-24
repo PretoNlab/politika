@@ -219,7 +219,7 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
               Radar 15 Dias
             </h3>
             <p className="text-[10px] font-medium text-slate-400 max-w-xs leading-normal">
-              Volume diario de noticias{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
+              Volume diário de notícias{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
             </p>
           </div>
           <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
@@ -310,7 +310,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
     <div className="flex items-center justify-between mb-8">
       <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
         <span className="material-symbols-outlined text-sm">newspaper</span>
-        Noticias por Dia
+        Notícias por Dia
       </h3>
       <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
     </div>
@@ -393,7 +393,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
 );
 
 // ============================================
-// Main Component — Radar de Noticias
+// Main Component — Radar de Notícias
 // ============================================
 
 const PulseMonitor: React.FC = () => {
@@ -445,7 +445,7 @@ const PulseMonitor: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-lg">radar</span>
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-              Radar de Noticias
+              Radar de Notícias
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-text-heading dark:text-white tracking-tighter">
@@ -488,7 +488,7 @@ const PulseMonitor: React.FC = () => {
       {/* Primary Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
         <MetricCard
-          label="Mencoes (15d)"
+          label="Menções (15d)"
           value={isNewsLoading ? '...' : `${globalMetrics.totalMentions}`}
           trend={dailyTrendDirection}
           color="bg-primary text-primary"
@@ -528,7 +528,7 @@ const PulseMonitor: React.FC = () => {
             <div>
               <h3 className="text-2xl font-black text-text-heading dark:text-white">Sentimento por Termo</h3>
               <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">
-                Analise de sentimento via IA para cada watchword do seu workspace
+                Análise de sentimento via IA para cada watchword do seu workspace
               </p>
             </div>
             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
@@ -585,7 +585,7 @@ const PulseMonitor: React.FC = () => {
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                     {m.sentimentLoading ? 'Analisando...'
                       : m.sentiment ? m.sentiment.classification
-                      : m.mentions > 0 ? 'Aguardando analise' : 'Sem mencoes'}
+                      : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
                   </p>
                   {m.sentiment?.summary && (
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 line-clamp-2 leading-relaxed">

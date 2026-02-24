@@ -240,7 +240,7 @@ const ComparisonDetail: React.FC = () => {
           className="flex items-center gap-2 px-8 py-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl font-bold transition-all"
         >
           <span className="material-symbols-outlined">print</span>
-          Exportar Battle Card PDF
+          Exportar Comparativo em PDF
         </button>
       </div>
     </div >

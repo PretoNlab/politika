@@ -721,13 +721,13 @@ async function handleBriefing(
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
-  const prompt = `Voce e um consultor politico senior monitorando a situacao em ${stateName}.
-Com base nos dados abaixo, gere um briefing executivo de 2-3 frases em portugues brasileiro.
+  const prompt = `Você é um consultor político sênior monitorando a situação em ${stateName}.
+Com base nos dados abaixo, gere um briefing executivo de 2-3 frases em português brasileiro.
 
 Dados do Monitoramento:
-- Total de mencoes nas ultimas 24h: ${metrics.totalMentions}
-- Sentimento medio: ${metrics.avgSentiment !== null ? (metrics.avgSentiment * 100).toFixed(0) + '%' : 'sem dados'}
-- Tendencia geral: ${metrics.overallTrend}
+- Total de menções nas últimas 24h: ${metrics.totalMentions}
+- Sentimento médio: ${metrics.avgSentiment !== null ? (metrics.avgSentiment * 100).toFixed(0) + '%' : 'sem dados'}
+- Tendência geral: ${metrics.overallTrend}
 - Termo mais quente: ${metrics.hottestTerm || 'nenhum'}
 - Alertas ativos: ${alerts?.total || 0} (${alerts?.dangerCount || 0} perigos, ${alerts?.opportunityCount || 0} oportunidades)
 ${alerts?.topAlert ? `- Alerta principal: ${alerts.topAlert}` : ''}

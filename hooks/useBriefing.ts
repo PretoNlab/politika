@@ -55,20 +55,20 @@ function deriveFallbackBriefing(
   opportunityCount: number
 ): BriefingResult {
   let status: BriefingStatus = 'calm';
-  let summary = 'Situacao estavel. Nenhuma alteracao significativa nos termos monitorados.';
+  let summary = 'Situação estável. Nenhuma alteração significativa nos termos monitorados.';
   const recommendations: string[] = [];
 
   if (dangerCount >= 2 || (globalMetrics.avgSentiment !== null && globalMetrics.avgSentiment < -0.3)) {
     status = 'crisis';
-    summary = `Atencao critica: ${dangerCount} alerta(s) de perigo detectado(s). Sentimento em queda requer acao imediata.`;
+    summary = `Atenção crítica: ${dangerCount} alerta(s) de perigo detectado(s). Sentimento em queda requer ação imediata.`;
     recommendations.push('Abrir War Room para avaliar contra-medidas');
   } else if (dangerCount > 0 || (globalMetrics.avgSentiment !== null && globalMetrics.avgSentiment < -0.1) || globalMetrics.overallTrend === 'down') {
     status = 'alert';
-    summary = `Monitoramento detectou sinais de atencao. Tendencia ${globalMetrics.overallTrend === 'down' ? 'em queda' : 'instavel'}.`;
-    recommendations.push('Acompanhar evolucao nas proximas horas');
+    summary = `Monitoramento detectou sinais de atenção. Tendência ${globalMetrics.overallTrend === 'down' ? 'em queda' : 'instável'}.`;
+    recommendations.push('Acompanhar evolução nas próximas horas');
   } else if (opportunityCount > 0) {
     status = 'calm';
-    summary = `Cenario favoravel com ${opportunityCount} oportunidade(s) identificada(s). Bom momento para comunicar.`;
+    summary = `Cenário favorável com ${opportunityCount} oportunidade(s) identificada(s). Bom momento para comunicar.`;
     recommendations.push('Capitalizar o momento positivo');
   }
 

@@ -119,7 +119,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <span className="material-symbols-outlined text-lg text-red-600">warning</span>
                 War Room
               </Link>
-              <Link to="/history" className={`text-sm font-medium transition-colors ${isActive('/history') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>Historico</Link>
+              <Link to="/history" className={`text-sm font-medium transition-colors ${isActive('/history') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>Histórico</Link>
             </nav>
             <div className="flex items-center gap-4">
               <UserMenu />

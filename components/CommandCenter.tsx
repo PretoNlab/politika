@@ -28,7 +28,7 @@ const BRIEFING_STYLES: Record<string, { bg: string; border: string; icon: string
     icon: 'verified',
     iconColor: 'text-emerald-500',
     pulseColor: 'bg-emerald-500',
-    label: 'Situacao Estavel'
+    label: 'Situação Estável'
   },
   alert: {
     bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -36,7 +36,7 @@ const BRIEFING_STYLES: Record<string, { bg: string; border: string; icon: string
     icon: 'warning',
     iconColor: 'text-amber-500',
     pulseColor: 'bg-amber-500',
-    label: 'Requer Atencao'
+    label: 'Requer Atenção'
   },
   crisis: {
     bg: 'bg-red-50 dark:bg-red-900/20',
@@ -44,7 +44,7 @@ const BRIEFING_STYLES: Record<string, { bg: string; border: string; icon: string
     icon: 'crisis_alert',
     iconColor: 'text-red-500',
     pulseColor: 'bg-red-500',
-    label: 'Situacao Critica'
+    label: 'Situação Crítica'
   }
 };
 
@@ -171,7 +171,7 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
                 )}
                 <Link to="/analyze" className="px-4 py-2 bg-primary/10 text-primary rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-sm">person_search</span>
-                  Nova Analise
+                  Nova Análise
                 </Link>
               </div>
             </div>
@@ -271,7 +271,7 @@ const CompactTermCard: React.FC<CompactTermCardProps> = ({ term, metrics: m, col
       <p className="text-[10px] text-text-subtle dark:text-slate-400 mt-0.5">
         {m.sentimentLoading ? 'Analisando...'
           : m.sentiment ? m.sentiment.classification
-            : m.mentions > 0 ? 'Aguardando analise' : 'Sem mencoes'}
+            : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
       </p>
     </button>
   );
@@ -292,7 +292,7 @@ const ExpandedTermPanel: React.FC<ExpandedTermPanelProps> = ({ term, metrics: m,
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <span className="text-sm font-black uppercase tracking-widest" style={{ color }}>{term}</span>
-        <span className="text-xs font-bold text-text-subtle dark:text-slate-400">{m.mentions} mencoes</span>
+        <span className="text-xs font-bold text-text-subtle dark:text-slate-400">{m.mentions} menções</span>
       </div>
       <button onClick={onClose} className="size-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
         <span className="material-symbols-outlined text-sm text-text-subtle">close</span>
@@ -416,7 +416,7 @@ const MiniWaveform: React.FC<MiniWaveformProps> = ({ pulseData, activeTerm, term
           })
         ) : (
           <div className="w-full h-full flex items-center justify-center opacity-30">
-            <span className="text-xs font-black uppercase tracking-[0.2em]">Sem dados de distribuicao</span>
+            <span className="text-xs font-black uppercase tracking-[0.2em]">Sem dados de distribuição</span>
           </div>
         )}
       </div>
@@ -698,8 +698,8 @@ const CommandCenter: React.FC = () => {
               Comece Aqui
             </h3>
             <p className="text-text-subtle dark:text-slate-400 font-medium">
-              Crie seu primeiro projeto para ativar o monitoramento de inteligencia politica,
-              alertas em tempo real e analise de sentimento.
+              Crie seu primeiro projeto para ativar o monitoramento de inteligência política,
+              alertas em tempo real e análise de sentimento.
             </p>
           </div>
           <Link
@@ -959,10 +959,10 @@ const CommandCenter: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-text-heading dark:text-white tracking-tight">
-                    Nova Analise
+                    Nova Análise
                   </h3>
                   <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">
-                    Analisar perfil politico com IA
+                    Analisar perfil político com IA
                   </p>
                 </div>
                 <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-all text-sm inline-block">
