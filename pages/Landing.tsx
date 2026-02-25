@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Target, Zap, ChevronRight, BarChart3, Crosshair, Menu, X, Lock, Server, Eye, KeyRound, MonitorSmartphone, BrainCircuit, Gauge } from 'lucide-react';
 import { useAnalytics } from '../hooks/useAnalytics';
 
 const Landing: React.FC = () => {
@@ -15,7 +14,7 @@ const Landing: React.FC = () => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('animate-fade-up');
-                        entry.target.classList.remove('opacity-0', 'translate-y-8');
+                        entry.target.classList.remove('opacity-0');
                         observer.unobserve(entry.target);
                     }
                 });
@@ -23,21 +22,24 @@ const Landing: React.FC = () => {
             { threshold: 0.1 }
         );
 
-        document.querySelectorAll('[data-animate]').forEach((el) => {
-            el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700');
+        document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+            el.classList.add('opacity-0');
             observer.observe(el);
         });
 
         return () => observer.disconnect();
     }, []);
 
-    // Smooth scroll para links de âncora (com cleanup)
+    // Smooth scroll para links de âncora
     useEffect(() => {
         const handleAnchorClick = (e: Event) => {
-            e.preventDefault();
-            const target = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
-            if (target) {
-                document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+            const link = e.currentTarget as HTMLAnchorElement;
+            const targetId = link.getAttribute('href');
+
+            // Só previne e rola suave se for link interno (começa com #)
+            if (targetId && targetId.startsWith('#')) {
+                e.preventDefault();
+                document.querySelector(targetId)?.scrollIntoView({ behavior: 'smooth' });
                 setMobileMenuOpen(false);
             }
         };
@@ -56,162 +58,186 @@ const Landing: React.FC = () => {
     }, [track, navigate]);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans selection:bg-primary selection:text-white">
-            {/* Navbar */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        <div className="flex items-center gap-3">
-                            <div className="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
-                                <span className="material-symbols-outlined">radar</span>
+        <div className="bg-white text-slate-900 antialiased min-h-screen font-sans selection:bg-primary selection:text-white">
+
+            {/* Navbar — Maze style: ultra-clean, minimal, lots of breathing room */}
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-border-light transition-all duration-300">
+                <div className="max-w-6xl mx-auto px-6 lg:px-10">
+                    <div className="flex items-center justify-between h-16">
+
+                        {/* Logo */}
+                        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                            <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                <span className="material-symbols-outlined text-lg">radar</span>
                             </div>
-                            <span className="text-2xl font-black tracking-tighter text-text-heading dark:text-white">
-                                Politika
-                            </span>
+                            <span className="text-lg font-bold tracking-tight text-text-heading">Politika</span>
                         </div>
 
-                        {/* Desktop nav */}
-                        <div className="hidden md:flex items-center space-x-8">
-                            <a href="#inteligencia" className="text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors">Tecnologia</a>
-                            <a href="#modulos" className="text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors">Módulos</a>
-                            <a href="#seguranca" className="text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors">Segurança</a>
+                        {/* Center nav */}
+                        <div className="hidden md:flex items-center gap-8">
+                            <a href="#como-funciona" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Como funciona</a>
+                            <a href="#modulos" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Módulos</a>
+                            <a href="#seguranca" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Segurança</a>
                         </div>
 
-                        {/* Desktop CTAs */}
-                        <div className="hidden md:flex items-center space-x-4">
+                        {/* Right CTAs */}
+                        <div className="hidden md:flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/login')}
-                                className="text-sm font-medium text-text-subtle dark:text-slate-300 hover:text-primary px-4 py-2 transition-colors"
+                                className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors px-3 py-2"
                             >
                                 Entrar
                             </button>
                             <button
                                 onClick={() => handleCTA('header')}
-                                className="text-sm font-black bg-primary hover:opacity-90 text-white px-6 py-2.5 rounded-xl transition-all duration-300 shadow-lg flex items-center group"
+                                className="text-sm font-semibold bg-text-heading text-white px-5 py-2.5 rounded-full hover:bg-slate-700 transition-colors shadow-sm"
                             >
-                                Ativar Inteligência
-                                <ChevronRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
+                                Começar grátis
                             </button>
                         </div>
 
-                        {/* Mobile hamburger */}
+                        {/* Mobile menu button */}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="md:hidden p-2 text-text-subtle dark:text-slate-400 hover:text-primary transition-colors"
-                            aria-label="Menu"
+                            className="md:hidden text-text-subtle p-2 -mr-2"
                         >
-                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            <span className="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
                         </button>
                     </div>
-
-                    {/* Mobile menu */}
-                    {mobileMenuOpen && (
-                        <div className="md:hidden pb-6 border-t border-slate-200 dark:border-slate-800 mt-2 pt-4 space-y-3">
-                            <a href="#inteligencia" className="block text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors py-2">Tecnologia</a>
-                            <a href="#modulos" className="block text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors py-2">Módulos</a>
-                            <a href="#seguranca" className="block text-sm font-medium text-text-subtle dark:text-slate-400 hover:text-primary transition-colors py-2">Segurança</a>
-                            <hr className="border-slate-200 dark:border-slate-800" />
-                            <button
-                                onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
-                                className="block w-full text-left text-sm font-medium text-text-subtle dark:text-slate-300 hover:text-primary py-2"
-                            >
-                                Entrar
-                            </button>
-                            <button
-                                onClick={() => { setMobileMenuOpen(false); handleCTA('header_mobile'); }}
-                                className="w-full text-sm font-black bg-primary hover:opacity-90 text-white px-6 py-3 rounded-xl transition-all text-center"
-                            >
-                                Ativar Inteligência
-                            </button>
-                        </div>
-                    )}
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden bg-white border-b border-border-light px-6 py-6 pb-8 space-y-4 shadow-xl absolute top-full left-0 right-0 animate-fade-up origin-top">
+                        <a href="#como-funciona" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Como funciona</a>
+                        <a href="#modulos" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Módulos</a>
+                        <a href="#seguranca" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Segurança</a>
+                        <div className="h-px bg-border-light my-4"></div>
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                            className="block w-full text-left text-base font-medium text-text-body py-2"
+                        >
+                            Entrar na conta
+                        </button>
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); handleCTA('header_mobile'); }}
+                            className="w-full text-center text-sm font-semibold bg-text-heading text-white px-5 py-3.5 rounded-full hover:bg-slate-700 transition-colors mt-2"
+                        >
+                            Começar grátis
+                        </button>
+                    </div>
+                )}
             </nav>
 
             <main>
-                {/* Hero Section */}
-                <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                        <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase mb-8">
-                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse mr-2" />
-                            Inteligência Política de Precisão
+                {/* Hero — Maze style: centered, lightweight type, huge whitespace, soft gradient */}
+                <section className="relative pt-40 pb-28 gradient-blur overflow-hidden">
+                    <div className="max-w-4xl mx-auto px-6 lg:px-10 text-center relative z-10">
+                        {/* Badge */}
+                        <div className="animate-on-scroll delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-soft border border-primary/10 mb-10 shadow-sm">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                            <span className="text-xs font-semibold text-primary tracking-wide uppercase">Inteligência Política de Precisão</span>
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-text-heading dark:text-white mb-6 leading-tight">
+                        {/* Headline */}
+                        <h1 className="animate-on-scroll delay-2 text-5xl md:text-7xl font-bold tracking-tight text-text-heading leading-[1.08] mb-8">
                             Quem lê o cenário primeiro, <br className="hidden md:block" />
-                            <span className="text-primary">
-                                controla o jogo.
-                            </span>
+                            <span className="text-primary tracking-tight"> controla o jogo.</span>
                         </h1>
 
-                        <p className="mt-6 text-xl text-text-subtle dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                        {/* Subtitle */}
+                        <p className="animate-on-scroll delay-3 text-lg md:text-xl text-text-body max-w-2xl mx-auto leading-relaxed mb-12">
                             Sua central de inteligência política com IA. Monitoramento em tempo real,
                             alertas de crise e relatórios táticos — o cenário político brasileiro traduzido em ação.
                         </p>
 
-                        <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+                        {/* CTAs */}
+                        <div className="animate-on-scroll delay-4 flex flex-col sm:flex-row justify-center items-center gap-4">
                             <button
-                                onClick={() => handleCTA('hero_primary')}
-                                className="w-full sm:w-auto px-8 py-4 bg-primary hover:opacity-90 text-white rounded-xl font-black text-lg transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center"
+                                onClick={() => handleCTA('hero')}
+                                className="w-full sm:w-auto px-8 py-4 bg-text-heading hover:bg-slate-800 text-white rounded-full font-semibold text-base transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 group"
                             >
-                                <Zap className="w-5 h-5 mr-2" />
+                                <span className="material-symbols-outlined text-lg group-hover:text-primary transition-colors">bolt</span>
                                 Acessar a Central de Comando
                             </button>
                             <a
                                 href="#modulos"
-                                className="w-full sm:w-auto px-8 py-4 border border-slate-300 dark:border-slate-700 hover:border-primary text-text-subtle dark:text-slate-300 hover:text-primary rounded-xl font-medium text-lg transition-all flex items-center justify-center"
+                                className="w-full sm:w-auto px-8 py-4 border border-slate-300 text-text-body hover:text-text-heading hover:border-slate-400 bg-white hover:bg-slate-50 rounded-full font-medium text-base transition-all inline-flex items-center justify-center gap-2"
                             >
                                 Ver Módulos
-                                <ChevronRight className="w-5 h-5 ml-1" />
+                                <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span>
                             </a>
                         </div>
                     </div>
                 </section>
 
-                {/* Como Funciona */}
-                <section id="inteligencia" className="py-24 border-t border-slate-200 dark:border-slate-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-16" data-animate>
-                            <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-text-heading dark:text-white mb-4">
-                                Como Funciona
+                {/* Social proof bar — Maze style: minimal stat row, no cards */}
+                <section className="py-16 border-t border-border-light relative z-10 bg-white">
+                    <div className="max-w-5xl mx-auto px-6 lg:px-10">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center animate-on-scroll">
+                            <div>
+                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading">5.570</div>
+                                <div className="text-sm font-medium text-text-subtle mt-2">Municípios cobertos</div>
+                            </div>
+                            <div>
+                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-primary">50+</div>
+                                <div className="text-sm font-medium text-text-subtle mt-2">Fontes de dados</div>
+                            </div>
+                            <div>
+                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading">&lt;2min</div>
+                                <div className="text-sm font-medium text-text-subtle mt-2">Tempo de alerta</div>
+                            </div>
+                            <div>
+                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-primary">24/7</div>
+                                <div className="text-sm font-medium text-text-subtle mt-2">Monitoramento</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Como Funciona — Maze style: 3 columns, icon top, lots of space, thin separators */}
+                <section id="como-funciona" className="py-28 bg-surface border-t border-border-light">
+                    <div className="max-w-5xl mx-auto px-6 lg:px-10">
+                        <div className="text-center mb-24 animate-on-scroll">
+                            <p className="text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Como funciona</p>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-text-heading leading-tight max-w-2xl mx-auto">
+                                Da informação bruta ao comando tático em três passos
                             </h2>
-                            <p className="text-text-subtle dark:text-slate-400 max-w-2xl mx-auto">
-                                Da informação bruta ao comando tático em três passos.
-                            </p>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="text-center" data-animate>
-                                <div className="w-16 h-16 rounded-2xl bg-primary-soft border border-primary/20 flex items-center justify-center mx-auto mb-6">
-                                    <MonitorSmartphone className="w-8 h-8 text-primary" />
+                        <div className="grid md:grid-cols-3 gap-12 md:gap-16">
+                            {/* Step 1 */}
+                            <div className="text-center animate-on-scroll delay-1">
+                                <div className="w-16 h-16 rounded-[20px] bg-primary-soft border border-primary/10 flex items-center justify-center mx-auto mb-8 shadow-sm">
+                                    <span className="material-symbols-outlined text-primary text-2xl">devices</span>
                                 </div>
-                                <div className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Passo 01</div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Acesse a Central de Comando</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <div className="text-[11px] font-bold text-primary uppercase tracking-[0.2em] mb-3">Passo 01</div>
+                                <h3 className="text-xl font-bold text-text-heading mb-4">Acesse a Central de Comando</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Login seguro com acesso imediato ao painel de inteligência. Interface desenhada para decisão rápida.
                                 </p>
                             </div>
 
-                            <div className="text-center" data-animate>
-                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-                                    <BrainCircuit className="w-8 h-8 text-emerald-500" />
+                            {/* Step 2 */}
+                            <div className="text-center animate-on-scroll delay-2">
+                                <div className="w-16 h-16 rounded-[20px] bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-8 shadow-sm">
+                                    <span className="material-symbols-outlined text-emerald-600 text-2xl">psychology</span>
                                 </div>
-                                <div className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Passo 02</div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">IA Analisa em Tempo Real</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-[0.2em] mb-3">Passo 02</div>
+                                <h3 className="text-xl font-bold text-text-heading mb-4">IA Analisa em Tempo Real</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Nosso motor de inteligência monitora notícias, redes e tendências, cruzando dados para gerar alertas táticos.
                                 </p>
                             </div>
 
-                            <div className="text-center" data-animate>
-                                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-6">
-                                    <Gauge className="w-8 h-8 text-amber-500" />
+                            {/* Step 3 */}
+                            <div className="text-center animate-on-scroll delay-3">
+                                <div className="w-16 h-16 rounded-[20px] bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-8 shadow-sm">
+                                    <span className="material-symbols-outlined text-amber-600 text-2xl">target</span>
                                 </div>
-                                <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2">Passo 03</div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Decida Antes do Adversário</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <div className="text-[11px] font-bold text-amber-600 uppercase tracking-[0.2em] mb-3">Passo 03</div>
+                                <h3 className="text-xl font-bold text-text-heading mb-4">Decida Antes do Adversário</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Receba relatórios no formato Fato — Risco — Ação. Leitura pronta para decisão em 30 segundos.
                                 </p>
                             </div>
@@ -219,55 +245,60 @@ const Landing: React.FC = () => {
                     </div>
                 </section>
 
-                {/* Módulos / Arsenal */}
-                <section id="modulos" className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-16" data-animate>
-                            <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-text-heading dark:text-white mb-4">
+                {/* Módulos — Maze style: 2x2 grid, subtle border cards, hover lift, clean icons */}
+                <section id="modulos" className="py-28 border-t border-border-light bg-white">
+                    <div className="max-w-5xl mx-auto px-6 lg:px-10">
+                        <div className="text-center mb-20 animate-on-scroll">
+                            <p className="text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Módulos</p>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-text-heading leading-tight">
                                 Arsenal de Decisão
                             </h2>
-                            <p className="text-text-subtle dark:text-slate-400 max-w-2xl mx-auto">
+                            <p className="text-lg text-text-body mt-6 max-w-xl mx-auto leading-relaxed">
                                 Quatro módulos táticos desenhados para agir antes do adversário pensar.
                             </p>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-8">
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:border-primary/50 transition-all duration-300 group shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-primary-soft flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                    <Activity className="w-6 h-6 text-primary" />
+                            {/* Card 1 */}
+                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-1 hover:border-primary/30">
+                                <div className="w-14 h-14 rounded-2xl bg-primary-soft flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-primary text-2xl">monitoring</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Radar de Contágio</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <h3 className="text-2xl font-bold text-text-heading mb-3 tracking-tight">Radar de Contágio</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Não confunda ruído com crise. Nossa IA lê notícias em tempo real e alerta sobre a velocidade com que a pauta se espalha — antes que chegue ao eleitor.
                                 </p>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:border-red-500/50 transition-all duration-300 group shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                    <Target className="w-6 h-6 text-red-500" />
+                            {/* Card 2 */}
+                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-2 hover:border-red-500/30">
+                                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-red-500 text-2xl">crisis_alert</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Simulador de Crise</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <h3 className="text-2xl font-bold text-text-heading mb-3 tracking-tight">Simulador de Crise</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Estourou um escândalo? Faça upload do seu pronunciamento. A IA avalia tom, postura e gera sua estratégia de resposta — a Vacina Narrativa.
                                 </p>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-300 group shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                    <Crosshair className="w-6 h-6 text-emerald-500" />
+                            {/* Card 3 */}
+                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-3 hover:border-emerald-500/30">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-emerald-600 text-2xl">track_changes</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Análise Tática Profunda</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <h3 className="text-2xl font-bold text-text-heading mb-3 tracking-tight">Análise Tática</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Descubra os vácuos narrativos do adversário. Saiba exatamente em qual dor o oponente se omite — e ataque onde ele não tem defesa.
                                 </p>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:border-amber-500/50 transition-all duration-300 group shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                    <BarChart3 className="w-6 h-6 text-amber-500" />
+                            {/* Card 4 */}
+                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-4 hover:border-amber-500/30">
+                                <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-amber-600 text-2xl">summarize</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-text-heading dark:text-white mb-3">Relatório Situacional</h3>
-                                <p className="text-text-subtle dark:text-slate-400 leading-relaxed">
+                                <h3 className="text-2xl font-bold text-text-heading mb-3 tracking-tight">Relatório Situacional</h3>
+                                <p className="text-base text-text-body leading-relaxed">
                                     Chega de relatórios de 10 páginas. Receba análises formatadas em Fato — Risco — Comando de Ação. Prontas para decisão em 30 segundos.
                                 </p>
                             </div>
@@ -275,122 +306,97 @@ const Landing: React.FC = () => {
                     </div>
                 </section>
 
-                {/* Prova Social / Números */}
-                <section className="py-20 border-t border-slate-200 dark:border-slate-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8" data-animate>
-                            <div className="text-center">
-                                <div className="text-4xl md:text-5xl font-black tracking-tighter text-text-heading dark:text-white mb-2">5.570</div>
-                                <div className="text-sm text-text-subtle dark:text-slate-400 font-medium">Municípios brasileiros cobertos</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-4xl md:text-5xl font-black tracking-tighter text-primary mb-2">50+</div>
-                                <div className="text-sm text-text-subtle dark:text-slate-400 font-medium">Fontes de dados ativas</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-4xl md:text-5xl font-black tracking-tighter text-text-heading dark:text-white mb-2">&lt;2min</div>
-                                <div className="text-sm text-text-subtle dark:text-slate-400 font-medium">Tempo médio de alerta</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-4xl md:text-5xl font-black tracking-tighter text-primary mb-2">24/7</div>
-                                <div className="text-sm text-text-subtle dark:text-slate-400 font-medium">Monitoramento contínuo</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Segurança */}
-                <section id="seguranca" className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-16" data-animate>
-                            <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-text-heading dark:text-white mb-4">
-                                Segurança de Nível Estratégico
+                {/* Segurança — Maze style: 4 cols, icon + text, very clean */}
+                <section id="seguranca" className="py-28 bg-surface border-t border-border-light">
+                    <div className="max-w-5xl mx-auto px-6 lg:px-10">
+                        <div className="text-center mb-20 animate-on-scroll">
+                            <p className="text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Segurança</p>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-text-heading leading-tight">
+                                Nível Estratégico
                             </h2>
-                            <p className="text-text-subtle dark:text-slate-400 max-w-2xl mx-auto">
-                                Seus dados políticos são sensíveis. Tratamos cada byte como informação classificada.
+                            <p className="text-lg text-text-body mt-6 max-w-xl mx-auto leading-relaxed">
+                                Seus dados políticos são sensíveis. Tratamos cada byte como informação classificada militar.
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center hover:border-primary/50 transition-colors shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-primary-soft flex items-center justify-center mx-auto mb-4">
-                                    <Lock className="w-6 h-6 text-primary" />
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                            <div className="text-center animate-on-scroll delay-1">
+                                <div className="w-14 h-14 rounded-2xl bg-primary-soft flex items-center justify-center mx-auto mb-6">
+                                    <span className="material-symbols-outlined text-primary text-2xl">lock</span>
                                 </div>
-                                <h3 className="text-lg font-bold text-text-heading dark:text-white mb-2">Criptografia E2E</h3>
-                                <p className="text-sm text-text-subtle dark:text-slate-400">Dados em trânsito e em repouso protegidos com criptografia de ponta.</p>
+                                <h3 className="text-base font-bold text-text-heading mb-2">Criptografia E2E</h3>
+                                <p className="text-sm text-text-subtle leading-relaxed">Dados em trânsito e em repouso protegidos com encriptação avançada.</p>
                             </div>
-
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center hover:border-emerald-500/50 transition-colors shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                                    <Server className="w-6 h-6 text-emerald-500" />
+                            <div className="text-center animate-on-scroll delay-2">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-6">
+                                    <span className="material-symbols-outlined text-emerald-600 text-2xl">dns</span>
                                 </div>
-                                <h3 className="text-lg font-bold text-text-heading dark:text-white mb-2">Infraestrutura Segura</h3>
-                                <p className="text-sm text-text-subtle dark:text-slate-400">Servidores com certificação SOC 2. Nenhuma chave de API exposta no cliente.</p>
+                                <h3 className="text-base font-bold text-text-heading mb-2">Infra Segura</h3>
+                                <p className="text-sm text-text-subtle leading-relaxed">Servidores cloud robustos. Nenhuma chave de API exposta publicamente.</p>
                             </div>
-
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center hover:border-amber-500/50 transition-colors shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-                                    <KeyRound className="w-6 h-6 text-amber-500" />
+                            <div className="text-center animate-on-scroll delay-3">
+                                <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-6">
+                                    <span className="material-symbols-outlined text-amber-600 text-2xl">passkey</span>
                                 </div>
-                                <h3 className="text-lg font-bold text-text-heading dark:text-white mb-2">Acesso Restrito</h3>
-                                <p className="text-sm text-text-subtle dark:text-slate-400">Autenticação robusta com controle de sessão. Apenas usuários autorizados.</p>
+                                <h3 className="text-base font-bold text-text-heading mb-2">Acesso Restrito</h3>
+                                <p className="text-sm text-text-subtle leading-relaxed">Autenticação robusta com forte controle de sessão. Acesso granular autorizado.</p>
                             </div>
-
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center hover:border-red-500/50 transition-colors shadow-sm" data-animate>
-                                <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                                    <Eye className="w-6 h-6 text-red-500" />
+                            <div className="text-center animate-on-scroll delay-4">
+                                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
+                                    <span className="material-symbols-outlined text-red-500 text-2xl">visibility_off</span>
                                 </div>
-                                <h3 className="text-lg font-bold text-text-heading dark:text-white mb-2">Privacidade Total</h3>
-                                <p className="text-sm text-text-subtle dark:text-slate-400">Suas análises e consultas não são compartilhadas. Dados isolados por espaço de trabalho.</p>
+                                <h3 className="text-base font-bold text-text-heading mb-2">Privacidade</h3>
+                                <p className="text-sm text-text-subtle leading-relaxed">Suas análises são privadas. Dados são totalmente isolados por espaço de trabalho.</p>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* CTA Final */}
-                <section className="py-24 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-primary/5" />
-                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-animate>
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-text-heading dark:text-white mb-6">
+                {/* CTA Final — Maze style: simple, clean, dark button, no heavy bg */}
+                <section className="py-32 border-t border-border-light bg-white">
+                    <div className="max-w-3xl mx-auto px-6 lg:px-10 text-center animate-on-scroll">
+                        <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-text-heading mb-8 leading-tight">
                             Domine a narrativa.
                         </h2>
-                        <p className="text-xl text-text-subtle dark:text-slate-300 mb-10">
-                            Eleições não são decididas por quem tem mais dados — mas por quem decide mais rápido.
+                        <p className="text-xl text-text-body mb-12 max-w-2xl mx-auto leading-relaxed">
+                            Eleições não são decididas por quem tem mais dados — mas por quem decide e reage mais rápido com a informação certa.
                         </p>
                         <button
-                            onClick={() => handleCTA('footer_primary')}
-                            className="px-10 py-5 bg-primary hover:opacity-90 text-white rounded-xl font-black text-lg transition-all duration-300 hover:scale-105 shadow-lg inline-flex items-center"
+                            onClick={() => handleCTA('footer')}
+                            className="inline-flex items-center gap-3 px-10 py-5 bg-text-heading text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 shadow-xl hover:shadow-2xl"
                         >
                             Começar Agora
-                            <ChevronRight className="w-5 h-5 ml-2" />
+                            <span className="material-symbols-outlined text-xl">arrow_forward</span>
                         </button>
                     </div>
                 </section>
             </main>
 
-            {/* Footer */}
-            <footer className="py-12 border-t border-slate-200 dark:border-slate-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Footer — Maze style: single line, ultra minimal */}
+            <footer className="py-12 border-t border-border-light bg-surface">
+                <div className="max-w-6xl mx-auto px-6 lg:px-10">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                        <div className="flex items-center gap-2">
-                            <div className="size-6 bg-primary rounded flex items-center justify-center">
-                                <span className="material-symbols-outlined text-white text-sm">radar</span>
+
+                        {/* Logo Footer */}
+                        <div className="flex items-center gap-2.5">
+                            <div className="size-8 bg-primary rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-white text-base">radar</span>
                             </div>
-                            <span className="text-text-subtle dark:text-slate-500 font-black tracking-tight">POLITIKA 2.0</span>
+                            <span className="text-base font-bold text-text-heading tracking-tight">Politika</span>
                         </div>
 
-                        <div className="flex flex-wrap justify-center items-center gap-6">
-                            <a href="#inteligencia" className="text-sm text-text-subtle dark:text-slate-500 hover:text-primary transition-colors">Tecnologia</a>
-                            <a href="#modulos" className="text-sm text-text-subtle dark:text-slate-500 hover:text-primary transition-colors">Módulos</a>
-                            <a href="#seguranca" className="text-sm text-text-subtle dark:text-slate-500 hover:text-primary transition-colors">Segurança</a>
-                            <button onClick={() => navigate('/privacy')} className="text-sm text-text-subtle dark:text-slate-500 hover:text-primary transition-colors">Privacidade</button>
-                            <button onClick={() => navigate('/terms')} className="text-sm text-text-subtle dark:text-slate-500 hover:text-primary transition-colors">Termos</button>
+                        {/* Footer Links */}
+                        <div className="flex flex-wrapjustify-center gap-8 text-sm font-medium text-text-subtle">
+                            <a href="#como-funciona" className="hover:text-text-heading transition-colors">Tecnologia</a>
+                            <a href="#modulos" className="hover:text-text-heading transition-colors">Módulos</a>
+                            <a href="#seguranca" className="hover:text-text-heading transition-colors">Segurança</a>
+                            <button onClick={() => navigate('/privacy')} className="hover:text-text-heading transition-colors">Privacidade</button>
+                            <button onClick={() => navigate('/terms')} className="hover:text-text-heading transition-colors">Termos</button>
                         </div>
 
-                        <div className="text-sm text-text-subtle dark:text-slate-600">
-                            &copy; {new Date().getFullYear()} Sistemas de Inteligência. Acesso Restrito.
+                        {/* Copyright */}
+                        <div className="text-sm font-medium text-text-subtle">
+                            &copy; {new Date().getFullYear()} Sistemas de Inteligência
                         </div>
                     </div>
                 </div>
