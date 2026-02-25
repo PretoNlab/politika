@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '../hooks/useAnalytics';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
+import SpotlightCard from '../components/ui/SpotlightCard';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
@@ -176,15 +178,15 @@ const Landing: React.FC = () => {
                     <div className="max-w-5xl mx-auto px-6 lg:px-10">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center animate-on-scroll">
                             <div>
-                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading">5.570</div>
+                                <AnimatedCounter end={5570} duration={2000} className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading" />
                                 <div className="text-sm font-medium text-text-subtle mt-2">Municípios cobertos</div>
                             </div>
                             <div>
-                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-primary">50+</div>
+                                <AnimatedCounter end={50} suffix="+" duration={1500} className="text-4xl md:text-5xl font-bold tracking-tight text-primary" />
                                 <div className="text-sm font-medium text-text-subtle mt-2">Fontes de dados</div>
                             </div>
                             <div>
-                                <div className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading">&lt;2min</div>
+                                <AnimatedCounter end={2} prefix="<" suffix="min" duration={1000} className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading" />
                                 <div className="text-sm font-medium text-text-subtle mt-2">Tempo de alerta</div>
                             </div>
                             <div>
@@ -260,7 +262,7 @@ const Landing: React.FC = () => {
 
                         <div className="grid md:grid-cols-2 gap-8">
                             {/* Card 1 */}
-                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-1 hover:border-primary/30">
+                            <SpotlightCard className="group p-10 animate-on-scroll delay-1 hover:border-primary/30">
                                 <div className="w-14 h-14 rounded-2xl bg-primary-soft flex items-center justify-center mb-6">
                                     <span className="material-symbols-outlined text-primary text-2xl">monitoring</span>
                                 </div>
@@ -268,10 +270,10 @@ const Landing: React.FC = () => {
                                 <p className="text-base text-text-body leading-relaxed">
                                     Não confunda ruído com crise. Nossa IA lê notícias em tempo real e alerta sobre a velocidade com que a pauta se espalha — antes que chegue ao eleitor.
                                 </p>
-                            </div>
+                            </SpotlightCard>
 
                             {/* Card 2 */}
-                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-2 hover:border-red-500/30">
+                            <SpotlightCard className="group p-10 animate-on-scroll delay-2 hover:border-red-500/30">
                                 <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-6">
                                     <span className="material-symbols-outlined text-red-500 text-2xl">crisis_alert</span>
                                 </div>
@@ -279,10 +281,10 @@ const Landing: React.FC = () => {
                                 <p className="text-base text-text-body leading-relaxed">
                                     Estourou um escândalo? Faça upload do seu pronunciamento. A IA avalia tom, postura e gera sua estratégia de resposta — a Vacina Narrativa.
                                 </p>
-                            </div>
+                            </SpotlightCard>
 
                             {/* Card 3 */}
-                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-3 hover:border-emerald-500/30">
+                            <SpotlightCard className="group p-10 animate-on-scroll delay-3 hover:border-emerald-500/30">
                                 <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
                                     <span className="material-symbols-outlined text-emerald-600 text-2xl">track_changes</span>
                                 </div>
@@ -290,10 +292,10 @@ const Landing: React.FC = () => {
                                 <p className="text-base text-text-body leading-relaxed">
                                     Descubra os vácuos narrativos do adversário. Saiba exatamente em qual dor o oponente se omite — e ataque onde ele não tem defesa.
                                 </p>
-                            </div>
+                            </SpotlightCard>
 
                             {/* Card 4 */}
-                            <div className="group bg-white border border-border-light rounded-[24px] p-10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-on-scroll delay-4 hover:border-amber-500/30">
+                            <SpotlightCard className="group p-10 animate-on-scroll delay-4 hover:border-amber-500/30">
                                 <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-6">
                                     <span className="material-symbols-outlined text-amber-600 text-2xl">summarize</span>
                                 </div>
@@ -301,7 +303,7 @@ const Landing: React.FC = () => {
                                 <p className="text-base text-text-body leading-relaxed">
                                     Chega de relatórios de 10 páginas. Receba análises formatadas em Fato — Risco — Comando de Ação. Prontas para decisão em 30 segundos.
                                 </p>
-                            </div>
+                            </SpotlightCard>
                         </div>
                     </div>
                 </section>
