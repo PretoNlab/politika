@@ -10,7 +10,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { activeWorkspace, workspaces, setActiveWorkspace } = useWorkspace();
   const [showWorkspaceMenu, setShowWorkspaceMenu] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   // Lifecycle: track page visits and milestone signals
   const recordPageVisit = useLifecycleStore(s => s.recordPageVisit);
@@ -29,7 +31,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (stepId) completeStep(stepId);
   }, [location.pathname, recordPageVisit, completeStep]);
 
-  // Close menu on click outside
+  // Close workspace menu on click outside
   useEffect(() => {
     if (!showWorkspaceMenu) return;
     const handleClick = (e: MouseEvent) => {
@@ -41,12 +43,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showWorkspaceMenu]);
 
+  // Close mobile menu on click outside
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (mobileNavRef.current && !mobileNavRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [mobileMenuOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
       {/* Header */}
-      <header className="w-full h-20 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-6">
+      <header className="w-full h-20 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-6" ref={mobileNavRef}>
         <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
@@ -123,9 +142,38 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </nav>
             <div className="flex items-center gap-4">
               <UserMenu />
+              {/* Mobile hamburger button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-slate-400 hover:text-primary transition-colors flex items-center justify-center -mr-2"
+                aria-label="Toggle Mobile Menu"
+              >
+                <span className="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-20 left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xl px-6 py-6 pb-8 space-y-4 animate-in fade-in slide-in-from-top-2 origin-top">
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/dashboard') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">dashboard</span> QG
+            </Link>
+            <Link to="/pulse" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/pulse') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">radar</span> Radar
+            </Link>
+            <Link to="/analyze" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/analyze') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">insights</span> Analisar
+            </Link>
+            <Link to="/crisis" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-500'}`}>
+              <span className="material-symbols-outlined text-xl text-red-500">warning</span> War Room
+            </Link>
+            <Link to="/history" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/history') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">history</span> Histórico
+            </Link>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 bg-slate-50 dark:bg-slate-950">
