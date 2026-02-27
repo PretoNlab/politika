@@ -26,5 +26,13 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    ".agent",
+    ".agents",
+    "skills",
+    "dist",
+    "supabase"
+  ]
 }
