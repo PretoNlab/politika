@@ -31,9 +31,7 @@ const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos (era 2h)
 const MAX_ARTICLES_PER_TERM = 50;       // era 25
 const BREAKING_NEWS_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 horas
 
-const NEWS_API_URL = import.meta.env.PROD
-    ? '/api/news'
-    : 'http://localhost:3000/api/news';
+const NEWS_API_URL = '/api/news';
 
 const CORS_PROXIES = [
     (url: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,

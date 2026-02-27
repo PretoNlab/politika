@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
 
 // API key segura no servidor (variável de ambiente)
 const getAI = () => {
@@ -186,6 +187,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: authError.message || 'Unauthorized' });
   }
 
+  // Rate limiting
+  const rateCheck = await checkRateLimit(userId, '/api/gemini');
+  if (rateCheck.limited) {
+    return sendRateLimitResponse(res, rateCheck.retryAfter!);
+  }
+
   try {
     const body = req.body;
 
@@ -231,6 +238,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'briefing':
         return await handleBriefing(ai, data, res, wsCtx);
+
+      case 'prediction:thermometer':
+        return await handleThermometer(ai, data, res, wsCtx);
+
+      case 'prediction:battlemap':
+        return await handleBattleMap(ai, data, res, wsCtx);
+
+      case 'prediction:simulator':
+        return await handleSimulator(ai, data, res, wsCtx);
+
+      case 'prediction:earlywarning':
+        return await handleEarlyWarning(ai, data, res, wsCtx);
 
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -767,6 +786,325 @@ Regras de SitRep (Situation Report):
   // Valida campo status
   if (!['calm', 'alert', 'crisis'].includes(result.status)) {
     result.status = 'alert';
+  }
+
+  return res.status(200).json({ success: true, data: result });
+}
+
+// ============================================
+// Radar Preditivo — Prediction Handlers
+// ============================================
+
+async function handleThermometer(
+  ai: GoogleGenAI,
+  data: {
+    candidateName: string;
+    party: string;
+    electionData: any[];
+    financeData: any[];
+    sentimentScore?: number;
+  },
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
+) {
+  const { candidateName, party, electionData, financeData, sentimentScore } = data;
+
+  if (!candidateName || !party) {
+    return res.status(400).json({ error: 'candidateName e party são obrigatórios' });
+  }
+
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Você é um analista eleitoral sênior especializado em ${stateName}.
+Analise a posição do candidato ${candidateName} (${party}) com base nos dados históricos do TSE.
+
+DADOS HISTÓRICOS DE ELEIÇÕES (por zona eleitoral):
+${JSON.stringify(electionData?.slice(0, 50) || [], null, 1)}
+
+DADOS DE FINANCIAMENTO DE CAMPANHA:
+${JSON.stringify(financeData?.slice(0, 20) || [], null, 1)}
+
+SENTIMENTO ATUAL EM TEMPO REAL: ${sentimentScore !== undefined ? `Score: ${sentimentScore} (-1 a 1)` : 'Não disponível'}
+
+${regionalContext}
+
+TAREFA: Gere um Termômetro Eleitoral que posicione o candidato numa escala de 0 a 100.
+- Compare com padrões históricos de vencedores na mesma região.
+- Avalie por zona eleitoral: onde está forte, onde está fraco.
+- Analise eficiência do gasto (votos por R$ investido vs média histórica).
+- Liste forças, vulnerabilidades e uma recomendação estratégica final.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          overallScore: { type: Type.NUMBER },
+          candidateName: { type: Type.STRING },
+          party: { type: Type.STRING },
+          zones: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                zone: { type: Type.NUMBER },
+                score: { type: Type.NUMBER },
+                historicalAvg: { type: Type.NUMBER },
+                trend: { type: Type.STRING },
+                keyInsight: { type: Type.STRING },
+              },
+              required: ['zone', 'score', 'historicalAvg', 'trend', 'keyInsight'],
+            },
+          },
+          spendingEfficiency: { type: Type.NUMBER },
+          historicalComparison: { type: Type.STRING },
+          strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+          vulnerabilities: { type: Type.ARRAY, items: { type: Type.STRING } },
+          recommendation: { type: Type.STRING },
+        },
+        required: ['overallScore', 'candidateName', 'party', 'zones', 'spendingEfficiency', 'historicalComparison', 'strengths', 'vulnerabilities', 'recommendation'],
+      },
+    },
+  });
+
+  const result = safeParseAIResponse(response.text, ['overallScore', 'zones', 'recommendation']);
+  return res.status(200).json({ success: true, data: result });
+}
+
+async function handleBattleMap(
+  ai: GoogleGenAI,
+  data: {
+    candidates: { name: string; party: string; number: number }[];
+    electionData: any[];
+    sentimentData?: Record<string, number>;
+  },
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
+) {
+  const { candidates, electionData, sentimentData } = data;
+
+  if (!candidates || candidates.length === 0) {
+    return res.status(400).json({ error: 'candidates[] é obrigatório' });
+  }
+
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Você é um estrategista eleitoral de campanha em ${stateName}.
+Classifique cada zona eleitoral por disputabilidade com base nos dados históricos.
+
+CANDIDATOS EM ANÁLISE:
+${candidates.map(c => `- ${c.name} (${c.party}) #${c.number}`).join('\n')}
+
+DADOS HISTÓRICOS DE ELEIÇÕES (por zona):
+${JSON.stringify(electionData?.slice(0, 80) || [], null, 1)}
+
+SENTIMENTO EM TEMPO REAL POR CANDIDATO:
+${sentimentData ? JSON.stringify(sentimentData) : 'Não disponível'}
+
+${regionalContext}
+
+TAREFA: Crie um Mapa de Batalha classificando cada zona eleitoral:
+- "allied": Zona dominada pelo candidato principal (margem > 15%)
+- "adversary": Zona dominada pelo adversário (margem > 15%)
+- "disputed": Zona em disputa real (margem < 15%)
+- "opportunity": Zona com alto potencial de conquista (abstenção alta, candidato fraco)
+
+Para cada zona: quem domina, margem %, potencial de virada, perfil do eleitor, nota estratégica.
+No resumo: quantas zonas em cada categoria, prioridades de ataque e defesa.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          zones: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                zone: { type: Type.NUMBER },
+                classification: { type: Type.STRING },
+                dominantCandidate: { type: Type.STRING },
+                margin: { type: Type.NUMBER },
+                swingPotential: { type: Type.NUMBER },
+                voterProfile: { type: Type.STRING },
+                strategicNote: { type: Type.STRING },
+              },
+              required: ['zone', 'classification', 'dominantCandidate', 'margin', 'swingPotential', 'voterProfile', 'strategicNote'],
+            },
+          },
+          summary: { type: Type.STRING },
+          priorityTargets: { type: Type.ARRAY, items: { type: Type.NUMBER } },
+          defensePriorities: { type: Type.ARRAY, items: { type: Type.NUMBER } },
+          overallBalance: { type: Type.STRING },
+        },
+        required: ['zones', 'summary', 'priorityTargets', 'defensePriorities', 'overallBalance'],
+      },
+    },
+  });
+
+  const result = safeParseAIResponse(response.text, ['zones', 'summary']);
+  return res.status(200).json({ success: true, data: result });
+}
+
+async function handleSimulator(
+  ai: GoogleGenAI,
+  data: {
+    scenario: { type: string; description: string; targetZones?: number[] };
+    baselineData: any[];
+    currentSentiment?: number;
+  },
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
+) {
+  const { scenario, baselineData, currentSentiment } = data;
+
+  if (!scenario?.type || !scenario?.description) {
+    return res.status(400).json({ error: 'scenario.type e scenario.description são obrigatórios' });
+  }
+
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Você é um simulador de cenários eleitorais especializado em ${stateName}.
+Projete o impacto de uma decisão estratégica usando dados históricos como base.
+
+CENÁRIO PROPOSTO:
+- Tipo: ${scenario.type}
+- Descrição: ${scenario.description}
+${scenario.targetZones?.length ? `- Zonas-alvo: ${scenario.targetZones.join(', ')}` : ''}
+
+DADOS DE BASELINE (resultados históricos):
+${JSON.stringify(baselineData?.slice(0, 40) || [], null, 1)}
+
+SENTIMENTO ATUAL: ${currentSentiment !== undefined ? currentSentiment : 'Não disponível'}
+
+${regionalContext}
+
+TAREFA: Simule o impacto deste cenário.
+- Calcule impacto em pontos percentuais (positivo ou negativo).
+- Liste zonas afetadas com delta e explicação.
+- Encontre uma analogia histórica de cenário similar na política brasileira.
+- Estime probabilidade de sucesso (0-100%).
+- Liste riscos e dê uma recomendação final.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          scenario: { type: Type.STRING },
+          impactPoints: { type: Type.NUMBER },
+          affectedZones: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                zone: { type: Type.NUMBER },
+                delta: { type: Type.NUMBER },
+                explanation: { type: Type.STRING },
+              },
+              required: ['zone', 'delta', 'explanation'],
+            },
+          },
+          historicalAnalogy: { type: Type.STRING },
+          probability: { type: Type.NUMBER },
+          recommendation: { type: Type.STRING },
+          risks: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ['scenario', 'impactPoints', 'affectedZones', 'historicalAnalogy', 'probability', 'recommendation', 'risks'],
+      },
+    },
+  });
+
+  const result = safeParseAIResponse(response.text, ['scenario', 'impactPoints', 'recommendation']);
+  return res.status(200).json({ success: true, data: result });
+}
+
+async function handleEarlyWarning(
+  ai: GoogleGenAI,
+  data: {
+    sentimentTrajectory: { term: string; scores: number[]; timestamps: string[] }[];
+    recentAlerts: { title: string; severity: string; createdAt: string }[];
+    electionData?: any[];
+  },
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
+) {
+  const { sentimentTrajectory, recentAlerts, electionData } = data;
+
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Você é um sistema de alerta antecipado para crises políticas em ${stateName}.
+Analise a trajetória de sentimento e padrões emergentes para detectar sinais de crise ANTES que aconteçam.
+
+TRAJETÓRIA DE SENTIMENTO (últimas 24-48h):
+${JSON.stringify(sentimentTrajectory?.slice(0, 10) || [], null, 1)}
+
+ALERTAS RECENTES DO SISTEMA:
+${JSON.stringify(recentAlerts?.slice(0, 10) || [], null, 1)}
+
+PADRÕES HISTÓRICOS DE REFERÊNCIA:
+${JSON.stringify(electionData?.slice(0, 20) || [], null, 1)}
+
+${regionalContext}
+
+TAREFA: Detecte padrões que precedem crises políticas:
+- Queda abrupta de sentimento (>20% em 6h)
+- Pico de menções negativas sem resposta
+- Padrões que historicamente precederam viradas eleitorais
+- Movimentações de adversários que indicam ataque coordenado
+
+Para cada warning: tipo do padrão, probabilidade (0-100%), horizonte (em horas), descrição, precedente histórico.
+Classifique o risco geral: low, moderate, high, critical.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          warnings: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                patternType: { type: Type.STRING },
+                probability: { type: Type.NUMBER },
+                horizonHours: { type: Type.NUMBER },
+                description: { type: Type.STRING },
+                historicalPrecedent: { type: Type.STRING },
+              },
+              required: ['patternType', 'probability', 'horizonHours', 'description'],
+            },
+          },
+          overallRiskLevel: { type: Type.STRING },
+          nextCheckIn: { type: Type.STRING },
+        },
+        required: ['warnings', 'overallRiskLevel', 'nextCheckIn'],
+      },
+    },
+  });
+
+  const result = safeParseAIResponse(response.text, ['warnings', 'overallRiskLevel']);
+
+  // Validar risco geral
+  if (!['low', 'moderate', 'high', 'critical'].includes(result.overallRiskLevel)) {
+    result.overallRiskLevel = 'moderate';
   }
 
   return res.status(200).json({ success: true, data: result });

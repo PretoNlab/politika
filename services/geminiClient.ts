@@ -7,10 +7,8 @@ import { sanitizeHandle, sanitizeInput, detectPromptInjection } from '../utils/s
 import { TIMEOUTS } from '../constants';
 import { supabase } from '../lib/supabase';
 
-// URL do backend (ajusta automaticamente para dev/prod)
-const API_URL = import.meta.env.PROD
-  ? '/api/gemini' // Produção (Vercel)
-  : 'http://localhost:3000/api/gemini'; // Desenvolvimento local
+// URL do backend — sempre relativa (funciona em prod via Vercel Functions)
+const API_URL = '/api/gemini';
 
 const API_TIMEOUT_MS = TIMEOUTS.apiRequest || 60000;
 const MAX_RETRIES = 2;
@@ -100,6 +98,16 @@ async function callApi<T>(request: ApiRequest): Promise<T> {
         throw err;
       }
 
+      // Detecta resposta HTML (Vite dev server) antes de tentar JSON
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const notJsonErr = new Error(
+          'A API retornou resposta inválida. Para testar localmente, use `npx vercel dev`. Ou faça deploy e teste em produção.'
+        );
+        (notJsonErr as any).noRetry = true;
+        throw notJsonErr;
+      }
+
       const result: ApiResponse<T> = await response.json();
 
       if (!result.success) {
@@ -115,6 +123,9 @@ async function callApi<T>(request: ApiRequest): Promise<T> {
       clearTimeout(timeoutId);
       if (err.name === 'AbortError') {
         throw new Error('A requisição excedeu o tempo limite. Tente novamente.');
+      }
+      if (err.noRetry) {
+        throw err;
       }
       if (attempt < MAX_RETRIES && isRetryable(err)) {
         lastError = err;
@@ -328,6 +339,129 @@ export const chatWithAnalysis = async (
       analysis,
       message: sanitizedMessage,
       history: sanitizedHistory
+    },
+    workspaceContext,
+  });
+};
+
+// ============================================
+// Radar Preditivo — Prediction Functions
+// ============================================
+
+import type {
+  ThermometerResult,
+  BattleMapResult,
+  SimulatorResult,
+  EarlyWarningResult,
+  ScenarioInput,
+} from '../types';
+
+/**
+ * Gera Termômetro Eleitoral para um candidato
+ */
+export const generateThermometer = async (
+  candidateName: string,
+  party: string,
+  electionData: any[],
+  financeData: any[],
+  sentimentScore?: number,
+  workspaceContext?: WorkspaceContext
+): Promise<ThermometerResult> => {
+  const sanitizedName = sanitizeInput(candidateName, { maxLength: 200 });
+  const sanitizedParty = sanitizeInput(party, { maxLength: 50 });
+
+  if (!sanitizedName || !sanitizedParty) {
+    throw new Error('Nome do candidato e partido são obrigatórios');
+  }
+
+  return callApi<ThermometerResult>({
+    action: 'prediction:thermometer',
+    data: {
+      candidateName: sanitizedName,
+      party: sanitizedParty,
+      electionData,
+      financeData,
+      sentimentScore,
+    },
+    workspaceContext,
+  });
+};
+
+/**
+ * Gera Mapa de Batalha por zona eleitoral
+ */
+export const generateBattleMap = async (
+  candidates: { name: string; party: string; number: number }[],
+  electionData: any[],
+  sentimentData?: Record<string, number>,
+  workspaceContext?: WorkspaceContext
+): Promise<BattleMapResult> => {
+  if (!candidates || candidates.length === 0) {
+    throw new Error('Lista de candidatos é obrigatória');
+  }
+
+  const sanitizedCandidates = candidates.map(c => ({
+    name: sanitizeInput(c.name, { maxLength: 200 }),
+    party: sanitizeInput(c.party, { maxLength: 50 }),
+    number: c.number,
+  }));
+
+  return callApi<BattleMapResult>({
+    action: 'prediction:battlemap',
+    data: {
+      candidates: sanitizedCandidates,
+      electionData,
+      sentimentData,
+    },
+    workspaceContext,
+  });
+};
+
+/**
+ * Simula cenário eleitoral e projeta impacto
+ */
+export const simulateScenario = async (
+  scenario: ScenarioInput,
+  baselineData: any[],
+  currentSentiment?: number,
+  workspaceContext?: WorkspaceContext
+): Promise<SimulatorResult> => {
+  if (!scenario?.type || !scenario?.description) {
+    throw new Error('Tipo e descrição do cenário são obrigatórios');
+  }
+
+  const sanitizedScenario = {
+    type: sanitizeInput(scenario.type, { maxLength: 50 }),
+    description: sanitizeInput(scenario.description, { maxLength: 2000 }),
+    targetZones: scenario.targetZones,
+  };
+
+  return callApi<SimulatorResult>({
+    action: 'prediction:simulator',
+    data: {
+      scenario: sanitizedScenario,
+      baselineData,
+      currentSentiment,
+    },
+    workspaceContext,
+  });
+};
+
+/**
+ * Gera alertas antecipados baseados em padrões de sentimento
+ */
+export const generateEarlyWarnings = async (
+  sentimentTrajectory: { term: string; scores: number[]; timestamps: string[] }[],
+  recentAlerts: { title: string; severity: string; createdAt: string }[],
+  electionData?: any[],
+  workspaceContext?: WorkspaceContext
+): Promise<EarlyWarningResult> => {
+  return callApi<EarlyWarningResult>({
+    action: 'prediction:earlywarning',
+    data: {
+      sentimentTrajectory: sentimentTrajectory?.slice(0, 10),
+      recentAlerts: recentAlerts?.slice(0, 10),
+      electionData,
     },
     workspaceContext,
   });

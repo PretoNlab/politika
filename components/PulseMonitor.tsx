@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
+import SpotlightCard from '../components/ui/SpotlightCard';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
 import type { TaggedNewsArticle } from '../types';
 import type { DailyTrendPoint, DayGroup } from '../services/trendsService';
 
@@ -30,29 +32,39 @@ interface MetricProps {
   value: string;
   trend: 'up' | 'down' | 'steady';
   color: string;
+  isNumeric?: boolean;
 }
 
-const MetricCard: React.FC<MetricProps> = ({ label, value, trend, color }) => (
-  <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40 transition-all hover:shadow-md">
-    <div className="flex justify-between items-start">
-      <span className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400">
-        {label}
-      </span>
-      <div className={`size-8 rounded-xl flex items-center justify-center ${color} bg-opacity-10 text-opacity-100`}>
-        <span className="material-symbols-outlined text-sm font-black">
-          {trend === 'up' ? 'trending_up' : trend === 'down' ? 'trending_down' : 'straight'}
+const MetricCard: React.FC<MetricProps> = ({ label, value, trend, color, isNumeric = true }) => {
+  const numericValue = isNumeric ? parseFloat(value.replace(/[^0-9.-]+/g, "")) : 0;
+  const suffix = value.replace(/[0-9.-]+/g, "");
+
+  return (
+    <SpotlightCard className="p-6 flex flex-col justify-between min-h-[160px]">
+      <div className="flex justify-between items-start mb-4">
+        <span className="text-sm font-bold uppercase tracking-wider text-text-subtle">
+          {label}
         </span>
+        <div className={`size-10 rounded-xl flex items-center justify-center bg-opacity-10 text-opacity-100 ${color.replace('text-', 'bg-').split(' ')[0]} ${color.split(' ')[1]}`}>
+          <span className="material-symbols-outlined text-lg font-black">
+            {trend === 'up' ? 'trending_up' : trend === 'down' ? 'trending_down' : 'straight'}
+          </span>
+        </div>
       </div>
-    </div>
-    <div className="space-y-1">
-      <h4 className="text-3xl font-black text-text-heading dark:text-white tracking-tighter">{value}</h4>
-      <p className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-        <span className="size-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-        Ativo agora
-      </p>
-    </div>
-  </div>
-);
+      <div className="space-y-1 mt-auto">
+        {isNumeric && !isNaN(numericValue) ? (
+          <AnimatedCounter end={Math.abs(numericValue)} suffix={suffix} prefix={numericValue < 0 ? '-' : ''} duration={1500} className="text-4xl md:text-5xl font-black text-text-heading tracking-tighter" />
+        ) : (
+          <h4 className="text-4xl md:text-5xl font-black text-text-heading tracking-tighter">{value}</h4>
+        )}
+        <p className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-2">
+          <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+          Ativo agora no radar
+        </p>
+      </div>
+    </SpotlightCard>
+  );
+};
 
 interface TermFilterBarProps {
   terms: string[];
@@ -65,11 +77,10 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
   <div className="flex flex-wrap gap-3">
     <button
       onClick={() => onSelect(null)}
-      className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${
-        activeTerm === null
-          ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20'
-          : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
-      }`}
+      className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${activeTerm === null
+        ? 'bg-text-heading text-white border-text-heading shadow-md'
+        : 'bg-white text-text-heading border-border-light hover:border-text-heading/30 hover:bg-surface'
+        }`}
     >
       Todos
     </button>
@@ -79,18 +90,17 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
       const isActive = activeTerm === term;
       const sentimentColor = !m?.sentiment ? 'bg-slate-400'
         : m.sentiment.score > 0.2 ? 'bg-emerald-500'
-        : m.sentiment.score < -0.2 ? 'bg-red-500'
-        : 'bg-amber-500';
+          : m.sentiment.score < -0.2 ? 'bg-red-500'
+            : 'bg-amber-500';
 
       return (
         <button
           key={term}
           onClick={() => onSelect(isActive ? null : term)}
-          className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${
-            isActive
-              ? 'text-white shadow-lg'
-              : 'bg-white dark:bg-slate-800 text-text-heading dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400'
-          }`}
+          className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${isActive
+            ? 'text-white shadow-md'
+            : 'bg-white text-text-heading border-border-light hover:border-text-heading/30 hover:bg-surface'
+            }`}
           style={isActive ? { backgroundColor: color, borderColor: color } : undefined}
         >
           <span
@@ -161,9 +171,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
             {PULSE_ONBOARDING_STEPS.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === step ? 'w-8 bg-primary' : 'w-2 bg-slate-200 dark:bg-slate-700'
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-primary' : 'w-2 bg-slate-200 dark:bg-slate-700'
+                  }`}
               />
             ))}
           </div>
@@ -207,8 +216,8 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
     : undefined;
 
   return (
-    <div className="bg-text-heading rounded-[3rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl">
-      <div className="absolute top-0 right-0 p-8 opacity-10">
+    <SpotlightCard className="p-8 md:p-10 border border-primary/10">
+      <div className="absolute top-0 right-0 p-8 opacity-5 text-primary">
         <span className="material-symbols-outlined text-9xl">radar</span>
       </div>
 
@@ -218,15 +227,14 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
             <h3 className="text-sm font-black uppercase tracking-widest text-primary">
               Radar 15 Dias
             </h3>
-            <p className="text-[10px] font-medium text-slate-400 max-w-xs leading-normal">
+            <p className="text-[10px] font-medium text-text-subtle max-w-xs leading-normal">
               Volume diário de notícias{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
             </p>
           </div>
-          <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+          <div className="flex items-center gap-4 text-[10px] font-bold text-text-subtle">
             {activeTerm && (
               <div
-                className="flex items-center gap-1.5 p-1 px-3 rounded-full border border-white/10 uppercase"
-                style={{ backgroundColor: `${TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]}20` }}
+                className="flex items-center gap-1.5 p-1 px-3 rounded-full border border-border-light bg-white uppercase shadow-sm"
               >
                 <span
                   className="size-1.5 rounded-full"
@@ -235,18 +243,18 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
                 {activeTerm}
               </div>
             )}
-            <div className="flex items-center gap-1.5 p-1 px-3 bg-white/5 rounded-full border border-white/10 uppercase">
-              <span className="size-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(19,109,236,0.8)]"></span>
+            <div className="flex items-center gap-1.5 p-1 px-3 bg-white rounded-full border border-border-light uppercase shadow-sm">
+              <span className="size-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(19,109,236,0.5)]"></span>
               Cobertura
             </div>
           </div>
         </div>
 
         {/* Bar chart — 15 bars */}
-        <div className="flex items-end gap-2 min-h-[220px] border-b border-white/10 pb-4">
+        <div className="flex items-end gap-2 min-h-[220px] border-b border-border-light pb-4">
           {isLoading ? (
-            <div className="w-full h-full flex items-center justify-center opacity-20">
-              <span className="text-xs font-black uppercase tracking-[0.2em] animate-pulse">
+            <div className="w-full h-full flex items-center justify-center opacity-50">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-primary animate-pulse">
                 Carregando dados reais...
               </span>
             </div>
@@ -254,22 +262,22 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
             dailyTrendPoints.map((point, i) => (
               <div
                 key={i}
-                className={`flex-1 rounded-t-lg transition-all duration-500 opacity-60 hover:opacity-100 group/bar relative cursor-default ${!barColor ? 'bg-primary' : ''}`}
+                className={`flex-1 rounded-t-lg transition-all duration-500 opacity-80 hover:opacity-100 group/bar relative cursor-default ${!barColor ? 'bg-primary' : ''}`}
                 style={{
                   height: `${Math.max(point.value, 4)}%`,
                   ...(barColor ? { backgroundColor: barColor } : {})
                 }}
               >
                 {/* Hover tooltip */}
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg">
-                  <span className="text-slate-500">{point.label}</span>
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-text-heading text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg">
+                  <span className="text-slate-300">{point.label}</span>
                   <span className="mx-1">—</span>
                   <span>{point.count} {point.count === 1 ? 'artigo' : 'artigos'}</span>
                 </div>
               </div>
             ))
           ) : (
-            <div className="w-full h-full flex items-center justify-center opacity-30">
+            <div className="w-full h-full flex items-center justify-center text-text-subtle">
               <span className="text-xs font-black uppercase tracking-[0.2em]">
                 Sem dados no periodo
               </span>
@@ -278,7 +286,7 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
         </div>
 
         {/* Day labels */}
-        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-text-subtle">
           {dailyTrendPoints.length > 0 && (
             <>
               <span>{dailyTrendPoints[0]?.label}</span>
@@ -290,7 +298,7 @@ const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeT
           )}
         </div>
       </div>
-    </div>
+    </SpotlightCard>
   );
 };
 
@@ -306,20 +314,20 @@ interface DayGroupedNewsFeedProps {
 }
 
 const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, terms, activeTerm, isLoading }) => (
-  <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 md:p-10 border border-slate-100 dark:border-slate-800 shadow-sm">
+  <SpotlightCard className="p-8 md:p-10">
     <div className="flex items-center justify-between mb-8">
-      <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
+      <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle flex items-center gap-2">
         <span className="material-symbols-outlined text-sm">newspaper</span>
         Notícias por Dia
       </h3>
       <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
     </div>
 
-    <div className="space-y-8 max-h-[700px] overflow-y-auto custom-scrollbar">
+    <div className="space-y-8 max-h-[700px] overflow-y-auto custom-scrollbar pr-4">
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div key={i} className="h-20 bg-surface rounded-xl animate-pulse" />
           ))}
         </div>
       ) : articlesByDay.length > 0 ? (
@@ -327,31 +335,31 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
           <div key={group.date}>
             {/* Day header */}
             <div className="flex items-center gap-3 mb-4">
-              <h4 className="text-sm font-black text-text-heading dark:text-white uppercase tracking-widest">
+              <h4 className="text-sm font-black text-text-heading uppercase tracking-widest">
                 {group.label}
               </h4>
-              <span className="text-[10px] font-bold text-text-subtle dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-bold text-text-subtle bg-white border border-border-light px-2.5 py-1 rounded-full shadow-sm">
                 {group.articles.length} {group.articles.length === 1 ? 'artigo' : 'artigos'}
               </span>
-              <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+              <div className="flex-1 h-px bg-border-light" />
             </div>
 
             {/* Articles for this day */}
-            <div className="space-y-2 pl-3 border-l-2 border-slate-100 dark:border-slate-800">
+            <div className="space-y-3 pl-3 border-l-2 border-border-light">
               {group.articles.map((article, idx) => (
                 <a
                   key={idx}
                   href={article.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block p-4 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-primary/5 transition-all group"
+                  className="block p-5 bg-white border border-border-light rounded-2xl hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <p className="text-xs font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                  <p className="text-xs font-bold text-text-heading line-clamp-2 group-hover:text-primary transition-colors leading-relaxed">
                     <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <p className="text-[10px] text-text-subtle dark:text-slate-500">{article.source}</p>
-                    <span className="text-[10px] text-text-subtle/50 dark:text-slate-600">
+                  <div className="flex items-center gap-2 mt-3">
+                    <p className="text-[10px] font-medium text-text-subtle">{article.source}</p>
+                    <span className="text-[10px] text-text-subtle/50">
                       {formatRelativeTime(article.pubDate)}
                     </span>
                     {article.matchedTerms.length > 0 && (
@@ -359,7 +367,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                         {article.matchedTerms.map(t => (
                           <span
                             key={t}
-                            className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full text-white"
+                            className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
                             style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
                           >
                             {t}
@@ -367,7 +375,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                         ))}
                       </div>
                     )}
-                    <span className="material-symbols-outlined text-primary text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                    <span className="material-symbols-outlined text-text-subtle group-hover:text-primary transition-colors text-xs ml-auto">
                       arrow_outward
                     </span>
                   </div>
@@ -377,11 +385,11 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
           </div>
         ))
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-5xl mb-3">
+        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-light rounded-2xl bg-white">
+          <span className="material-symbols-outlined text-border-light text-5xl mb-3">
             article
           </span>
-          <p className="text-sm text-text-subtle dark:text-slate-500">
+          <p className="text-sm font-bold text-text-subtle">
             {activeTerm
               ? `Nenhuma noticia encontrada para "${activeTerm}"`
               : 'Nenhuma noticia encontrada'}
@@ -389,7 +397,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
         </div>
       )}
     </div>
-  </div>
+  </SpotlightCard>
 );
 
 // ============================================
@@ -554,16 +562,15 @@ const PulseMonitor: React.FC = () => {
               const color = TERM_COLORS[idx % TERM_COLORS.length];
               const sentColor = !m.sentiment ? '#94a3b8'
                 : m.sentiment.score > 0.2 ? '#10b981'
-                : m.sentiment.score < -0.2 ? '#ef4444'
-                : '#f59e0b';
+                  : m.sentiment.score < -0.2 ? '#ef4444'
+                    : '#f59e0b';
 
               return (
                 <div
                   key={term}
                   onClick={() => setActiveTerm(activeTerm === term ? null : term)}
-                  className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 transition-all cursor-pointer group ${
-                    activeTerm === term ? 'border-primary shadow-lg' : 'border-transparent hover:border-primary'
-                  }`}
+                  className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 transition-all cursor-pointer group ${activeTerm === term ? 'border-primary shadow-lg' : 'border-transparent hover:border-primary'
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span
@@ -585,7 +592,7 @@ const PulseMonitor: React.FC = () => {
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                     {m.sentimentLoading ? 'Analisando...'
                       : m.sentiment ? m.sentiment.classification
-                      : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
+                        : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
                   </p>
                   {m.sentiment?.summary && (
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 line-clamp-2 leading-relaxed">

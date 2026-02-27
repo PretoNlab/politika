@@ -24,7 +24,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     // Auto-complete onboarding steps based on page visits
     const pathToStep: Record<string, string> = {
-      '/pulse': 'visit_radar',
+      '/radar': 'visit_radar',
       '/crisis': 'visit_warroom',
     };
     const stepId = pathToStep[location.pathname];
@@ -138,7 +138,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <span className="material-symbols-outlined text-lg text-red-600">warning</span>
                 War Room
               </Link>
-              <Link to="/history" className={`text-sm font-medium transition-colors ${isActive('/history') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>Histórico</Link>
+              <Link to="/radar" className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/radar') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+                <span className="material-symbols-outlined text-sm">query_stats</span>
+                Preditivo
+              </Link>
             </nav>
             <div className="flex items-center gap-4">
               <UserMenu />
@@ -169,8 +172,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Link to="/crisis" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-500'}`}>
               <span className="material-symbols-outlined text-xl text-red-500">warning</span> War Room
             </Link>
-            <Link to="/history" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/history') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
-              <span className="material-symbols-outlined text-xl">history</span> Histórico
+            <Link to="/radar" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/radar') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">query_stats</span> Radar Preditivo
             </Link>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
 import type { TrendDataPoint } from '../api/trends';
 
 /**
@@ -22,9 +23,16 @@ interface UseTrendsDataReturn {
 const TRENDS_CACHE_KEY_PREFIX = 'politika_trends_cache_';
 const TRENDS_CACHE_DURATION = 60 * 60 * 1000; // 1h (Trends muda menos que notícias)
 
-const TRENDS_API_URL = import.meta.env.PROD
-    ? '/api/trends'
-    : 'http://localhost:3000/api/trends';
+const TRENDS_API_URL = '/api/trends';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+    return headers;
+}
 
 /**
  * Hook para buscar dados reais do Google Trends por termo.
@@ -62,7 +70,7 @@ export const useTrendsData = (options: UseTrendsDataOptions): UseTrendsDataRetur
         try {
             const response = await fetch(TRENDS_API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 body: JSON.stringify({ term, region }),
             });
 
@@ -134,7 +142,7 @@ export const useMultiTermTrends = (
             try {
                 const response = await fetch(TRENDS_API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: await getAuthHeaders(),
                     body: JSON.stringify({ term, region }),
                 });
                 const result = await response.json();

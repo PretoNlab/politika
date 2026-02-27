@@ -4,6 +4,7 @@ import { useCrisisAnalysis } from '../hooks/useCrisisAnalysis';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ALL_ALLOWED_MEDIA_TYPES, FILE_SIZE_LIMITS } from '../constants';
 import { isValidFileSize, isValidMimeType } from '../utils/security';
+import SpotlightCard from './ui/SpotlightCard';
 
 const CrisisManagement: React.FC = () => {
   const [input, setInput] = useState('');
@@ -92,19 +93,19 @@ const CrisisManagement: React.FC = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-10 space-y-10">
       <div className="space-y-4">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+        <h1 className="text-4xl font-black text-text-heading flex items-center gap-3">
           <span className="material-symbols-outlined text-red-600 text-5xl animate-pulse">warning</span>
           War Room: Inteligência Multimodal
         </h1>
-        <p className="text-slate-500 dark:text-slate-400">
+        <p className="text-text-subtle">
           Analise ataques em vídeo, áudio ou texto com grounding em tempo real e geolocalização.
         </p>
       </div>
 
       {/* Input Card */}
-      <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
+      <SpotlightCard className="p-8 border border-border-light shadow-md space-y-6">
         <textarea
-          className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-3xl p-6 text-lg focus:ring-2 focus:ring-red-500/20 min-h-[120px] transition-all"
+          className="w-full bg-surface border border-border-light rounded-3xl p-6 text-lg focus:ring-2 focus:ring-red-500/20 focus:border-red-500/30 min-h-[120px] transition-all text-text-heading placeholder-text-subtle/50 outline-none"
           placeholder="Descreva o incidente ou cole o link da notícia..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -122,8 +123,8 @@ const CrisisManagement: React.FC = () => {
           <button
             onClick={() => fileInputRef.current?.click()}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-dashed transition-all font-bold ${mediaFile
-                ? 'border-primary bg-primary/5 text-primary'
-                : 'border-slate-200 dark:border-slate-700 text-slate-500'
+              ? 'border-primary bg-primary/5 text-primary'
+              : 'border-border-light text-text-subtle hover:border-primary/50 hover:text-primary'
               }`}
           >
             <span className="material-symbols-outlined">
@@ -144,7 +145,7 @@ const CrisisManagement: React.FC = () => {
 
         {/* Media Preview */}
         {mediaFile && (
-          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+          <div className="rounded-2xl overflow-hidden border border-border-light bg-surface shadow-inner">
             {mediaFile.mimeType.startsWith('image/') && (
               <img
                 src={`data:${mediaFile.mimeType};base64,${mediaFile.data}`}
@@ -173,7 +174,7 @@ const CrisisManagement: React.FC = () => {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-600 text-sm">
             <span className="material-symbols-outlined">error</span>
             <p className="font-bold">{error}</p>
           </div>
@@ -182,7 +183,7 @@ const CrisisManagement: React.FC = () => {
         <button
           onClick={handleAnalyze}
           disabled={loading || (!input.trim() && !mediaFile)}
-          className="w-full py-5 bg-slate-900 hover:bg-black text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 text-xl disabled:opacity-50"
+          className="w-full py-5 bg-text-heading hover:bg-black text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 text-xl disabled:opacity-50"
         >
           {loading ? (
             <div className="flex items-center gap-3">
@@ -196,7 +197,7 @@ const CrisisManagement: React.FC = () => {
             </>
           )}
         </button>
-      </div>
+      </SpotlightCard>
 
       {/* Results */}
       {result && (
@@ -204,7 +205,7 @@ const CrisisManagement: React.FC = () => {
           {/* Grounding Sources */}
           {result.sources && result.sources.length > 0 && (
             <div className="space-y-3">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
+              <p className="text-[10px] font-black uppercase text-text-subtle tracking-widest flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">travel_explore</span>
                 Fontes de Inteligência em Tempo Real
               </p>
@@ -215,13 +216,13 @@ const CrisisManagement: React.FC = () => {
                     href={source.uri}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-primary/5 transition-all group"
+                    className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-all group"
                   >
                     <span className="material-symbols-outlined text-primary text-sm">link</span>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors flex-1 line-clamp-1">
+                    <span className="text-sm font-medium text-text-subtle group-hover:text-primary transition-colors flex-1 line-clamp-1">
                       {source.title}
                     </span>
-                    <span className="material-symbols-outlined text-slate-400 text-sm">arrow_outward</span>
+                    <span className="material-symbols-outlined text-text-subtle/50 text-sm group-hover:text-primary">arrow_outward</span>
                   </a>
                 ))}
               </div>
@@ -229,29 +230,29 @@ const CrisisManagement: React.FC = () => {
           )}
 
           {/* Crisis Summary */}
-          <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 p-8 rounded-[2.5rem] border border-red-100 dark:border-red-800 space-y-4">
+          <div className="bg-red-50/50 p-8 rounded-[2.5rem] border border-red-100 shadow-sm space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-red-600 text-3xl">crisis_alert</span>
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">Resumo do Incidente</h2>
+                  <h2 className="text-2xl font-black text-text-heading">Resumo do Incidente</h2>
                 </div>
-                <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
+                <p className="text-text-heading text-lg leading-relaxed font-medium">
                   {result.incidentSummary}
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2 min-w-[120px]">
-                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                <span className="text-[10px] font-black uppercase text-text-subtle tracking-widest">
                   Severidade
                 </span>
                 <div
                   className={`px-6 py-3 rounded-full font-black text-lg ${result.severityLevel === 'Crítico'
-                      ? 'bg-red-600 text-white'
-                      : result.severityLevel === 'Alto'
-                        ? 'bg-orange-500 text-white'
-                        : result.severityLevel === 'Médio'
-                          ? 'bg-yellow-500 text-white'
-                          : 'bg-green-500 text-white'
+                    ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)]'
+                    : result.severityLevel === 'Alto'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : result.severityLevel === 'Médio'
+                        ? 'bg-amber-500 text-white shadow-sm'
+                        : 'bg-emerald-500 text-white shadow-sm'
                     }`}
                 >
                   {result.severityLevel}
@@ -262,26 +263,26 @@ const CrisisManagement: React.FC = () => {
 
           {/* Strategic Responses */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+            <h3 className="text-2xl font-black text-text-heading flex items-center gap-3">
               <span className="material-symbols-outlined text-primary">strategy</span>
               Estratégias de Resposta
             </h3>
 
             <div className="grid gap-6">
               {result.responses.map((response, idx) => (
-                <div
+                <SpotlightCard
                   key={idx}
-                  className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 hover:border-primary transition-colors"
+                  className="p-6 border border-border-light space-y-4 hover:border-primary/40 transition-colors shadow-sm"
                 >
                   <h4 className="text-xl font-bold text-primary">{response.strategyName}</h4>
-                  <p className="text-slate-600 dark:text-slate-400">{response.description}</p>
+                  <p className="text-text-subtle text-base font-medium">{response.description}</p>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">Pontos de Ação:</p>
-                    <ul className="space-y-1">
+                    <p className="text-sm font-bold text-text-heading">Pontos de Ação:</p>
+                    <ul className="space-y-2">
                       {response.actionPoints.map((point, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
-                          <span className="material-symbols-outlined text-primary text-sm mt-0.5">
+                        <li key={i} className="flex items-start gap-2 text-sm text-text-subtle font-medium">
+                          <span className="material-symbols-outlined text-primary mt-0.5">
                             check_circle
                           </span>
                           <span>{point}</span>
@@ -291,27 +292,27 @@ const CrisisManagement: React.FC = () => {
                   </div>
 
                   {response.suggestedScript && (
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                      <p className="text-xs font-bold text-slate-500 mb-2">Script Sugerido:</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                    <div className="p-5 bg-surface rounded-2xl border border-border-light mt-4">
+                      <p className="text-xs font-black uppercase tracking-widest text-text-subtle mb-3">Script Sugerido</p>
+                      <p className="text-base text-text-heading italic font-medium">
                         "{response.suggestedScript}"
                       </p>
                     </div>
                   )}
-                </div>
+                </SpotlightCard>
               ))}
             </div>
           </div>
 
           {/* Evaluation Section */}
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 space-y-6">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <SpotlightCard className="p-8 border border-border-light space-y-6 shadow-md">
+            <h3 className="text-xl font-bold text-text-heading flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">rate_review</span>
               Avaliar Resposta Proposta
             </h3>
 
             <textarea
-              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-6 text-lg focus:ring-2 focus:ring-primary/20 min-h-[150px]"
+              className="w-full bg-surface border border-border-light rounded-2xl p-6 text-lg focus:ring-2 focus:border-primary/30 focus:ring-primary/20 min-h-[150px] outline-none text-text-heading placeholder-text-subtle/50"
               placeholder="Cole aqui sua resposta oficial proposta para avaliação..."
               value={proposedDraft}
               onChange={(e) => setProposedDraft(e.target.value)}
@@ -321,7 +322,7 @@ const CrisisManagement: React.FC = () => {
             <button
               onClick={handleEvaluate}
               disabled={evalLoading || !proposedDraft.trim()}
-              className="w-full py-4 bg-primary hover:opacity-90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {evalLoading ? (
                 <>
@@ -338,62 +339,62 @@ const CrisisManagement: React.FC = () => {
 
             {evaluation && (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl">
+                <div className="flex items-center justify-between p-6 bg-primary/5 border border-primary/10 rounded-2xl">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Score de Eficácia</p>
+                    <p className="text-sm text-text-subtle font-bold">Score de Eficácia</p>
                     <p className="text-3xl font-black text-primary">{evaluation.score}/10</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Veredito</p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-white">{evaluation.verdict}</p>
+                    <p className="text-sm text-text-subtle font-bold">Veredito</p>
+                    <p className="text-lg font-black text-text-heading">{evaluation.verdict}</p>
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <p className="font-bold text-green-600">Pontos Fortes:</p>
-                    <ul className="space-y-1">
+                  <div className="space-y-3">
+                    <p className="text-xs font-black uppercase text-emerald-600 tracking-widest">Pontos Fortes</p>
+                    <ul className="space-y-2">
                       {evaluation.pros.map((pro: string, i: number) => (
-                        <li key={i} className="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2">
-                          <span className="material-symbols-outlined text-green-600 text-sm">check</span>
-                          {pro}
+                        <li key={i} className="text-sm text-text-subtle font-medium flex items-start gap-2">
+                          <span className="material-symbols-outlined text-emerald-600 mt-0.5">check_circle</span>
+                          <span>{pro}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="space-y-2">
-                    <p className="font-bold text-red-600">Pontos de Melhoria:</p>
-                    <ul className="space-y-1">
+                  <div className="space-y-3">
+                    <p className="text-xs font-black uppercase text-red-600 tracking-widest">Pontos de Melhoria</p>
+                    <ul className="space-y-2">
                       {evaluation.cons.map((con: string, i: number) => (
-                        <li key={i} className="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2">
-                          <span className="material-symbols-outlined text-red-600 text-sm">close</span>
-                          {con}
+                        <li key={i} className="text-sm text-text-subtle font-medium flex items-start gap-2">
+                          <span className="material-symbols-outlined text-red-600 mt-0.5">warning</span>
+                          <span>{con}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white mb-3">Versão Otimizada:</p>
-                  <p className="text-slate-700 dark:text-slate-300">{evaluation.optimizedVersion}</p>
+                <div className="p-6 bg-emerald-50/50 border border-emerald-100 rounded-2xl mt-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-emerald-700 mb-3">Versão Otimizada Proposta</p>
+                  <p className="text-base text-text-heading font-medium leading-relaxed italic">"{evaluation.optimizedVersion}"</p>
                 </div>
               </div>
             )}
-          </div>
+          </SpotlightCard>
 
           {showResetConfirm ? (
             <div className="flex gap-3">
               <button
                 onClick={handleReset}
-                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all"
+                className="flex-1 py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-md transition-all"
               >
                 Sim, descartar análise
               </button>
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="flex-1 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:border-slate-300 transition-all"
+                className="flex-1 py-4 border-2 border-border-light text-text-subtle bg-white rounded-xl font-bold hover:border-slate-300 hover:text-text-heading transition-all"
               >
                 Cancelar
               </button>
@@ -401,7 +402,7 @@ const CrisisManagement: React.FC = () => {
           ) : (
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="w-full py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-xl hover:border-primary hover:text-primary transition-all font-bold"
+              className="w-full py-4 bg-white border-2 border-border-light text-text-subtle rounded-xl shadow-sm hover:border-text-heading/30 hover:text-text-heading transition-all font-bold"
             >
               Nova Análise
             </button>

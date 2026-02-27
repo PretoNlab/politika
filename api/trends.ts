@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { authenticateRequest } from './_auth';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
 
 /**
  * Serverless function para buscar dados do Google Trends.
@@ -45,6 +47,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    // Auth + rate limiting
+    let userId: string;
+    try {
+        userId = await authenticateRequest(req);
+    } catch (authError: any) {
+        return res.status(401).json({ error: authError.message || 'Unauthorized' });
+    }
+
+    const rateCheck = await checkRateLimit(userId, '/api/trends');
+    if (rateCheck.limited) {
+        return sendRateLimitResponse(res, rateCheck.retryAfter!);
+    }
 
     const { term, region } = req.body || {};
     if (!term || typeof term !== 'string') {

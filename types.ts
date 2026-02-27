@@ -182,3 +182,155 @@ export interface AnalysisHistoryItem {
   result: DetailedAnalysis | ComparativeAnalysis;
   created_at: string;
 }
+
+// ============================================
+// Radar Preditivo — TSE Data Types
+// ============================================
+
+export interface TseElectionResult {
+  id: string;
+  election_year: number;
+  election_type: string;
+  state: string;
+  municipality: string;
+  zone: number;
+  candidate_name: string;
+  candidate_number: number;
+  party: string;
+  coalition: string | null;
+  votes: number;
+  turnout_pct: number | null;
+  null_votes: number;
+  blank_votes: number;
+  total_voters: number | null;
+  fetched_at: string;
+}
+
+export interface TseCampaignFinance {
+  id: string;
+  election_year: number;
+  state: string;
+  municipality: string;
+  candidate_name: string;
+  candidate_number: number;
+  party: string;
+  total_revenue: number;
+  total_spending: number;
+  spending_category: Record<string, number>;
+  funding_sources: { source: string; amount: number }[];
+  fetched_at: string;
+}
+
+export interface TseVoterDemographics {
+  id: string;
+  election_year: number;
+  state: string;
+  municipality: string;
+  zone: number;
+  total_voters: number;
+  age_distribution: Record<string, number>;
+  gender_distribution: Record<string, number>;
+  education_distribution: Record<string, number>;
+  fetched_at: string;
+}
+
+// ============================================
+// Radar Preditivo — Prediction Types
+// ============================================
+
+export type RadarTool = 'thermometer' | 'battlemap' | 'simulator' | 'earlywarning';
+
+export interface ThermometerZone {
+  zone: number;
+  score: number;
+  historicalAvg: number;
+  trend: 'rising' | 'stable' | 'falling';
+  keyInsight: string;
+}
+
+export interface ThermometerResult {
+  overallScore: number;
+  candidateName: string;
+  party: string;
+  zones: ThermometerZone[];
+  spendingEfficiency: number;
+  historicalComparison: string;
+  strengths: string[];
+  vulnerabilities: string[];
+  recommendation: string;
+}
+
+export type ZoneClassification = 'allied' | 'adversary' | 'disputed' | 'opportunity';
+
+export interface BattleMapZone {
+  zone: number;
+  classification: ZoneClassification;
+  dominantCandidate: string;
+  margin: number;
+  swingPotential: number;
+  voterProfile: string;
+  strategicNote: string;
+}
+
+export interface BattleMapResult {
+  zones: BattleMapZone[];
+  summary: string;
+  priorityTargets: number[];
+  defensePriorities: number[];
+  overallBalance: string;
+}
+
+export type ScenarioType = 'position' | 'alliance' | 'crisis' | 'abstention' | 'spending' | 'custom';
+
+export interface ScenarioInput {
+  type: ScenarioType;
+  description: string;
+  targetZones?: number[];
+}
+
+export interface SimulatorResult {
+  scenario: string;
+  impactPoints: number;
+  affectedZones: { zone: number; delta: number; explanation: string }[];
+  historicalAnalogy: string;
+  probability: number;
+  recommendation: string;
+  risks: string[];
+}
+
+export interface EarlyWarning {
+  id: string;
+  patternType: string;
+  probability: number;
+  horizonHours: number;
+  description: string;
+  historicalPrecedent: string | null;
+  isActive: boolean;
+  triggeredAt: string | null;
+  createdAt: string;
+}
+
+export interface EarlyWarningResult {
+  warnings: EarlyWarning[];
+  overallRiskLevel: 'low' | 'moderate' | 'high' | 'critical';
+  nextCheckIn: string;
+}
+
+export interface RadarPrediction {
+  id: string;
+  user_id: string;
+  workspace_id: string | null;
+  tool: RadarTool;
+  input_params: Record<string, unknown>;
+  result: ThermometerResult | BattleMapResult | SimulatorResult | EarlyWarningResult;
+  confidence_level: number | null;
+  created_at: string;
+}
+
+export interface TseSyncStatus {
+  lastSync: string | null;
+  recordCount: number;
+  availableYears: number[];
+  state: string;
+  municipality: string;
+}

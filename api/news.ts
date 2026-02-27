@@ -1,15 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { authenticateRequest } from './_auth';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
 
 /**
  * Serverless function que busca Google News RSS sem restrição de CORS.
  * Recebe: { region: string, term: string }
  * Retorna: { success: true, data: NewsArticle[] }
- *
- * Melhorias v2:
- * - 50 artigos por query (era 25)
- * - Query enriquecida com contexto eleitoral
- * - Extrai campo description (snippet do artigo)
- * - Normaliza links do Google News
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS
@@ -34,6 +30,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Auth + rate limiting
+  let userId: string;
+  try {
+    userId = await authenticateRequest(req);
+  } catch (authError: any) {
+    return res.status(401).json({ error: authError.message || 'Unauthorized' });
+  }
+
+  const rateCheck = await checkRateLimit(userId, '/api/news');
+  if (rateCheck.limited) {
+    return sendRateLimitResponse(res, rateCheck.retryAfter!);
   }
 
   try {

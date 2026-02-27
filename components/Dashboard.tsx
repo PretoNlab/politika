@@ -9,6 +9,8 @@ import { supabase } from '../lib/supabase';
 import { LOADING_STEPS } from '../constants';
 import { useGenerationStore } from '../store/generationStore';
 import { useLifecycleStore } from '../store/lifecycleStore';
+import SpotlightCard from '../components/ui/SpotlightCard';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
 
 const Dashboard: React.FC = () => {
   const [handles, setHandles] = useState<string[]>(['']);
@@ -194,199 +196,278 @@ const Dashboard: React.FC = () => {
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-10">
       {/* Header */}
-      <div className="space-y-4">
-        <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
-          Centro de Comando
+      <div className="mb-10">
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-text-heading mb-2">
+          Resumo da Operação
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Análise estratégica de perfis e disputas políticas
+        <p className="text-text-body text-lg">
+          Visão consolidada do cenário em tempo real para tomada de decisão estratégica.
         </p>
       </div>
 
-      {/* Main Analysis Card */}
-      <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="material-symbols-outlined text-primary text-3xl">person_search</span>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Nova Análise</h2>
-        </div>
-
-        <div className="space-y-4">
-          {handles.map((handle, index) => (
-            <div key={index} className="flex gap-3">
-              <input
-                type="text"
-                placeholder={index === 0 ? "Digite @handle ou nome do candidato" : `Candidato ${index + 1}`}
-                value={handle}
-                onChange={(e) => handleUpdateHandle(index, e.target.value)}
-                className="flex-1 px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-lg focus:ring-2 focus:ring-primary/20 transition-all"
-                disabled={loading}
-              />
-              {handles.length > 1 && (
-                <button
-                  onClick={() => setHandles(handles.filter((_, i) => i !== index))}
-                  className="px-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                  disabled={loading}
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              )}
+      {/* Bento Grid: Top Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <SpotlightCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <span className="material-symbols-outlined text-lg">sentiment_satisfied</span>
             </div>
-          ))}
-        </div>
+            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Sentimento</span>
+          </div>
+          <AnimatedCounter end={68} suffix="%" duration={1500} className="text-4xl font-bold text-text-heading mb-1" />
+          <div className="text-sm font-medium text-emerald-600 flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">trending_up</span> +5% nas últimas 24h
+          </div>
+        </SpotlightCard>
 
-        {handles.length < 3 && (
-          <button
-            onClick={handleAddCompetitor}
-            className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-slate-500 dark:text-slate-400 hover:border-primary hover:text-primary transition-all font-bold"
-            disabled={loading}
-          >
-            <span className="material-symbols-outlined align-middle mr-2">add</span>
-            Adicionar Adversário ({handles.length}/3)
-          </button>
-        )}
+        <SpotlightCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="size-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <span className="material-symbols-outlined text-lg">campaign</span>
+            </div>
+            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Termos Ativos</span>
+          </div>
+          <AnimatedCounter end={activeWorkspace?.watchwords?.length || 0} duration={1000} className="text-4xl font-bold text-text-heading mb-1" />
+          <div className="text-sm font-medium text-text-body flex items-center gap-1">
+            Monitorando radar
+          </div>
+        </SpotlightCard>
 
-        <button
-          onClick={handleAnalysis}
-          disabled={loading || handles.every(h => !h.trim())}
-          className="w-full py-5 bg-primary hover:opacity-90 text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <>
-              <div className="size-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-              <span>{LOADING_STEPS[stepIndex].label}</span>
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined">analytics</span>
-              {handles.length === 1 ? 'Analisar Perfil' : 'Comparar Candidatos'}
-            </>
-          )}
-        </button>
+        <SpotlightCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="size-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-lg">article</span>
+            </div>
+            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Notícias (24h)</span>
+          </div>
+          <AnimatedCounter end={news.length || 0} duration={2000} className="text-4xl font-bold text-text-heading mb-1" />
+          <div className="text-sm font-medium text-primary flex items-center gap-1">
+            Volume na região
+          </div>
+        </SpotlightCard>
 
-        {loading && (
-          <div className="text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+        <SpotlightCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="size-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-lg">warning</span>
+            </div>
+            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Risco de Crise</span>
+          </div>
+          <div className="text-4xl font-bold text-text-heading mb-1">Baixo</div>
+          <div className="text-sm font-medium text-text-body flex items-center gap-1">
+            Sem anomalias detectadas
+          </div>
+        </SpotlightCard>
+      </div>
+
+      {/* Main Analysis Input Card (Centered and Prominent) */}
+      <SpotlightCard className="p-8 lg:p-12 mb-10 max-w-4xl border-primary/20 bg-gradient-to-br from-white to-primary-soft/30 hover:shadow-2xl hover:border-primary/40">
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="size-16 rounded-2xl bg-white shadow-sm border border-border-light flex items-center justify-center text-primary mb-2">
+            <span className="material-symbols-outlined text-4xl">person_search</span>
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-text-heading tracking-tight">Nova Análise Estratégica</h2>
+            <p className="text-text-body mt-2 text-lg">Insira o @handle para traçar o perfil ou até 3 para comparar.</p>
+          </div>
+
+          <div className="w-full space-y-4 max-w-2xl mt-4">
+            {handles.map((handle, index) => (
+              <div key={index} className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder={index === 0 ? "Digite @handle ou nome do candidato" : `Candidato ${index + 1}`}
+                  value={handle}
+                  onChange={(e) => handleUpdateHandle(index, e.target.value)}
+                  className="flex-1 px-6 py-4 bg-white border border-border-light rounded-2xl text-lg text-text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all outline-none shadow-sm"
+                  disabled={loading}
+                />
+                {handles.length > 1 && (
+                  <button
+                    onClick={() => setHandles(handles.filter((_, i) => i !== index))}
+                    className="px-4 text-red-500 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100 transition-colors"
+                    disabled={loading}
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl pt-2">
+            {handles.length < 3 && (
+              <button
+                onClick={handleAddCompetitor}
+                className="flex-[0.3] py-4 border border-dashed border-border-light bg-surface rounded-2xl text-text-subtle hover:border-primary hover:text-primary transition-all font-bold flex items-center justify-center"
+                disabled={loading}
+              >
+                <span className="material-symbols-outlined align-middle mr-2">add</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleAnalysis}
+              disabled={loading || handles.every(h => !h.trim())}
+              className="flex-1 py-4 bg-text-heading hover:bg-black text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <div className="size-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>{LOADING_STEPS[stepIndex].label}</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">analytics</span>
+                  {handles.length === 1 ? 'Analisar Perfil' : 'Comparar Candidatos'}
+                </>
+              )}
+            </button>
+          </div>
+
+          {loading && (
+            <p className="text-sm font-medium text-text-subtle animate-pulse mt-4">
               {LOADING_STEPS[stepIndex].hint}
             </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </SpotlightCard>
 
       {/* PLG AHA MOMENT: Loading State for Background Generation */}
       {isGenerating && (
-        <div className="bg-primary/5 border border-primary/20 p-8 rounded-[3rem] text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="bg-primary/5 border border-primary/20 p-8 rounded-[3rem] text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden max-w-4xl mx-auto mb-10">
           <div className="absolute top-0 left-0 w-full h-1 bg-primary/20">
             <div className="h-full bg-primary animate-progress-indeterminate"></div>
           </div>
-          <div className="size-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 relative">
+          <div className="size-16 bg-white shadow-sm border border-border-light text-primary rounded-full flex items-center justify-center mx-auto mb-4 relative">
             <span className="material-symbols-outlined text-3xl animate-pulse">neurology</span>
             <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
           </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
-            Gerando Dossiê Estratégico Inicial...
+          <h3 className="text-3xl font-bold text-text-heading tracking-tight mt-6">
+            Gerando Dossiê Estratégico...
           </h3>
-          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto">
-            A Inteligência Artificial está analisando o histórico, o tom dominante e as vulnerabilidades de <strong className="text-primary">@{generatingHandle}</strong>. Você será redirecionado assim que estiver pronto.
+          <p className="text-text-body text-lg max-w-xl mx-auto">
+            A Inteligência Artificial está analisando o histórico, o tom dominante e as vulnerabilidades de <strong className="text-primary font-bold">@{generatingHandle}</strong>. Você será redirecionado em instantes.
           </p>
         </div>
       )}
 
-      {/* Recent News */}
-      {activeWorkspace && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">newspaper</span>
-              Notícias Recentes - {activeWorkspace.region}
-            </h3>
+      {/* Bento Grid: Main Content Area (News + History) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Left/Middle Column - Recent History */}
+        <SpotlightCard className="p-8 lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-text-heading tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">history</span>
+              Análises Recentes
+            </h2>
+            <Link to="/radar" className="text-sm font-bold text-primary hover:text-blue-700 transition-colors">
+              Radar Preditivo
+            </Link>
           </div>
 
-          {loadingNews ? (
-            <div className="grid gap-4">
+          {historyLoading ? (
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-slate-100 dark:bg-slate-800 h-24 rounded-2xl animate-pulse" />
+                <div key={i} className="bg-surface h-20 rounded-2xl animate-pulse" />
               ))}
             </div>
-          ) : news.length > 0 ? (
+          ) : history.length > 0 ? (
             <div className="grid gap-4">
-              {news.map((item, idx) => (
+              {history.slice(0, 5).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    if (item.type === 'insight') {
+                      navigate(`/insight-detail/${item.id}`, { state: { result: item.result, handle: item.handle } });
+                    } else {
+                      navigate(`/comparison-detail/${item.id}`, { state: { result: item.result } });
+                    }
+                  }}
+                  className="p-5 bg-surface border border-border-light rounded-2xl flex items-center justify-between hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-xl bg-white border border-border-light flex items-center justify-center group-hover:bg-primary-soft transition-colors text-text-subtle group-hover:text-primary">
+                      <span className="material-symbols-outlined text-xl">
+                        {item.type === 'insight' ? 'person' : 'group'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-text-heading group-hover:text-primary transition-colors text-lg">{item.handle}</p>
+                      <p className="text-sm font-medium text-text-subtle">
+                        {new Date(item.created_at).toLocaleDateString('pt-BR')} às {new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs bg-white border border-border-light text-text-heading px-3 py-1.5 rounded-full font-bold shadow-sm">
+                      {item.type === 'insight' ? 'Individual' : 'Comparativa'}
+                    </span>
+                    <span className="material-symbols-outlined text-text-subtle group-hover:translate-x-1 group-hover:text-primary transition-all">arrow_forward</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-light rounded-2xl bg-surface">
+              <span className="material-symbols-outlined text-4xl text-text-subtle mb-4">analytics</span>
+              <p className="text-lg font-bold text-text-heading">Nenhuma análise no histórico</p>
+              <p className="text-sm text-text-body max-w-xs mt-2">Realize uma nova análise no campo principal para popular seu QG.</p>
+            </div>
+          )}
+        </SpotlightCard>
+
+        {/* Right Column - Live Feed (News) */}
+        <SpotlightCard className="p-8 flex flex-col h-full bg-surface">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-text-heading tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">feed</span>
+              Live Feed {activeWorkspace?.region ? `- ${activeWorkspace.region}` : ''}
+            </h2>
+            <Link to="/pulse" className="text-sm font-bold text-text-subtle hover:text-primary transition-colors">
+              Radar Completo
+            </Link>
+          </div>
+
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+            {loadingNews ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white border border-border-light h-28 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : news.length > 0 ? (
+              news.map((item, idx) => (
                 <a
                   key={idx}
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-all group"
+                  className="block p-5 rounded-2xl bg-white shadow-sm border border-border-light hover:border-primary/40 hover:shadow-md transition-all group cursor-pointer"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
-                        {item.title.split(' - ')[0]}
-                      </h4>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{item.source}</p>
-                    </div>
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
-                      arrow_outward
-                    </span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-[10px] font-bold text-text-subtle uppercase tracking-widest">{item.source || 'Portal'}</span>
+                  </div>
+                  <p className="text-sm font-bold text-text-heading mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-3">
+                    {item.title.split(' - ')[0]}
+                  </p>
+                  <div className="flex justify-between items-center mt-3">
+                    <span className="text-xs font-medium text-text-subtle">Agora</span>
+                    <span className="material-symbols-outlined text-sm text-text-subtle group-hover:translate-x-1 group-hover:text-primary transition-all">open_in_new</span>
                   </div>
                 </a>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-slate-500 dark:text-slate-400 py-8">
-              Nenhuma notícia encontrada para esta região
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Recent History */}
-      {history.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">history</span>
-              Análises Recentes
-            </h3>
-            <Link to="/history" className="text-primary hover:underline text-sm font-bold">
-              Ver todas
-            </Link>
+              ))
+            ) : (
+              <p className="text-center text-text-subtle py-8 text-sm font-medium bg-white rounded-2xl border border-dashed border-border-light">
+                Nenhuma notícia urgente detectada no radar agora.
+              </p>
+            )}
           </div>
+        </SpotlightCard>
 
-          <div className="grid gap-3">
-            {history.slice(0, 3).map((item) => (
-              <div
-                key={item.id}
-                onClick={() => {
-                  if (item.type === 'insight') {
-                    navigate(`/insight-detail/${item.id}`, { state: { result: item.result, handle: item.handle } });
-                  } else {
-                    navigate(`/comparison-detail/${item.id}`, { state: { result: item.result } });
-                  }
-                }}
-                className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between hover:border-primary transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-primary">
-                    {item.type === 'insight' ? 'person' : 'group'}
-                  </span>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">{item.handle}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">
-                    {item.type === 'insight' ? 'Individual' : 'Comparativa'}
-                  </span>
-                  <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

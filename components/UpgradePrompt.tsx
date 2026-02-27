@@ -13,6 +13,7 @@ const CATEGORY_LABELS: Record<UsageCategory, string> = {
   comparisons: 'Análises Comparativas',
   crises: 'Respostas de Crise',
   chats: 'Mensagens no Chat',
+  predictions: 'Predições do Radar',
 };
 
 const UpgradePrompt: React.FC<UpgradePromptProps> = ({ category, usage, limit, onClose }) => {
