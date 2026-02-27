@@ -21,8 +21,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initAuth = async () => {
+      // Check if there's a code in the URL (PKCE)
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+
+      if (code) {
+        console.log('[AuthContext] Code detected in URL, exchanging...');
+        try {
+          await supabase.auth.exchangeCodeForSession(code);
+          // Remove code from URL to clean up
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (err) {
+          console.error('[AuthContext] Code exchange error:', err);
+        }
+      }
+
+      // Get initial session
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -33,7 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
       setLoading(false);
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -55,10 +73,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    // Determine the correct redirect URL
+    // We hardcode the production one to ensure exact match with Supabase whitelist
+    const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
+    // Ensure we match the Supabase whitelist exactly (no trailing slashes if not in whitelist)
+    const redirectUrl = isProd
+      ? 'https://iapolitika.com.br/auth/callback'
+      : `${window.location.origin}/auth/callback`;
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: redirectUrl,
+      },
     });
     if (error) return { error: error.message };
     return { error: null };

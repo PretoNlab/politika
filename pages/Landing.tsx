@@ -1,13 +1,22 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
 import SpotlightCard from '../components/ui/SpotlightCard';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
+    const { user, loading } = useAuth();
     const { track } = useAnalytics();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Redireciona se já estiver logado
+    useEffect(() => {
+        if (!loading && user) {
+            navigate('/dashboard');
+        }
+    }, [user, loading, navigate]);
 
     // Intersection Observer para animações de entrada
     useEffect(() => {
@@ -56,7 +65,7 @@ const Landing: React.FC = () => {
 
     const handleCTA = useCallback((source: string) => {
         track('landing_cta_clicked', { source });
-        navigate('/login');
+        navigate('/solicitar-acesso');
     }, [track, navigate]);
 
     return (
@@ -77,7 +86,7 @@ const Landing: React.FC = () => {
 
                         {/* Center nav */}
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#como-funciona" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Como funciona</a>
+                            <a href="#como-funciona" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Tecnologia</a>
                             <a href="#modulos" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Módulos</a>
                             <a href="#seguranca" className="text-sm font-medium text-text-subtle hover:text-text-heading transition-colors">Segurança</a>
                         </div>
@@ -94,7 +103,7 @@ const Landing: React.FC = () => {
                                 onClick={() => handleCTA('header')}
                                 className="text-sm font-semibold bg-text-heading text-white px-5 py-2.5 rounded-full hover:bg-slate-700 transition-colors shadow-sm"
                             >
-                                Começar grátis
+                                Solicitar Acesso
                             </button>
                         </div>
 
@@ -111,7 +120,7 @@ const Landing: React.FC = () => {
                 {/* Mobile Menu Dropdown */}
                 {mobileMenuOpen && (
                     <div className="md:hidden bg-white border-b border-border-light px-6 py-6 pb-8 space-y-4 shadow-xl absolute top-full left-0 right-0 animate-fade-up origin-top">
-                        <a href="#como-funciona" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Como funciona</a>
+                        <a href="#como-funciona" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Tecnologia</a>
                         <a href="#modulos" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Módulos</a>
                         <a href="#seguranca" className="block text-base font-medium text-text-body hover:text-primary transition-colors py-2">Segurança</a>
                         <div className="h-px bg-border-light my-4"></div>
@@ -125,7 +134,7 @@ const Landing: React.FC = () => {
                             onClick={() => { setMobileMenuOpen(false); handleCTA('header_mobile'); }}
                             className="w-full text-center text-sm font-semibold bg-text-heading text-white px-5 py-3.5 rounded-full hover:bg-slate-700 transition-colors mt-2"
                         >
-                            Começar grátis
+                            Solicitar Demo
                         </button>
                     </div>
                 )}
@@ -138,35 +147,35 @@ const Landing: React.FC = () => {
                         {/* Badge */}
                         <div className="animate-on-scroll delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-soft border border-primary/10 mb-10 shadow-sm">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                            <span className="text-xs font-semibold text-primary tracking-wide uppercase">Inteligência Política de Precisão</span>
+                            <span className="text-xs font-semibold text-primary tracking-wide uppercase">Inteligência Política de Decisão</span>
                         </div>
 
                         {/* Headline */}
                         <h1 className="animate-on-scroll delay-2 text-5xl md:text-7xl font-bold tracking-tight text-text-heading leading-[1.08] mb-8">
-                            Quem lê o cenário primeiro, <br className="hidden md:block" />
-                            <span className="text-primary tracking-tight"> controla o jogo.</span>
+                            Antecipe o cenário, <br className="hidden md:block" />
+                            <span className="text-primary tracking-tight"> domine a narrativa.</span>
                         </h1>
 
                         {/* Subtitle */}
                         <p className="animate-on-scroll delay-3 text-lg md:text-xl text-text-body max-w-2xl mx-auto leading-relaxed mb-12">
-                            Sua central de inteligência política com IA. Monitoramento em tempo real,
-                            alertas de crise e relatórios táticos — o cenário político brasileiro traduzido em ação.
+                            A plataforma de inteligência política para quem decide. Monitoramento 24/7,
+                            alertas táticos e análise de risco — acesso restrito a gabinetes e estrategistas.
                         </p>
 
                         {/* CTAs */}
                         <div className="animate-on-scroll delay-4 flex flex-col sm:flex-row justify-center items-center gap-4">
                             <button
                                 onClick={() => handleCTA('hero')}
-                                className="w-full sm:w-auto px-8 py-4 bg-text-heading hover:bg-slate-800 text-white rounded-full font-semibold text-base transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 group"
+                                className="w-full sm:w-auto px-10 py-4 bg-text-heading hover:bg-slate-800 text-white rounded-full font-semibold text-base transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 inline-flex items-center justify-center gap-2 group"
                             >
-                                <span className="material-symbols-outlined text-lg group-hover:text-primary transition-colors">bolt</span>
-                                Acessar a Central de Comando
+                                <span className="material-symbols-outlined text-lg group-hover:text-primary transition-colors">verified</span>
+                                Solicitar Acesso Exclusivo
                             </button>
                             <a
                                 href="#modulos"
-                                className="w-full sm:w-auto px-8 py-4 border border-slate-300 text-text-body hover:text-text-heading hover:border-slate-400 bg-white hover:bg-slate-50 rounded-full font-medium text-base transition-all inline-flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-10 py-4 border border-slate-300 text-text-body hover:text-text-heading hover:border-slate-400 bg-white hover:bg-slate-50 rounded-full font-medium text-base transition-all inline-flex items-center justify-center gap-2"
                             >
-                                Ver Módulos
+                                Conhecer Tecnologia
                                 <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span>
                             </a>
                         </div>
@@ -367,7 +376,7 @@ const Landing: React.FC = () => {
                             onClick={() => handleCTA('footer')}
                             className="inline-flex items-center gap-3 px-10 py-5 bg-text-heading text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 shadow-xl hover:shadow-2xl"
                         >
-                            Começar Agora
+                            Solicitar Demonstração
                             <span className="material-symbols-outlined text-xl">arrow_forward</span>
                         </button>
                     </div>
