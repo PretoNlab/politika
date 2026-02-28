@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePulseMonitor } from '../hooks/usePulseMonitor';
+import { useAnalytics } from '../hooks/useAnalytics';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
 import SpotlightCard from '../components/ui/SpotlightCard';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
@@ -407,6 +409,9 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
 const PulseMonitor: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const { activeWorkspace } = useWorkspace();
+  const { track } = useAnalytics();
+  const trackedWorkspaceRef = useRef<string | null>(null);
 
   const {
     terms,
@@ -422,6 +427,21 @@ const PulseMonitor: React.FC = () => {
     isNewsLoading,
     refresh
   } = usePulseMonitor();
+
+  useEffect(() => {
+    const workspaceId = activeWorkspace?.id || 'no_workspace';
+    if (trackedWorkspaceRef.current === workspaceId) return;
+
+    trackedWorkspaceRef.current = workspaceId;
+    track('pulse_viewed', {
+      workspace_id: activeWorkspace?.id,
+      workspace_region: activeWorkspace?.region,
+    });
+    track('pulse_monitor_viewed', {
+      workspace_id: activeWorkspace?.id,
+      workspace_region: activeWorkspace?.region,
+    });
+  }, [activeWorkspace?.id, activeWorkspace?.region, track]);
 
   const formatSentiment = (score: number | null): string => {
     if (score === null) return '—';

@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -63,9 +63,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: session.user.email,
           name: session.user.user_metadata?.full_name,
         });
+        if (event === 'SIGNED_IN') {
+          posthog.capture('login_completed', {
+            method: 'email',
+            user_id: session.user.id,
+          });
+        }
       } else {
         Sentry.setUser(null);
         posthog.reset();
+        if (event === 'SIGNED_OUT') {
+          posthog.capture('logout_completed');
+        }
       }
     });
 
@@ -90,6 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
     });
     if (error) return { error: error.message };
+    posthog.capture('signup_completed', {
+      method: 'email',
+      source: 'app',
+    });
     return { error: null };
   };
 
