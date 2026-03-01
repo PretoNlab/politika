@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
-import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit.js';
 
 // API key segura no servidor (variável de ambiente)
 const getAI = () => {

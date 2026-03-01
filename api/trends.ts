@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authenticateRequest } from './_auth';
-import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
+import { authenticateRequest } from './_auth.js';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit.js';
 
 /**
  * Serverless function para buscar dados do Google Trends.
