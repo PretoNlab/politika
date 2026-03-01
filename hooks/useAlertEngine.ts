@@ -9,6 +9,7 @@ import type {
     TaggedNewsArticle,
     TermMetrics
 } from '../types';
+import { useAnalytics } from './useAnalytics';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -59,6 +60,7 @@ export const useAlertEngine = ({
     allArticles,
     isLoading
 }: UseAlertEngineProps): UseAlertEngineReturn => {
+    const { track } = useAnalytics();
     const [alerts, setAlerts] = useState<PolitikaAlert[]>(() => {
         try {
             const stored = localStorage.getItem(STORAGE_KEYS.alerts);
@@ -302,6 +304,14 @@ export const useAlertEngine = ({
         // Add new alerts if any
         if (newAlerts.length > 0) {
             setAlerts(prev => [...newAlerts, ...prev]);
+            newAlerts.forEach(alert => {
+                track('alert_created', {
+                    alert_id: alert.id,
+                    alert_type: alert.category,
+                    severity: alert.severity,
+                    term: alert.term,
+                });
+            });
 
             // Lifecycle Signals: Trigger prominent toast notifications for new alerts
             newAlerts.forEach(alert => {
@@ -336,7 +346,7 @@ export const useAlertEngine = ({
                 }
             });
         }
-    }, [metrics, globalMetrics, allArticles, isLoading, getSentimentHistory, saveSentimentHistory, createAlert]);
+    }, [metrics, globalMetrics, allArticles, isLoading, getSentimentHistory, saveSentimentHistory, createAlert, track]);
 
     // Count unread
     const unreadCount = alerts.filter(a => !a.isRead).length;
@@ -349,14 +359,32 @@ export const useAlertEngine = ({
     }, []);
 
     const markAsActioned = useCallback((alertId: string) => {
+        const target = alerts.find(a => a.id === alertId);
+        if (target) {
+            track('alert_actioned', {
+                alert_id: target.id,
+                alert_type: target.category,
+                severity: target.severity,
+                term: target.term,
+            });
+        }
         setAlerts(prev => prev.map(a =>
             a.id === alertId ? { ...a, isActioned: true, isRead: true } : a
         ));
-    }, []);
+    }, [alerts, track]);
 
     const dismissAlert = useCallback((alertId: string) => {
+        const target = alerts.find(a => a.id === alertId);
+        if (target) {
+            track('alert_dismissed', {
+                alert_id: target.id,
+                alert_type: target.category,
+                severity: target.severity,
+                term: target.term,
+            });
+        }
         setAlerts(prev => prev.filter(a => a.id !== alertId));
-    }, []);
+    }, [alerts, track]);
 
     const clearAllAlerts = useCallback(() => {
         setAlerts([]);

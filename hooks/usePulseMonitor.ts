@@ -3,7 +3,7 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { useNews } from './useNews';
 import { useSentiment } from './useSentiment';
 import { useMultiTermTrends } from './useTrendsData';
-import { tagArticlesWithTerms, computeTimeDistribution } from '../services/newsService';
+import { tagArticlesWithTerms, computeTimeDistribution, clearNewsCache } from '../services/newsService';
 import { buildTrendFromArticles, computeTrendDirection, buildDailyTrendFromArticles, groupArticlesByDay } from '../services/trendsService';
 import type { TaggedNewsArticle, TermMetrics, SentimentResult } from '../types';
 import type { TrendPoint, DailyTrendPoint, DayGroup } from '../services/trendsService';
@@ -209,6 +209,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
 
   const refresh = useCallback(async () => {
     sentimentTriggeredRef.current = '';
+    clearNewsCache();
     await refetchNews();
   }, [refetchNews]);
 

@@ -7,6 +7,7 @@ import { isValidFileSize, isValidMimeType } from '../utils/security';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { useUsageStore } from '../store/usageStore';
 import { useUsageGate } from './useUsageGate';
+import { useAnalytics } from './useAnalytics';
 
 interface MediaFile {
   data: string;
@@ -52,6 +53,7 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
   const [result, setResult] = useState<CrisisAnalysis | null>(null);
   const [evaluation, setEvaluation] = useState<any | null>(null);
   const { activeWorkspace } = useWorkspace();
+  const { track } = useAnalytics();
   const incrementUsage = useUsageStore(s => s.increment);
   const crisisGate = useUsageGate('crises');
 
@@ -138,6 +140,10 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
       if (data && data.incidentSummary) {
         incrementUsage('crises');
         setResult(data);
+        track('crisis_analysed', {
+          workspace_id: activeWorkspace?.id,
+          scenario_keywords: incident.trim().split(' ').slice(0, 5),
+        });
         toast.success('Análise de crise concluída!');
       } else {
         throw new Error('Resposta incompleta da Inteligência Artificial');
@@ -153,7 +159,7 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
     } finally {
       setLoading(false);
     }
-  }, [checkRateLimit, getGeolocation, crisisGate, incrementUsage]);
+  }, [checkRateLimit, getGeolocation, crisisGate, incrementUsage, activeWorkspace?.id, track]);
 
   const evaluateResponseDraft = useCallback(async (proposedDraft: string): Promise<void> => {
     if (!proposedDraft.trim() || !result) {
@@ -166,15 +172,24 @@ export const useCrisisAnalysis = (): UseCrisisAnalysisReturn => {
     try {
       const data = await evaluateResponse(result.incidentSummary, proposedDraft, workspaceContext);
       setEvaluation(data);
+      track('crisis_evaluation_completed', {
+        workspace_id: activeWorkspace?.id,
+        score: data?.effectivenessScore ?? null,
+        success: true,
+      });
       toast.success('Avaliação concluída!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao avaliar resposta';
       console.error('Erro ao avaliar resposta:', err);
+      track('crisis_evaluation_completed', {
+        workspace_id: activeWorkspace?.id,
+        success: false,
+      });
       toast.error(errorMessage);
     } finally {
       setEvalLoading(false);
     }
-  }, [result]);
+  }, [result, activeWorkspace?.id, track]);
 
   const reset = useCallback(() => {
     setResult(null);

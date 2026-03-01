@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import posthog from '../lib/posthog';
 import { useGenerationStore } from '../store/generationStore';
 import { generatePoliticalInsight } from '../services/geminiClient';
 import { useLifecycleStore } from '../store/lifecycleStore';
@@ -85,6 +86,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const setActiveWorkspace = (workspace: Workspace) => {
         setActiveWorkspaceState(workspace);
         localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspace.id);
+        posthog.capture('workspace_switched', {
+            workspace_id: workspace.id,
+            workspace_region: workspace.region,
+        });
     };
 
     const addWorkspace = async (newWorkspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => {
@@ -120,6 +125,12 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
             setWorkspaces(prev => [workspace, ...prev]);
             completeLifecycleStep('create_workspace');
+            posthog.capture('workspace_created', {
+                workspace_id: workspace.id,
+                region: workspace.region,
+                watchwords_count: workspace.watchwords.length,
+                has_candidate: !!candidateHandle,
+            });
 
             if (!activeWorkspace) {
                 setActiveWorkspace(workspace);
@@ -174,6 +185,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             if (error) throw error;
 
             setWorkspaces(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
+            posthog.capture('workspace_updated', {
+                workspace_id: id,
+            });
 
             if (activeWorkspace?.id === id) {
                 setActiveWorkspaceState(prev => prev ? { ...prev, ...updates } : prev);
@@ -208,6 +222,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     }
                 }
                 return updated;
+            });
+            posthog.capture('workspace_deleted', {
+                workspace_id: id,
             });
         } catch (err: any) {
             console.error('Failed to delete workspace:', err);

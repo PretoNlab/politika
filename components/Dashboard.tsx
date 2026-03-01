@@ -153,6 +153,7 @@ const Dashboard: React.FC = () => {
 
     track('analysis_requested', {
       type: analysisType,
+      analysis_type: analysisType,
       handle_count: activeHandles.length,
       workspace_id: activeWorkspace?.id,
       workspace_region: activeWorkspace?.region,
@@ -166,10 +167,19 @@ const Dashboard: React.FC = () => {
         if (result) {
           track('analysis_completed', {
             type: 'individual',
+            analysis_type: 'individual',
             handle: activeHandles[0],
             workspace_id: activeWorkspace?.id,
             duration_ms: Date.now() - startTime,
+            success: true,
           });
+          if (!historyLoading && history.length === 0) {
+            track('first_analysis_completed', {
+              analysis_type: 'individual',
+              workspace_id: activeWorkspace?.id,
+              duration_ms: Date.now() - startTime,
+            });
+          }
           const savedId = await saveToHistory('insight', activeHandles[0], result);
           const path = savedId ? `/insight-detail/${savedId}` : '/insight-detail';
           navigate(path, { state: { result, handle: activeHandles[0] } });
@@ -179,10 +189,19 @@ const Dashboard: React.FC = () => {
         if (result) {
           track('analysis_completed', {
             type: 'comparison',
+            analysis_type: 'comparison',
             handle: activeHandles.join(' vs '),
             workspace_id: activeWorkspace?.id,
             duration_ms: Date.now() - startTime,
+            success: true,
           });
+          if (!historyLoading && history.length === 0) {
+            track('first_analysis_completed', {
+              analysis_type: 'comparison',
+              workspace_id: activeWorkspace?.id,
+              duration_ms: Date.now() - startTime,
+            });
+          }
           const savedId = await saveToHistory('comparison', activeHandles.join(' vs '), result);
           const path = savedId ? `/comparison-detail/${savedId}` : '/comparison-detail';
           navigate(path, { state: { result } });

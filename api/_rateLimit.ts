@@ -1,5 +1,5 @@
 import type { VercelResponse } from '@vercel/node';
-import { getSupabaseAdmin } from './_auth';
+import { getSupabaseAdmin } from './_auth.js';
 
 interface RateLimitResult {
   limited: boolean;

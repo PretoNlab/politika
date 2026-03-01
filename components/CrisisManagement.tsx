@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useCrisisAnalysis } from '../hooks/useCrisisAnalysis';
-import { useAnalytics } from '../hooks/useAnalytics';
 import { ALL_ALLOWED_MEDIA_TYPES, FILE_SIZE_LIMITS } from '../constants';
 import { isValidFileSize, isValidMimeType } from '../utils/security';
 import SpotlightCard from './ui/SpotlightCard';
@@ -23,7 +22,6 @@ const CrisisManagement: React.FC = () => {
     evaluateResponseDraft,
     reset
   } = useCrisisAnalysis();
-  const { track } = useAnalytics();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,9 +70,6 @@ const CrisisManagement: React.FC = () => {
   };
 
   const handleAnalyze = async () => {
-    track('crisis_analysed', {
-      scenario_keywords: input.trim().split(' ').slice(0, 5),
-    });
     await analyzeCrisis(input, mediaFile || undefined);
   };
 
