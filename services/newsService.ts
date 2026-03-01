@@ -70,9 +70,9 @@ async function fetchViaBackend(region: string, term: string): Promise<NewsArticl
  * Fallback: busca RSS via CORS proxy público.
  */
 async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArticle[]> {
-    // Query enriquecida igual ao backend
-    const electoralContext = 'eleição política candidato';
-    const queryStr = `"${term}" ${electoralContext} ${region}`;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString().slice(0, 10);
+    const queryStr = `"${term}" ${region} after:${sevenDaysAgo}`;
     const query = encodeURIComponent(queryStr);
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 
@@ -88,7 +88,7 @@ async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArti
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
             const items = Array.from(xmlDoc.querySelectorAll("item"));
-            const currentYear = new Date().getFullYear().toString();
+            const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
             return items
                 .map(item => ({
@@ -101,7 +101,12 @@ async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArti
                         .trim()
                         .slice(0, 300) || '',
                 }))
-                .filter(a => a.pubDate.includes(currentYear) && a.title.length > 0)
+                .filter(a => {
+                    if (!a.title) return false;
+                    if (!a.pubDate) return false;
+                    const pubTime = new Date(a.pubDate).getTime();
+                    return !isNaN(pubTime) && pubTime >= thirtyDaysAgo;
+                })
                 .slice(0, MAX_ARTICLES_PER_TERM);
         } catch {
             continue;
@@ -265,6 +270,21 @@ export const fetchGoogleNews = async (region: string, watchwords: string[]): Pro
         console.error("Error fetching news:", error);
         return [];
     }
+};
+
+/**
+ * Limpa todo o cache de notícias do localStorage.
+ * Deve ser chamado antes de um refresh manual para garantir dados frescos.
+ */
+export const clearNewsCache = (): void => {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(CACHE_KEY_PREFIX)) {
+            keysToRemove.push(key);
+        }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
 };
 
 /**

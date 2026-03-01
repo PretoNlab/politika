@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authenticateRequest } from './_auth';
-import { checkRateLimit, sendRateLimitResponse } from './_rateLimit';
+import { authenticateRequest } from './_auth.js';
+import { checkRateLimit, sendRateLimitResponse } from './_rateLimit.js';
 
 /**
  * Serverless function que busca Google News RSS sem restrição de CORS.
@@ -56,9 +56,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cleanRegion = region.slice(0, 100).replace(/[<>"'&]/g, '');
     const cleanTerm = term.slice(0, 100).replace(/[<>"'&]/g, '');
 
-    // Query enriquecida com contexto eleitoral para resultados mais relevantes
-    const electoralContext = 'eleição política candidato';
-    const query = encodeURIComponent(`"${cleanTerm}" ${electoralContext} ${cleanRegion}`);
+    // Query direta — sem contexto eleitoral forçado para não restringir demais
+    // after: restringe ao últimos 7 dias para garantir frescor das notícias
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString().slice(0, 10); // YYYY-MM-DD
+    const query = encodeURIComponent(`"${cleanTerm}" ${cleanRegion} after:${sevenDaysAgo}`);
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 
     const response = await fetch(rssUrl, {
@@ -123,10 +125,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Filtrar por ano atual e limitar a 50 artigos (era 25)
-    const currentYear = new Date().getFullYear().toString();
+    // Filtrar artigos dos últimos 30 dias (evita artigos antigos que passariam pelo filtro de ano)
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const filtered = items
-      .filter(a => a.pubDate.includes(currentYear))
+      .filter(a => {
+        if (!a.pubDate) return false;
+        const pubTime = new Date(a.pubDate).getTime();
+        return !isNaN(pubTime) && pubTime >= thirtyDaysAgo;
+      })
       .slice(0, 50);
 
     return res.status(200).json({ success: true, data: filtered });
