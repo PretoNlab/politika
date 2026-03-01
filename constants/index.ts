@@ -39,10 +39,6 @@ export const RATE_LIMITS = {
     maxCalls: 5,
     windowMs: 60000
   },
-  chat: {
-    maxCalls: 20,
-    windowMs: 60000
-  },
   sentimentAnalysis: {
     maxCalls: 10,
     windowMs: 120000 // 2 minutos
@@ -157,7 +153,6 @@ export const ONBOARDING_STEPS = [
   { id: 'first_analysis', label: 'Fazer primeira análise', icon: 'analytics' },
   { id: 'visit_radar', label: 'Visitar o Radar', icon: 'radar' },
   { id: 'visit_warroom', label: 'Abrir o War Room', icon: 'warning' },
-  { id: 'use_chat', label: 'Usar o Chat Estratégico', icon: 'forum' },
 ] as const;
 
 export const MILESTONE_THRESHOLDS = [
