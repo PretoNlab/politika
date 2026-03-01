@@ -357,76 +357,7 @@ const ExpandedTermPanel: React.FC<ExpandedTermPanelProps> = ({ term, metrics: m,
   </div>
 );
 
-// --- MiniWaveform ---
 
-interface MiniWaveformProps {
-  pulseData: number[];
-  activeTerm: string | null;
-  terms: string[];
-  isLoading: boolean;
-}
-
-const MiniWaveform: React.FC<MiniWaveformProps> = ({ pulseData, activeTerm, terms, isLoading }) => (
-  <div className="bg-text-heading rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl h-full">
-    <div className="relative space-y-4 h-full flex flex-col">
-      <div className="flex justify-between items-start">
-        <div className="space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-primary">
-            Waveform 24h
-          </h3>
-          <p className="text-[10px] font-medium text-slate-400">
-            {activeTerm ? `"${activeTerm}"` : 'Todos os termos'}
-          </p>
-        </div>
-        {activeTerm && (
-          <div
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold text-slate-400 uppercase"
-            style={{ backgroundColor: `${TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]}20` }}
-          >
-            <span className="size-1.5 rounded-full" style={{ backgroundColor: TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length] }} />
-            {activeTerm}
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 flex items-end gap-1 min-h-[160px] border-b border-white/10 pb-3">
-        {isLoading ? (
-          <div className="w-full h-full flex items-center justify-center opacity-20">
-            <span className="text-xs font-black uppercase tracking-[0.2em] animate-pulse">Carregando...</span>
-          </div>
-        ) : pulseData.length > 0 && pulseData.some(v => v > 0) ? (
-          pulseData.map((val, i) => {
-            const barColor = activeTerm
-              ? TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]
-              : undefined;
-            return (
-              <div
-                key={i}
-                className={`flex-1 rounded-t-lg transition-all duration-500 opacity-60 hover:opacity-100 group/bar relative ${!barColor ? 'bg-primary' : ''}`}
-                style={{
-                  height: `${Math.max(val, 2)}%`,
-                  ...(barColor ? { backgroundColor: barColor } : {})
-                }}
-              >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10">
-                  {`${i.toString().padStart(2, '0')}h — ${Math.round(val)}%`}
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="w-full h-full flex items-center justify-center opacity-30">
-            <span className="text-xs font-black uppercase tracking-[0.2em]">Sem dados de distribuição</span>
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
-        <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
-      </div>
-    </div>
-  </div>
-);
 
 // --- Relative Time Helper ---
 
@@ -755,14 +686,6 @@ const CommandCenter: React.FC = () => {
             />
           )}
 
-          {/* Waveform — full width */}
-          <MiniWaveform
-            pulseData={pulseData}
-            activeTerm={activeTerm}
-            terms={terms}
-            isLoading={isNewsLoading}
-          />
-
           {/* Alerts Section */}
           {activeAlerts.length > 0 && (
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
@@ -835,8 +758,8 @@ const CommandCenter: React.FC = () => {
                 <button
                   onClick={() => setActiveTerm(null)}
                   className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 ${activeTerm === null
-                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow'
-                      : 'bg-slate-100 dark:bg-slate-800 text-text-subtle dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow'
+                    : 'bg-slate-100 dark:bg-slate-800 text-text-subtle dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                 >
                   Todos
