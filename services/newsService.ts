@@ -26,7 +26,7 @@ export interface NewsArticle {
     relevanceScore?: number;
 }
 
-const CACHE_KEY_PREFIX = 'politika_news_cache_v2_';
+const CACHE_KEY_PREFIX = 'politika_news_cache_v3_';
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos (era 2h)
 const MAX_ARTICLES_PER_TERM = 50;       // era 25
 const BREAKING_NEWS_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 horas

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Politika — Preview Maze Style</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#136dec",
+            "primary-soft": "rgba(19, 109, 236, 0.06)",
+            "background-light": "#ffffff",
+            "surface": "#f8f9fb",
+            "text-heading": "#0d131b",
+            "text-body": "#3d4f5f",
+            "text-subtle": "#7a8da0",
+            "border-light": "#e8ecf1",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"],
+            "sans": ["Space Grotesk", "sans-serif"]
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { font-family: "Space Grotesk", sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .gradient-blur {
+      background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(19, 109, 236, 0.06) 0%, transparent 70%);
+    }
+    .fade-up {
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .delay-4 { animation-delay: 0.4s; opacity: 0; }
+    .delay-5 { animation-delay: 0.5s; opacity: 0; }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+
+  <!-- Navbar — Maze style: ultra-clean, minimal, lots of breathing room -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-border-light">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-2.5">
+          <div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+            <span class="material-symbols-outlined text-lg">radar</span>
+          </div>
+          <span class="text-lg font-bold tracking-tight text-text-heading">Politika</span>
+        </div>
+
+        <!-- Center nav -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#como-funciona" class="text-sm text-text-subtle hover:text-text-heading transition-colors">Como funciona</a>
+          <a href="#modulos" class="text-sm text-text-subtle hover:text-text-heading transition-colors">Módulos</a>
+          <a href="#seguranca" class="text-sm text-text-subtle hover:text-text-heading transition-colors">Segurança</a>
+        </div>
+
+        <!-- Right CTAs -->
+        <div class="hidden md:flex items-center gap-3">
+          <a href="#" class="text-sm text-text-subtle hover:text-text-heading transition-colors px-3 py-2">Entrar</a>
+          <a href="#" class="text-sm font-semibold bg-text-heading text-white px-5 py-2 rounded-full hover:bg-slate-700 transition-colors">
+            Começar grátis
+          </a>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button class="md:hidden text-text-subtle">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero — Maze style: centered, lightweight type, huge whitespace, soft gradient -->
+    <section class="relative pt-40 pb-28 gradient-blur">
+      <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center">
+        <!-- Badge -->
+        <div class="fade-up delay-1 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-soft border border-primary/10 mb-10">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          <span class="text-xs font-medium text-primary tracking-wide">Inteligência Política de Precisão</span>
+        </div>
+
+        <!-- Headline — lighter weight, bigger size, more line-height -->
+        <h1 class="fade-up delay-2 text-5xl md:text-7xl font-bold tracking-tight text-text-heading leading-[1.08] mb-8">
+          Quem lê o cenário primeiro,
+          <span class="text-primary"> controla o jogo.</span>
+        </h1>
+
+        <!-- Subtitle — lighter, more breathing room -->
+        <p class="fade-up delay-3 text-lg md:text-xl text-text-body max-w-2xl mx-auto leading-relaxed mb-12">
+          Sua central de inteligência política com IA. Monitoramento em tempo real,
+          alertas de crise e relatórios táticos — o cenário político brasileiro traduzido em ação.
+        </p>
+
+        <!-- CTAs — Maze style: pill buttons, primary dark, secondary ghost -->
+        <div class="fade-up delay-4 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <a href="#" class="w-full sm:w-auto px-8 py-3.5 bg-text-heading text-white rounded-full font-semibold text-base hover:bg-slate-700 transition-all inline-flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-lg">bolt</span>
+            Acessar a Central de Comando
+          </a>
+          <a href="#modulos" class="w-full sm:w-auto px-8 py-3.5 border border-border-light text-text-body rounded-full font-medium text-base hover:border-slate-400 transition-all inline-flex items-center justify-center gap-2">
+            Ver Módulos
+            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Social proof bar — Maze style: minimal stat row, no cards -->
+    <section class="py-16 border-t border-border-light">
+      <div class="max-w-5xl mx-auto px-6 lg:px-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+          <div>
+            <div class="text-3xl md:text-4xl font-bold tracking-tight text-text-heading">5.570</div>
+            <div class="text-sm text-text-subtle mt-1">Municípios cobertos</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold tracking-tight text-primary">50+</div>
+            <div class="text-sm text-text-subtle mt-1">Fontes de dados</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold tracking-tight text-text-heading">&lt;2min</div>
+            <div class="text-sm text-text-subtle mt-1">Tempo de alerta</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold tracking-tight text-primary">24/7</div>
+            <div class="text-sm text-text-subtle mt-1">Monitoramento</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Como Funciona — Maze style: 3 columns, icon top, lots of space, thin separators -->
+    <section id="como-funciona" class="py-28 bg-surface border-t border-border-light">
+      <div class="max-w-5xl mx-auto px-6 lg:px-10">
+        <div class="text-center mb-20">
+          <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-4">Como funciona</p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-text-heading leading-tight">
+            Da informação bruta ao<br class="hidden md:block" /> comando tático em três passos
+          </h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-12 md:gap-16">
+          <!-- Step 1 -->
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-primary-soft border border-primary/10 flex items-center justify-center mx-auto mb-6">
+              <span class="material-symbols-outlined text-primary text-2xl">devices</span>
+            </div>
+            <div class="text-[11px] font-semibold text-primary uppercase tracking-[0.15em] mb-3">Passo 01</div>
+            <h3 class="text-lg font-semibold text-text-heading mb-3">Acesse a Central de Comando</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Login seguro com acesso imediato ao painel de inteligência. Interface desenhada para decisão rápida.
+            </p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-6">
+              <span class="material-symbols-outlined text-emerald-600 text-2xl">psychology</span>
+            </div>
+            <div class="text-[11px] font-semibold text-emerald-600 uppercase tracking-[0.15em] mb-3">Passo 02</div>
+            <h3 class="text-lg font-semibold text-text-heading mb-3">IA Analisa em Tempo Real</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Nosso motor de inteligência monitora notícias, redes e tendências, cruzando dados para gerar alertas táticos.
+            </p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-6">
+              <span class="material-symbols-outlined text-amber-600 text-2xl">speed</span>
+            </div>
+            <div class="text-[11px] font-semibold text-amber-600 uppercase tracking-[0.15em] mb-3">Passo 03</div>
+            <h3 class="text-lg font-semibold text-text-heading mb-3">Decida Antes do Adversário</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Receba relatórios no formato Fato — Risco — Ação. Leitura pronta para decisão em 30 segundos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Módulos — Maze style: 2x2 grid, subtle border cards, hover lift, clean icons -->
+    <section id="modulos" class="py-28 border-t border-border-light">
+      <div class="max-w-5xl mx-auto px-6 lg:px-10">
+        <div class="text-center mb-20">
+          <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-4">Módulos</p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-text-heading leading-tight">
+            Arsenal de Decisão
+          </h2>
+          <p class="text-base text-text-body mt-4 max-w-xl mx-auto">
+            Quatro módulos táticos desenhados para agir antes do adversário pensar.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Card 1 -->
+          <div class="group bg-white border border-border-light rounded-2xl p-8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-11 h-11 rounded-xl bg-primary-soft flex items-center justify-center mb-5">
+              <span class="material-symbols-outlined text-primary text-xl">monitoring</span>
+            </div>
+            <h3 class="text-lg font-semibold text-text-heading mb-2">Radar de Contágio</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Não confunda ruído com crise. Nossa IA lê notícias em tempo real e alerta sobre a velocidade com que a pauta se espalha — antes que chegue ao eleitor.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="group bg-white border border-border-light rounded-2xl p-8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center mb-5">
+              <span class="material-symbols-outlined text-red-500 text-xl">crisis_alert</span>
+            </div>
+            <h3 class="text-lg font-semibold text-text-heading mb-2">Simulador de Crise</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Estourou um escândalo? Faça upload do seu pronunciamento. A IA avalia tom, postura e gera sua estratégia de resposta — a Vacina Narrativa.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="group bg-white border border-border-light rounded-2xl p-8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-5">
+              <span class="material-symbols-outlined text-emerald-600 text-xl">target</span>
+            </div>
+            <h3 class="text-lg font-semibold text-text-heading mb-2">Análise Tática Profunda</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Descubra os vácuos narrativos do adversário. Saiba exatamente em qual dor o oponente se omite — e ataque onde ele não tem defesa.
+            </p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="group bg-white border border-border-light rounded-2xl p-8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mb-5">
+              <span class="material-symbols-outlined text-amber-600 text-xl">summarize</span>
+            </div>
+            <h3 class="text-lg font-semibold text-text-heading mb-2">Relatório Situacional</h3>
+            <p class="text-sm text-text-body leading-relaxed">
+              Chega de relatórios de 10 páginas. Receba análises formatadas em Fato — Risco — Comando de Ação. Prontas para decisão em 30 segundos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Segurança — Maze style: 4 cols, icon + text, very clean -->
+    <section id="seguranca" class="py-28 bg-surface border-t border-border-light">
+      <div class="max-w-5xl mx-auto px-6 lg:px-10">
+        <div class="text-center mb-20">
+          <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-4">Segurança</p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-text-heading leading-tight">
+            Segurança de Nível Estratégico
+          </h2>
+          <p class="text-base text-text-body mt-4 max-w-xl mx-auto">
+            Seus dados políticos são sensíveis. Tratamos cada byte como informação classificada.
+          </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-primary text-xl">lock</span>
+            </div>
+            <h3 class="text-sm font-semibold text-text-heading mb-1.5">Criptografia E2E</h3>
+            <p class="text-xs text-text-subtle leading-relaxed">Dados em trânsito e em repouso protegidos com criptografia de ponta.</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-emerald-600 text-xl">dns</span>
+            </div>
+            <h3 class="text-sm font-semibold text-text-heading mb-1.5">Infraestrutura Segura</h3>
+            <p class="text-xs text-text-subtle leading-relaxed">Servidores com certificação SOC 2. Nenhuma chave de API exposta no cliente.</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-amber-600 text-xl">passkey</span>
+            </div>
+            <h3 class="text-sm font-semibold text-text-heading mb-1.5">Acesso Restrito</h3>
+            <p class="text-xs text-text-subtle leading-relaxed">Autenticação robusta com controle de sessão. Apenas usuários autorizados.</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-red-500 text-xl">visibility_off</span>
+            </div>
+            <h3 class="text-sm font-semibold text-text-heading mb-1.5">Privacidade Total</h3>
+            <p class="text-xs text-text-subtle leading-relaxed">Suas análises e consultas não são compartilhadas. Dados isolados por espaço de trabalho.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Final — Maze style: simple, clean, dark button, no heavy bg -->
+    <section class="py-28 border-t border-border-light">
+      <div class="max-w-3xl mx-auto px-6 lg:px-10 text-center">
+        <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-text-heading mb-6 leading-tight">
+          Domine a narrativa.
+        </h2>
+        <p class="text-lg text-text-body mb-10 max-w-xl mx-auto leading-relaxed">
+          Eleições não são decididas por quem tem mais dados — mas por quem decide mais rápido.
+        </p>
+        <a href="#" class="inline-flex items-center gap-2 px-10 py-4 bg-text-heading text-white rounded-full font-semibold text-base hover:bg-slate-700 transition-all">
+          Começar Agora
+          <span class="material-symbols-outlined text-lg">arrow_forward</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer — Maze style: single line, ultra minimal -->
+  <footer class="py-10 border-t border-border-light">
+    <div class="max-w-5xl mx-auto px-6 lg:px-10">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-2">
+          <div class="size-6 bg-primary rounded-md flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-sm">radar</span>
+          </div>
+          <span class="text-sm font-semibold text-text-subtle tracking-tight">Politika</span>
+        </div>
+
+        <div class="flex items-center gap-6 text-sm text-text-subtle">
+          <a href="#como-funciona" class="hover:text-text-heading transition-colors">Tecnologia</a>
+          <a href="#modulos" class="hover:text-text-heading transition-colors">Módulos</a>
+          <a href="#seguranca" class="hover:text-text-heading transition-colors">Segurança</a>
+          <a href="#" class="hover:text-text-heading transition-colors">Privacidade</a>
+          <a href="#" class="hover:text-text-heading transition-colors">Termos</a>
+        </div>
+
+        <div class="text-xs text-text-subtle">
+          &copy; 2026 Sistemas de Inteligência
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

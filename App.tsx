@@ -19,7 +19,7 @@ import { useAnalytics } from './hooks/useAnalytics';
 // Lazy-loaded protected route components
 const CommandCenter = React.lazy(() => import('./components/CommandCenter'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
-const RadarPreditivo = React.lazy(() => import('./components/RadarPreditivo'));
+// RadarPreditivo temporariamente desativado na UI (código mantido em ./components/RadarPreditivo)
 const InsightsDetail = React.lazy(() => import('./components/InsightsDetail'));
 const ComparisonDetail = React.lazy(() => import('./components/ComparisonDetail'));
 const CrisisManagement = React.lazy(() => import('./components/CrisisManagement'));
@@ -82,7 +82,7 @@ const App: React.FC = () => {
             <Route element={<ProtectedLayout />}>
               <Route path="/dashboard" element={<CommandCenter />} />
               <Route path="/analyze" element={<Dashboard />} />
-              <Route path="/radar" element={<RadarPreditivo />} />
+              {/* <Route path="/radar" element={<RadarPreditivo />} /> - temporariamente desativado */}
               <Route path="/insight-detail/:id?" element={<InsightsDetail />} />
               <Route path="/comparison-detail/:id?" element={<ComparisonDetail />} />
               <Route path="/crisis" element={<CrisisManagement />} />

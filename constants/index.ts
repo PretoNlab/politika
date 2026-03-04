@@ -143,16 +143,41 @@ export const FREE_TIER_LIMITS = {
   comparisons: 5,
   crises: 10,
   chats: 50,
+  predictions: 20,
 } as const;
 
 export type UsageCategory = keyof typeof FREE_TIER_LIMITS;
 
 // Onboarding / Lifecycle
 export const ONBOARDING_STEPS = [
-  { id: 'create_workspace', label: 'Criar um Workspace', icon: 'folder_shared' },
-  { id: 'first_analysis', label: 'Fazer primeira análise', icon: 'analytics' },
-  { id: 'visit_radar', label: 'Visitar o Radar', icon: 'radar' },
-  { id: 'visit_warroom', label: 'Abrir o War Room', icon: 'warning' },
+  {
+    id: 'create_workspace',
+    label: 'Crie sua primeira campanha',
+    description: 'Configure o projeto, a região e os termos que serão monitorados.',
+    icon: 'folder_shared',
+    route: '/workspaces'
+  },
+  {
+    id: 'first_analysis',
+    label: 'Faça uma análise de perfil',
+    description: 'Insira o nome de um candidato e gere um dossiê estratégico com IA.',
+    icon: 'analytics',
+    route: '/dashboard'
+  },
+  {
+    id: 'visit_radar',
+    label: 'Explore o Radar de Notícias',
+    description: 'Veja as notícias do dia filtradas pelos seus termos monitorados.',
+    icon: 'radar',
+    route: '/pulse'
+  },
+  {
+    id: 'visit_warroom',
+    label: 'Simule o War Room',
+    description: 'Descreva um ataque ou crise e deixe a IA montar sua contra-medida.',
+    icon: 'shield',
+    route: '/crisis'
+  },
 ] as const;
 
 export const MILESTONE_THRESHOLDS = [

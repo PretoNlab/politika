@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:basedosdados.org)",
+      "Bash(gh --version)",
+      "Bash(git remote get-url origin)",
+      "Bash(echo $GITHUB_TOKEN)",
+      "Bash(echo $GH_TOKEN)",
+      "Bash(git config --global github.token)",
+      "Bash(git checkout components/RadarPreditivo.tsx)"
+    ]
+  }
+}

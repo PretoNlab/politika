@@ -19,6 +19,7 @@ export interface DetailedAnalysis {
   suggestedQuestions: string[];
   nextBestMove: string;
   psychologicalTriggers: { trigger: string; application: string }[];
+  recentFindings?: { title: string; source: string; verified: boolean }[];
 }
 
 export interface Candidate {

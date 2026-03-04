@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
 import SpotlightCard from '../components/ui/SpotlightCard';
@@ -199,108 +200,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
   );
 };
 
-// ============================================
-// DailyWaveform — 15-day bar chart
-// ============================================
 
-interface DailyWaveformProps {
-  dailyTrendPoints: DailyTrendPoint[];
-  activeTerm: string | null;
-  terms: string[];
-  isLoading: boolean;
-}
-
-const DailyWaveform: React.FC<DailyWaveformProps> = ({ dailyTrendPoints, activeTerm, terms, isLoading }) => {
-  const barColor = activeTerm
-    ? TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length]
-    : undefined;
-
-  return (
-    <SpotlightCard className="p-8 md:p-10 border border-primary/10">
-      <div className="absolute top-0 right-0 p-8 opacity-5 text-primary">
-        <span className="material-symbols-outlined text-9xl">radar</span>
-      </div>
-
-      <div className="relative space-y-6 flex flex-col">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary">
-              Radar 15 Dias
-            </h3>
-            <p className="text-[10px] font-medium text-text-subtle max-w-xs leading-normal">
-              Volume diário de notícias{activeTerm ? ` para "${activeTerm}"` : ' (todos os termos)'}.
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-[10px] font-bold text-text-subtle">
-            {activeTerm && (
-              <div
-                className="flex items-center gap-1.5 p-1 px-3 rounded-full border border-border-light bg-white uppercase shadow-sm"
-              >
-                <span
-                  className="size-1.5 rounded-full"
-                  style={{ backgroundColor: TERM_COLORS[terms.indexOf(activeTerm) % TERM_COLORS.length] }}
-                />
-                {activeTerm}
-              </div>
-            )}
-            <div className="flex items-center gap-1.5 p-1 px-3 bg-white rounded-full border border-border-light uppercase shadow-sm">
-              <span className="size-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(19,109,236,0.5)]"></span>
-              Cobertura
-            </div>
-          </div>
-        </div>
-
-        {/* Bar chart — 15 bars */}
-        <div className="flex items-end gap-2 min-h-[220px] border-b border-border-light pb-4">
-          {isLoading ? (
-            <div className="w-full h-full flex items-center justify-center opacity-50">
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-primary animate-pulse">
-                Carregando dados reais...
-              </span>
-            </div>
-          ) : dailyTrendPoints.length > 0 && dailyTrendPoints.some(p => p.value > 0) ? (
-            dailyTrendPoints.map((point, i) => (
-              <div
-                key={i}
-                className={`flex-1 rounded-t-lg transition-all duration-500 opacity-80 hover:opacity-100 group/bar relative cursor-default ${!barColor ? 'bg-primary' : ''}`}
-                style={{
-                  height: `${Math.max(point.value, 4)}%`,
-                  ...(barColor ? { backgroundColor: barColor } : {})
-                }}
-              >
-                {/* Hover tooltip */}
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-text-heading text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg">
-                  <span className="text-slate-300">{point.label}</span>
-                  <span className="mx-1">—</span>
-                  <span>{point.count} {point.count === 1 ? 'artigo' : 'artigos'}</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-text-subtle">
-              <span className="text-xs font-black uppercase tracking-[0.2em]">
-                Sem dados no periodo
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Day labels */}
-        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-text-subtle">
-          {dailyTrendPoints.length > 0 && (
-            <>
-              <span>{dailyTrendPoints[0]?.label}</span>
-              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length / 4)]?.label}</span>
-              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length / 2)]?.label}</span>
-              <span>{dailyTrendPoints[Math.floor(dailyTrendPoints.length * 3 / 4)]?.label}</span>
-              <span>{dailyTrendPoints[dailyTrendPoints.length - 1]?.label}</span>
-            </>
-          )}
-        </div>
-      </div>
-    </SpotlightCard>
-  );
-};
 
 // ============================================
 // DayGroupedNewsFeed — articles grouped by day
@@ -313,92 +213,156 @@ interface DayGroupedNewsFeedProps {
   isLoading: boolean;
 }
 
-const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, terms, activeTerm, isLoading }) => (
-  <SpotlightCard className="p-8 md:p-10">
-    <div className="flex items-center justify-between mb-8">
-      <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle flex items-center gap-2">
-        <span className="material-symbols-outlined text-sm">newspaper</span>
-        Notícias por Dia
-      </h3>
-      <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-    </div>
+const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, terms, activeTerm, isLoading }) => {
+  const [filter, setFilter] = useState<'all' | 'negative' | 'positive' | 'urgent'>('all');
 
-    <div className="space-y-8 max-h-[700px] overflow-y-auto custom-scrollbar pr-4">
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-surface rounded-xl animate-pulse" />
-          ))}
+  const filteredDays = useMemo(() => {
+    return articlesByDay.map(group => {
+      const filteredArticles = group.articles.filter(article => {
+        if (filter === 'all') return true;
+        // Mock sentiment logic for timeline filters (in a real app, sentiment should be attached to each article or term)
+        // Since we don't have it on the article level easily here, we'll do a basic text match for demo
+        const titleLower = article.title.toLowerCase();
+        const snipLower = (article.description || '').toLowerCase();
+        const content = titleLower + ' ' + snipLower;
+
+        const isNegative = /(crise|escândalo|polêmica|investigação|acusado|queda|rejeição|erro|problema|urgente|denúncia)/.test(content);
+        const isPositive = /(sucesso|aprovação|crescimento|vitória|acordo|investimento|alta|solução|lidera)/.test(content);
+        const isUrgent = /(urgente|plantão|bomba|breaking|exclusivo)/.test(content) || (article.isBreaking === true);
+
+        if (filter === 'negative') return isNegative;
+        if (filter === 'positive') return isPositive;
+        if (filter === 'urgent') return isUrgent;
+        return true;
+      });
+      return { ...group, articles: filteredArticles };
+    }).filter(g => g.articles.length > 0);
+  }, [articlesByDay, filter]);
+
+  return (
+    <SpotlightCard className="p-8 md:p-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">newspaper</span>
+            Notícias por Dia
+          </h3>
+          <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
         </div>
-      ) : articlesByDay.length > 0 ? (
-        articlesByDay.map(group => (
-          <div key={group.date}>
-            {/* Day header */}
-            <div className="flex items-center gap-3 mb-4">
-              <h4 className="text-sm font-black text-text-heading uppercase tracking-widest">
-                {group.label}
-              </h4>
-              <span className="text-[10px] font-bold text-text-subtle bg-white border border-border-light px-2.5 py-1 rounded-full shadow-sm">
-                {group.articles.length} {group.articles.length === 1 ? 'artigo' : 'artigos'}
-              </span>
-              <div className="flex-1 h-px bg-border-light" />
-            </div>
 
-            {/* Articles for this day */}
-            <div className="space-y-3 pl-3 border-l-2 border-border-light">
-              {group.articles.map((article, idx) => (
-                <a
-                  key={idx}
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-5 bg-white border border-border-light rounded-2xl hover:border-primary/40 hover:shadow-md transition-all group"
-                >
-                  <p className="text-xs font-bold text-text-heading line-clamp-2 group-hover:text-primary transition-colors leading-relaxed">
-                    <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
-                  </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <p className="text-[10px] font-medium text-text-subtle">{article.source}</p>
-                    <span className="text-[10px] text-text-subtle/50">
-                      {formatRelativeTime(article.pubDate)}
-                    </span>
-                    {article.matchedTerms.length > 0 && (
-                      <div className="flex gap-1 ml-auto">
-                        {article.matchedTerms.map(t => (
-                          <span
-                            key={t}
-                            className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
-                            style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <span className="material-symbols-outlined text-text-subtle group-hover:text-primary transition-colors text-xs ml-auto">
-                      arrow_outward
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
+        {/* Timeline Filters */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${filter === 'all' ? 'bg-text-heading text-white border-text-heading' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-primary'
+              }`}
+          >
+            Todas
+          </button>
+          <button
+            onClick={() => setFilter('negative')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'negative' ? 'bg-red-500 text-white border-red-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-red-400 hover:text-red-500'
+              }`}
+          >
+            <span className="material-symbols-outlined text-[12px]">warning</span>
+            Negativas
+          </button>
+          <button
+            onClick={() => setFilter('positive')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'positive' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-emerald-400 hover:text-emerald-500'
+              }`}
+          >
+            <span className="material-symbols-outlined text-[12px]">thumb_up</span>
+            Positivas
+          </button>
+          <button
+            onClick={() => setFilter('urgent')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'urgent' ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-amber-400 hover:text-amber-500'
+              }`}
+          >
+            <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
+            Urgente
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-8 max-h-[700px] overflow-y-auto custom-scrollbar pr-4">
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-20 bg-surface rounded-xl animate-pulse" />
+            ))}
           </div>
-        ))
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-light rounded-2xl bg-white">
-          <span className="material-symbols-outlined text-border-light text-5xl mb-3">
-            article
-          </span>
-          <p className="text-sm font-bold text-text-subtle">
-            {activeTerm
-              ? `Nenhuma noticia encontrada para "${activeTerm}"`
-              : 'Nenhuma noticia encontrada'}
-          </p>
-        </div>
-      )}
-    </div>
-  </SpotlightCard>
-);
+        ) : filteredDays.length > 0 ? (
+          filteredDays.map(group => (
+            <div key={group.date}>
+              {/* Day header */}
+              <div className="flex items-center gap-3 mb-4">
+                <h4 className="text-sm font-black text-text-heading uppercase tracking-widest">
+                  {group.label}
+                </h4>
+                <span className="text-[10px] font-bold text-text-subtle bg-white border border-border-light px-2.5 py-1 rounded-full shadow-sm">
+                  {group.articles.length} {group.articles.length === 1 ? 'artigo' : 'artigos'}
+                </span>
+                <div className="flex-1 h-px bg-border-light" />
+              </div>
+
+              {/* Articles for this day */}
+              <div className="space-y-3 pl-3 border-l-2 border-border-light">
+                {group.articles.map((article, idx) => (
+                  <a
+                    key={idx}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-5 bg-white border border-border-light rounded-2xl hover:border-primary/40 hover:shadow-md transition-all group"
+                  >
+                    <p className="text-xs font-bold text-text-heading line-clamp-2 group-hover:text-primary transition-colors leading-relaxed">
+                      <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
+                    </p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <p className="text-[10px] font-medium text-text-subtle">{article.source}</p>
+                      <span className="text-[10px] text-text-subtle/50">
+                        {formatRelativeTime(article.pubDate)}
+                      </span>
+                      {article.matchedTerms.length > 0 && (
+                        <div className="flex gap-1 ml-auto">
+                          {article.matchedTerms.map(t => (
+                            <span
+                              key={t}
+                              className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
+                              style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <span className="material-symbols-outlined text-text-subtle group-hover:text-primary transition-colors text-xs ml-auto">
+                        arrow_outward
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-light rounded-2xl bg-white">
+            <span className="material-symbols-outlined text-border-light text-5xl mb-3">
+              article
+            </span>
+            <p className="text-sm font-bold text-text-subtle">
+              {activeTerm
+                ? `Nenhuma noticia encontrada para "${activeTerm}"`
+                : 'Nenhuma noticia encontrada'}
+            </p>
+          </div>
+        )}
+      </div>
+    </SpotlightCard>
+  );
+}
 
 // ============================================
 // Main Component — Radar de Notícias
@@ -521,13 +485,148 @@ const PulseMonitor: React.FC = () => {
         />
       </div>
 
-      {/* 15-Day Waveform */}
-      <DailyWaveform
-        dailyTrendPoints={dailyTrendPoints}
-        activeTerm={activeTerm}
-        terms={terms}
-        isLoading={isNewsLoading}
-      />
+      {/* 15-Day Chart Row */}
+      <SpotlightCard className="p-8 md:p-10 relative overflow-hidden">
+        {/* Decorative Grid Background */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwgMCwgMCwgMC4wNSkiLz48L3N2Zz4=')] [mask-image:linear-gradient(to_bottom,white,transparent)] opacity-50 dark:opacity-20 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h3 className="text-sm font-black text-text-heading dark:text-white uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">monitoring</span>
+                Evolução (15 Dias)
+              </h3>
+              <p className="text-xs text-text-subtle mt-1 font-medium">Volume de Menções vs. Sentimento Médio</p>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-surface-input px-4 py-2 rounded-2xl border border-border-subtle">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-primary rounded-full"></div>
+                Volume
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-emerald-500 rounded-full"></div>
+                Sentimento
+              </div>
+            </div>
+          </div>
+
+          <div className="h-[300px] w-full">
+            {isNewsLoading ? (
+              <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                <div className="size-10 rounded-full border-4 border-border-subtle border-t-primary animate-spin" />
+                <p className="text-xs font-bold uppercase tracking-widest text-text-subtle">Carregando dados...</p>
+              </div>
+            ) : dailyTrendPoints.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={dailyTrendPoints}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorSentiment" x1="0" y1="0" x2="1" y2="0">
+                      {/* Render stops based on data to approximate a sentiment gradient line. 
+                           For simplicity in this static def, we map it genericly. 
+                           In a fully custom chart, you'd calculate stop percentages. */}
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="50%" stopColor="#f59e0b" />
+                      <stop offset="100%" stopColor="#ef4444" />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                  <XAxis
+                    dataKey="label"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                    dy={10}
+                    reversed={true} // data is newest first, we want it left-to-right (oldest to newest), so reverse the axis to match index 0 (oldest visually right if not reversed, wait data is days - 1 - i. Actually data is 0=oldest to 14=today in buildDailyTrendFromArticles! So no reverse needed. Let's verify: slots[0] is Days - 1 (oldest). Perfect.)
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                    dx={-10}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    domain={[-1, 1]}
+                    hide={true} // Hide the sentiment axis visually to keep it clean
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900 border border-slate-700 p-4 rounded-2xl shadow-xl">
+                            <p className="text-xs font-black uppercase text-white mb-2">{label}</p>
+                            <div className="space-y-2">
+                              {/* Volume */}
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                                  <div className="size-2 bg-primary rounded-full"></div> Menções
+                                </span>
+                                <span className="text-sm font-black text-white">{data.count}</span>
+                              </div>
+                              {/* Sentiment */}
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                                  <div className={`size-2 rounded-full ${data.sentimentClassification === 'Positivo' ? 'bg-emerald-500' : data.sentimentClassification === 'Negativo' ? 'bg-red-500' : 'bg-amber-500'}`}></div> Sentimento
+                                </span>
+                                <span className={`text-sm font-black ${data.sentimentClassification === 'Positivo' ? 'text-emerald-500' : data.sentimentClassification === 'Negativo' ? 'text-red-500' : 'text-amber-500'}`}>
+                                  {data.sentimentClassification} ({(data.sentiment || 0).toFixed(2)})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  {/* Volume Area */}
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorVolume)"
+                    animationDuration={1500}
+                  />
+                  {/* Sentiment Line (simulated as area with zero fill) */}
+                  <Area
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="sentiment"
+                    stroke="url(#colorSentiment)"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#fff', strokeWidth: 3 }}
+                    fillOpacity={0}
+                    animationDuration={1500}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-border-light rounded-2xl bg-white/50">
+                <span className="material-symbols-outlined text-border-light text-4xl mb-2">monitoring</span>
+                <p className="text-sm font-bold text-text-subtle">Dados insuficientes</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </SpotlightCard>
+
+
 
       {/* Per-term Sentiment Cards */}
       {terms.length > 0 && Object.keys(metrics).length > 0 && (

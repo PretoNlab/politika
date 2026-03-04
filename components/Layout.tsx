@@ -121,26 +121,42 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               )}
             </div>
 
-            <nav className="hidden md:flex items-center gap-9">
-              <Link to="/dashboard" className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/dashboard') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+            <nav className="hidden md:flex items-center gap-6">
+              <Link
+                to="/dashboard"
+                title="Quartel General — briefing diário, alertas e feed ao vivo"
+                className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/dashboard') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}
+              >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
                 QG
               </Link>
-              <Link to="/pulse" className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/pulse') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <Link
+                to="/analyze"
+                title="Análise de Perfil — dossiê estratégico por candidato"
+                className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/analyze') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}
+              >
+                <span className="material-symbols-outlined text-sm">person_search</span>
+                Analisar
+              </Link>
+              <Link
+                to="/pulse"
+                title="Monitoramento — feed de notícias e análise de sentimento por termos"
+                className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/pulse') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}
+              >
                 <span className="material-symbols-outlined text-sm">radar</span>
                 Radar
               </Link>
-              <Link to="/analyze" className={`text-sm font-medium transition-all hover:scale-105 ${isActive('/analyze') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>Analisar</Link>
-              <Link to="/crisis" className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-600'}`}>
+
+              <Link
+                to="/crisis"
+                title="War Room — gestão de crise e contra-medidas estratégicas"
+                className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/crisis') ? 'text-red-600' : 'text-slate-600 dark:text-slate-300 hover:text-red-600'}`}
+              >
                 <span className="material-symbols-outlined text-lg text-red-600">warning</span>
                 War Room
-              </Link>
-              <Link to="/radar" className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/radar') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
-                <span className="material-symbols-outlined text-sm">query_stats</span>
-                Preditivo
               </Link>
             </nav>
             <div className="flex items-center gap-4">
@@ -172,9 +188,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Link to="/crisis" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-500'}`}>
               <span className="material-symbols-outlined text-xl text-red-500">warning</span> War Room
             </Link>
-            <Link to="/radar" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/radar') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
-              <span className="material-symbols-outlined text-xl">query_stats</span> Radar Preditivo
-            </Link>
+
           </div>
         )}
       </header>

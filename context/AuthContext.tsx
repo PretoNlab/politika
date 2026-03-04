@@ -22,21 +22,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
-      // Check if there's a code in the URL (PKCE)
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-
-      if (code) {
-        console.log('[AuthContext] Code detected in URL, exchanging...');
-        try {
-          await supabase.auth.exchangeCodeForSession(code);
-          // Remove code from URL to clean up
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (err) {
-          console.error('[AuthContext] Code exchange error:', err);
-        }
-      }
-
       // Get initial session
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);

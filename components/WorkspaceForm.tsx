@@ -128,7 +128,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                             {isEditing ? 'Editar Campanha' : 'Nova Campanha'}
                         </h3>
                         <p className="text-xs text-text-subtle dark:text-slate-400 font-bold uppercase tracking-widest mt-1">
-                            {isEditing ? 'Atualizar Workspace' : 'Configuração de Workspace'}
+                            {isEditing ? 'Atualizar Campanha' : 'Configuração da Campanha'}
                         </p>
                     </div>
                     <button onClick={onClose} className="size-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-100 transition-colors">
@@ -226,7 +226,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
 
                     {/* Watchwords com Sugestões Inteligentes */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1">Watchwords <span className="text-slate-400 normal-case font-normal">(separadas por vírgula)</span></label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1">Termos Monitorados <span className="text-slate-400 normal-case font-normal">(separados por vírgula)</span></label>
                         <textarea
                             value={watchwords}
                             onChange={(e) => setWatchwords(e.target.value)}
@@ -263,8 +263,8 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                                                 disabled={alreadyAdded}
                                                 onClick={() => handleAcceptSuggestion(suggestion)}
                                                 className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${alreadyAdded
-                                                        ? 'bg-primary/10 text-primary/40 cursor-default'
-                                                        : 'bg-white dark:bg-slate-800 text-primary border border-primary/20 hover:border-primary hover:shadow-sm'
+                                                    ? 'bg-primary/10 text-primary/40 cursor-default'
+                                                    : 'bg-white dark:bg-slate-800 text-primary border border-primary/20 hover:border-primary hover:shadow-sm'
                                                     }`}
                                             >
                                                 {alreadyAdded ? '✓ ' : '+ '}{suggestion}
@@ -277,7 +277,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                     </div>
 
                     <button type="submit" className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-primary/20">
-                        {isEditing ? 'Salvar Alterações' : 'Criar Workspace'}
+                        {isEditing ? 'Salvar Alterações' : 'Criar Campanha'}
                     </button>
                 </form>
             </div>

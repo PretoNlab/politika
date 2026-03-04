@@ -73,13 +73,13 @@ const Workspaces: React.FC = () => {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <span className="size-3 bg-primary rounded-full animate-ping"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Workspace Hub</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Central de Projetos</span>
                     </div>
                     <h2 className="text-5xl font-black text-text-heading dark:text-white tracking-tighter uppercase font-display">
                         Suas Campanhas
                     </h2>
                     <p className="text-text-subtle dark:text-slate-400 font-medium max-w-lg">
-                        Gerencie múltiplos perfis e regiões. Cada workspace possui suas próprias watchwords e inteligência.
+                        Gerencie múltiplos projetos e regiões. Cada campanha possui seus próprios termos monitorados e inteligência dedicada.
                     </p>
                 </div>
                 <button

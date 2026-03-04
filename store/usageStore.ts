@@ -7,6 +7,7 @@ interface UsageState {
   comparisons: number;
   crises: number;
   chats: number;
+  predictions: number;
   monthKey: string;
   increment: (category: UsageCategory) => void;
   getUsage: (category: UsageCategory) => number;
@@ -24,6 +25,7 @@ export const useUsageStore = create<UsageState>()(
       comparisons: 0,
       crises: 0,
       chats: 0,
+      predictions: 0,
       monthKey: getCurrentMonthKey(),
 
       increment: (category: UsageCategory) => {
@@ -37,10 +39,11 @@ export const useUsageStore = create<UsageState>()(
             comparisons: category === 'comparisons' ? 1 : 0,
             crises: category === 'crises' ? 1 : 0,
             chats: category === 'chats' ? 1 : 0,
+            predictions: category === 'predictions' ? 1 : 0,
             monthKey: currentMonth,
           });
         } else {
-          set({ [category]: state[category] + 1 });
+          set({ [category]: (state[category] ?? 0) + 1 });
         }
       },
 
@@ -48,7 +51,7 @@ export const useUsageStore = create<UsageState>()(
         const state = get();
         const currentMonth = getCurrentMonthKey();
         if (state.monthKey !== currentMonth) return 0;
-        return state[category];
+        return state[category] ?? 0;
       },
     }),
     {

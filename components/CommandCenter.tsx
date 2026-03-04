@@ -102,18 +102,13 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
           <p className="text-text-subtle dark:text-slate-400 font-medium max-w-lg">
             {hasWorkspace
               ? <>Monitorando <strong className="text-text-heading dark:text-white">{workspaceName}</strong> &bull; {watchwordCount} termos rastreados</>
-              : 'Selecione ou crie um projeto para ativar o monitoramento.'
+              : 'Selecione ou crie uma campanha para ativar o monitoramento.'
             }
           </p>
         </div>
 
         <div className="flex gap-3 flex-shrink-0">
-          {unreadAlertCount > 0 && (
-            <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 border border-red-100 dark:border-red-800">
-              <span className="material-symbols-outlined text-sm">notifications_active</span>
-              {unreadAlertCount} {unreadAlertCount > 1 ? 'alertas' : 'alerta'}
-            </div>
-          )}
+
           <button
             onClick={onRefresh}
             disabled={isDataLoading}
@@ -629,7 +624,7 @@ const CommandCenter: React.FC = () => {
               Comece Aqui
             </h3>
             <p className="text-text-subtle dark:text-slate-400 font-medium">
-              Crie seu primeiro projeto para ativar o monitoramento de inteligência política,
+              Crie sua primeira campanha para ativar o monitoramento de inteligência política,
               alertas em tempo real e análise de sentimento.
             </p>
           </div>
@@ -638,7 +633,7 @@ const CommandCenter: React.FC = () => {
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-primary/20"
           >
             <span className="material-symbols-outlined text-sm">add</span>
-            Criar Projeto
+            Criar Campanha
           </Link>
         </div>
       ) : !isGenerating ? (

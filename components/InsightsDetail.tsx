@@ -144,6 +144,39 @@ const InsightsDetail: React.FC = () => {
             </div>
           </div>
 
+          {/* Section: OSINT / Grounding */}
+          {result.recentFindings && result.recentFindings.length > 0 && (
+            <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/50">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm text-primary">search_insights</span>
+                Descobertas Recentes (Inteligência de Rede)
+              </p>
+              <div className="space-y-3">
+                {result.recentFindings.map((finding, i) => (
+                  <div key={i} className="flex flex-col gap-2 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      {finding.verified ? (
+                        <div className="mt-0.5 size-5 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[14px] text-blue-600 dark:text-blue-400">verified</span>
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 size-5 rounded bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[14px] text-orange-600 dark:text-orange-400">warning</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug">{finding.title}</p>
+                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wide">
+                          Fonte: {finding.source}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Section: Gatilhos */}
           <div className="px-8 py-6">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">

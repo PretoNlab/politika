@@ -8,13 +8,19 @@ const AuthCallback: React.FC = () => {
 
     useEffect(() => {
         const processAuth = async () => {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
-            const errorDescription = params.get('error_description');
+            // Parse query parameters
+            const queryParams = new URLSearchParams(window.location.search);
+            // Parse hash parameters (Supabase implicit flow puts errors in hash)
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+
+            const code = queryParams.get('code');
+            const errorDescription = queryParams.get('error_description') || hashParams.get('error_description');
+            const errorCode = queryParams.get('error_code') || hashParams.get('error_code');
 
             console.log('[AuthCallback] URL Params:', {
                 hasCode: !!code,
                 error: errorDescription,
+                errorCode: errorCode,
                 fullUrl: window.location.href
             });
 

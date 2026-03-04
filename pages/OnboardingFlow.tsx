@@ -72,7 +72,7 @@ const OnboardingFlow: React.FC = () => {
                     return (
                         <div key={step.id} className="flex flex-col items-center gap-2 bg-white px-2">
                             <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' :
-                                    isPast ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-400'
+                                isPast ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-400'
                                 }`}>
                                 <span className="material-symbols-outlined text-xl">{isPast ? 'check' : step.icon}</span>
                             </div>
@@ -212,7 +212,7 @@ const OnboardingFlow: React.FC = () => {
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400 pl-1">Nome do Workspace</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400 pl-1">Nome da Campanha</label>
                                     <input
                                         type="text"
                                         className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:border-primary transition-all font-medium text-slate-900"
@@ -254,7 +254,7 @@ const OnboardingFlow: React.FC = () => {
                                 <button
                                     onClick={async () => {
                                         if (!formData.workspaceName) {
-                                            toast.error('Dê um nome ao seu projeto');
+                                            toast.error('Dê um nome à sua campanha');
                                             return;
                                         }
                                         setLoading(true);

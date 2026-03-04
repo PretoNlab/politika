@@ -13,6 +13,55 @@ const CrisisManagement: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Templates de crise predefinidos
+  const CRISIS_TEMPLATES = [
+    {
+      id: 'ataque_pessoal',
+      label: 'Ataque Pessoal',
+      icon: 'person_off',
+      color: 'text-red-500',
+      bg: 'bg-red-50 dark:bg-red-900/20',
+      border: 'border-red-200 dark:border-red-800',
+      template: 'Um adversário está fazendo ataques pessoais à minha reputação. O ataque consiste em: [descreva aqui o que foi dito]. O ataque foi feito através de: [canal/plataforma]. Preciso de uma estratégia de resposta que proteja minha imagem e reverta a narrativa.'
+    },
+    {
+      id: 'denuncia',
+      label: 'Denúncia / Escândalo',
+      icon: 'gavel',
+      color: 'text-orange-500',
+      bg: 'bg-orange-50 dark:bg-orange-900/20',
+      border: 'border-orange-200 dark:border-orange-800',
+      template: 'Estou sendo alvo de uma denúncia pública. Contexto: [descreva a denúncia]. A acusação é [verdadeira/falsa/parcialmente verdadeira]. Os fatos do meu lado são: [fatos]. Preciso de orientação para gerenciar esta crise sem amplificar o dano.'
+    },
+    {
+      id: 'crise_redes',
+      label: 'Crise nas Redes Sociais',
+      icon: 'trending_down',
+      color: 'text-amber-500',
+      bg: 'bg-amber-50 dark:bg-amber-900/20',
+      border: 'border-amber-200 dark:border-amber-800',
+      template: 'Um post/vídeo meu está sendo mal interpretado e viralizando negativamente nas redes sociais. O conteúdo original era: [descreva]. A interpretação equivocada afirma que: [equívoco]. O volume de menções negativas está [alto/médio]. Preciso de uma resposta rápida para controlar a narrativa.'
+    },
+    {
+      id: 'reportagem',
+      label: 'Reportagem Negativa',
+      icon: 'article',
+      color: 'text-blue-500',
+      bg: 'bg-blue-50 dark:bg-blue-900/20',
+      border: 'border-blue-200 dark:border-blue-800',
+      template: 'Um veículo de imprensa publicou uma reportagem negativa sobre mim ou minha gestão. O veículo é: [nome do veículo]. O tema da reportagem é: [tema]. Os principais pontos levantados são: [pontos]. Minha versão dos fatos é: [versão]. Preciso de estratégia para responder à imprensa e à opinião pública.'
+    },
+    {
+      id: 'boato',
+      label: 'Boato / Fake News',
+      icon: 'report',
+      color: 'text-purple-500',
+      bg: 'bg-purple-50 dark:bg-purple-900/20',
+      border: 'border-purple-200 dark:border-purple-800',
+      template: 'Está circulando um boato / fake news sobre mim. O conteúdo falso afirma que: [descreva o boato]. O boato está se espalhando por: [WhatsApp/redes/grupos]. Tenho evidências que contradizem isso: [evidências]. Preciso de uma estratégia para desmentir sem amplificar.'
+    },
+  ];
+
   const {
     loading,
     evalLoading,
@@ -104,6 +153,29 @@ const CrisisManagement: React.FC = () => {
 
       {/* Input Card */}
       <SpotlightCard className="p-8 border border-border-light shadow-md space-y-6">
+
+        {/* Seletor de tipo de crise */}
+        <div className="space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">bolt</span>
+            Escolha o tipo de crise — ou descreva livremente abaixo
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            {CRISIS_TEMPLATES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setInput(t.template)}
+                disabled={loading}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border text-center transition-all hover:shadow-md hover:scale-[1.02] ${t.bg} ${t.border} disabled:opacity-50`}
+              >
+                <span className={`material-symbols-outlined text-xl ${t.color}`}>{t.icon}</span>
+                <span className={`text-[10px] font-black uppercase tracking-wide leading-tight ${t.color}`}>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <textarea
           className="w-full bg-surface border border-border-light rounded-3xl p-6 text-lg focus:ring-2 focus:ring-red-500/20 focus:border-red-500/30 min-h-[120px] transition-all text-text-heading placeholder-text-subtle/50 outline-none"
           placeholder="Descreva o incidente ou cole o link da notícia..."

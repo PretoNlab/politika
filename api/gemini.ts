@@ -155,6 +155,8 @@ const ALLOWED_ORIGIN = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : '*';
 
+export const maxDuration = 60;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   const origin = req.headers.origin || '';
@@ -284,76 +286,46 @@ async function handlePoliticalInsight(
   // Exemplo de tom de análise esperado (Few-shot)
   const analysisExample = `Exemplo de Output Desejado:
   {
-    "headline": "Dominância Frágil: @handle lidera, mas deixa flanco aberto em segurança",
-    "tone": "Oficial de Inteligência - Assertivo",
-    "psychologicalTriggers": [{"trigger": "Prova Social", "application": "Explorar o apoio de lideranças do interior de ${wsCtx.state || 'Brasil'}"}],
-    "strategicRisk": "Vácuo narrativo identificado: o silêncio de @handle sobre o tema X será preenchido pela oposição em 48h."
+    "headline": "Ataques Diretos: @handle isolado nas críticas à infraestrutura",
+    "tone": "Oficial de Inteligência - Alerta e Direto",
+    "recentFindings": [
+      { "title": "Oposição protocola pedido de CPI embasado nas investigações do portal de compras.", "source": "G1, 14/05/2026", "verified": true }
+    ],
+    "keywords": ["infraestrutura", "cpi"],
+    "resonance": "Alta nas bases de oposição",
+    "compatibleGroups": [{"name": "Empresários", "description": "Lideranças do setor de serviços"}],
+    "ignoredGroups": [{"name": "Servidores Públicos", "description": "Categoria pressionando por reajuste"}],
+    "projection": "Isolamento a curto prazo",
+    "suggestedQuestions": ["Qual foi o critério para aprovar o aditivo?"],
+    "nextBestMove": "Anunciar auditoria independente",
+    "psychologicalTriggers": [{"trigger": "Urgência", "application": "Mobilizar base para defender a pauta antes de sexta-feira"}],
+    "strategicRisk": "Caso a CPI seja instaurada, a pauta positiva de 100 dias será totalmente sufocada."
   }`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `ANÁLISE ESTRATÉGICA DE PERFIL: @${handle}. 
+    contents: `ANÁLISE INVESTIGATIVA OSINT DE PERFIL: @${handle}. 
     ${regionalContext}. 
     ${expertInstructions}
     
     ${analysisExample}
     
-    TAREFA: Realize um Deep Dive no perfil. Identifique o "Ponto de Quebra" da narrativa atual dele.
-    COMO PENSAR: Se você fosse o estrategista da oposição, onde você bateria hoje? Se fosse o estrategista dele, qual vácuo você preencheria?
+    TAREFA: 
+    1. Utilize SEMPRE a pesquisa na internet para encontrar notícias e fatos recentes.
+    2. Com base na pesquisa, extraia fatos (Open Source Intelligence).
+    3. Analise a consequência imediata desses fatos na narrativa do alvo.
+    
+    COMO PENSAR: Você é um Oficial de Inteligência. Sua missão não é dar conselhos genéricos, mas levantar fatos recentes da internet e apontar o Risco Estratégico Real acontecendo AGORA em ${wsCtx.state || 'sua região'}.
     
     REQUISITOS JSON: 
     - headlines: Impacto imediato.
-    - strategicRisk: Qual o maior perigo para a reputação dele AGORA em ${wsCtx.state || 'sua região'}.
-    - psychTriggers: Use gatilhos que funcionem com o eleitor real, não termos acadêmicos.`,
+    - recentFindings: De 1 a 3 fatos verificados usando o Google sobre as últimas notícias/escândalos (Coloque o título do fato e o nome do veículo).
+    - strategicRisk: Maior perigo reputacional atual.
+    - psychTriggers: Gatilhos táticos de resposta imediata baseados em fatos reais.
+    
+    IMPORTANTE: Retorne APENAS um bloco puro de JSON válido, sem NENHUM texto fora do JSON. Certifique-se de que a estrutura corresponda exatamente às chaves citadas (headline, tone, recentFindings, etc...).`,
     config: {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          headline: { type: Type.STRING },
-          tone: { type: Type.STRING },
-          keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
-          resonance: { type: Type.STRING },
-          compatibleGroups: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { type: Type.STRING },
-                description: { type: Type.STRING }
-              },
-              required: ['name', 'description']
-            }
-          },
-          ignoredGroups: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { type: Type.STRING },
-                description: { type: Type.STRING }
-              },
-              required: ['name', 'description']
-            }
-          },
-          strategicRisk: { type: Type.STRING },
-          projection: { type: Type.STRING },
-          suggestedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          nextBestMove: { type: Type.STRING },
-          psychologicalTriggers: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                trigger: { type: Type.STRING },
-                application: { type: Type.STRING }
-              },
-              required: ['trigger', 'application']
-            }
-          }
-        },
-        required: ['headline', 'tone', 'keywords', 'resonance', 'compatibleGroups', 'ignoredGroups', 'strategicRisk', 'projection', 'suggestedQuestions', 'nextBestMove', 'psychologicalTriggers']
-      }
+      tools: [{ googleSearch: {} }]
     }
   });
 
@@ -362,6 +334,10 @@ async function handlePoliticalInsight(
     'ignoredGroups', 'strategicRisk', 'projection', 'suggestedQuestions',
     'nextBestMove', 'psychologicalTriggers'
   ]);
+
+  if (result && !result.recentFindings) {
+    result.recentFindings = [];
+  }
   return res.status(200).json({ success: true, data: result });
 }
 

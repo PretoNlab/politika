@@ -66,6 +66,8 @@ export interface DailyTrendPoint {
     dayIndex: number;   // 0 = oldest, 14 = today
     count: number;      // Raw article count
     value: number;      // Normalized 0-100%
+    sentiment?: number; // -1 to 1 mock or real score
+    sentimentClassification?: 'Positivo' | 'Neutro' | 'Negativo';
 }
 
 export interface DayGroup {
@@ -95,7 +97,27 @@ export const buildDailyTrendFromArticles = (
         else if (i === 1) label = 'Ontem';
         else label = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '');
 
-        slots.push({ date: isoDate, label, dayIndex: days - 1 - i, count: 0, value: 0 });
+        let sentimentMock = 0;
+        let classificationMock: 'Positivo' | 'Neutro' | 'Negativo' = 'Neutro';
+
+        // Mocking sentiment based on day index for demo visuals:
+        // Recent days dip into negative (crisis), then recover.
+        if (days - 1 - i === 14) { sentimentMock = 0.2; classificationMock = 'Positivo'; } // today
+        else if (days - 1 - i === 13) { sentimentMock = -0.4; classificationMock = 'Negativo'; } // yesterday
+        else if (days - 1 - i === 12) { sentimentMock = -0.8; classificationMock = 'Negativo'; }
+        else if (days - 1 - i === 11) { sentimentMock = -0.3; classificationMock = 'Negativo'; }
+        else if (days - 1 - i > 5) { sentimentMock = 0.1 + Math.random() * 0.4; classificationMock = 'Positivo'; } // generic positive
+        else { sentimentMock = (Math.random() - 0.5) * 0.5; classificationMock = 'Neutro'; } // scattered past
+
+        slots.push({
+            date: isoDate,
+            label,
+            dayIndex: days - 1 - i,
+            count: 0,
+            value: 0,
+            sentiment: sentimentMock,
+            sentimentClassification: classificationMock
+        });
     }
 
     for (const article of articles) {

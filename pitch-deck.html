@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Politika - Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2332;
+    --blue: #136dec;
+    --blue-light: #3b8bff;
+    --blue-glow: rgba(19,109,236,0.15);
+    --green: #10b981;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --border: rgba(255,255,255,0.06);
+    --radius: 16px;
+  }
+
+  html, body {
+    height: 100%; width: 100%;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Slide engine ── */
+  .deck { position: relative; height: 100vh; width: 100vw; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .45s ease, transform .45s ease;
+    transform: translateX(40px);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: auto;
+    transform: translateX(0);
+  }
+  .slide.exit {
+    opacity: 0; transform: translateX(-40px);
+  }
+
+  /* ── Typography ── */
+  .slide-number {
+    position: absolute; top: 32px; right: 48px;
+    font-size: 14px; color: var(--text-dim);
+    font-weight: 500; letter-spacing: 2px;
+  }
+  .logo-top {
+    position: absolute; top: 32px; left: 48px;
+    font-size: 18px; font-weight: 700; letter-spacing: 1px;
+    color: var(--blue-light);
+  }
+
+  h1 { font-size: clamp(36px, 5vw, 64px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; }
+  h2 { font-size: clamp(28px, 3.5vw, 48px); font-weight: 700; line-height: 1.15; letter-spacing: -0.5px; }
+  h3 { font-size: clamp(20px, 2.5vw, 32px); font-weight: 600; line-height: 1.25; }
+  p, li { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.6; color: var(--text-muted); }
+
+  .highlight { color: var(--blue-light); }
+  .highlight-green { color: var(--green); }
+  .highlight-amber { color: var(--amber); }
+  .highlight-red { color: var(--red); }
+  .bold { font-weight: 600; color: var(--text); }
+
+  .subtitle {
+    font-size: clamp(18px, 2vw, 28px);
+    color: var(--text-muted);
+    margin-top: 16px;
+    font-weight: 400;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--blue-glow);
+    color: var(--blue-light);
+    padding: 6px 18px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* ── Layouts ── */
+  .centered { text-align: center; max-width: 960px; }
+  .left-aligned { align-items: flex-start; max-width: 100%; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    width: 100%;
+    max-width: 1100px;
+    align-items: start;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .four-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: background .2s;
+  }
+  .card:hover { background: var(--bg-card-hover); }
+  .card h3 { font-size: 20px; margin-bottom: 10px; }
+  .card p { font-size: 16px; line-height: 1.5; }
+  .card .icon { font-size: 36px; margin-bottom: 12px; display: block; }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 700;
+    color: var(--blue-light);
+    line-height: 1;
+  }
+  .stat-card .label {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.3;
+  }
+
+  .metric-row {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border: none; }
+  .metric-label { flex: 1; font-size: 17px; color: var(--text-muted); }
+  .metric-value { font-size: 17px; font-weight: 600; color: var(--text); }
+
+  .timeline-item {
+    display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;
+  }
+  .timeline-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--blue); margin-top: 8px; flex-shrink: 0;
+  }
+  .timeline-content h3 { font-size: 18px; margin-bottom: 4px; }
+  .timeline-content p { font-size: 15px; }
+
+  .price-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+  }
+  .price-card.featured {
+    border-color: var(--blue);
+    box-shadow: 0 0 40px rgba(19,109,236,0.12);
+  }
+  .price-card .plan-name {
+    font-size: 16px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .price-card .price {
+    font-size: 36px; font-weight: 700; color: var(--text);
+  }
+  .price-card .price span { font-size: 16px; color: var(--text-dim); font-weight: 400; }
+  .price-card .features { list-style: none; margin-top: 16px; text-align: left; }
+  .price-card .features li {
+    font-size: 14px; color: var(--text-muted); padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .price-card .features li:last-child { border: none; }
+
+  .comparison-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .comparison-row:last-child { border: none; }
+  .comparison-row .comp-label { font-size: 16px; color: var(--text-muted); }
+  .comparison-row .comp-them { font-size: 15px; color: var(--text-dim); text-align: center; }
+  .comparison-row .comp-us { font-size: 15px; color: var(--green); font-weight: 600; text-align: center; }
+
+  .badge-featured {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--blue); color: white; font-size: 11px; font-weight: 700;
+    padding: 4px 14px; border-radius: 100px; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  ul.bullet { list-style: none; padding: 0; }
+  ul.bullet li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    font-size: clamp(15px, 1.5vw, 19px);
+  }
+  ul.bullet li::before {
+    content: '';
+    position: absolute; left: 0; top: 16px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blue);
+  }
+
+  /* ── Navigation ── */
+  .nav-bar {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(17,24,39,0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 24px;
+    z-index: 100;
+  }
+  .nav-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--blue-glow); color: var(--blue-light); border-color: var(--blue); }
+  .progress-bar {
+    width: 120px; height: 3px; background: rgba(255,255,255,0.08);
+    border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--blue); border-radius: 4px;
+    transition: width .4s ease;
+  }
+  .slide-counter { font-size: 13px; color: var(--text-dim); font-weight: 500; min-width: 48px; text-align: center; }
+
+  /* ── Divider ── */
+  .divider { width: 60px; height: 3px; background: var(--blue); border-radius: 4px; margin: 20px 0; }
+  .divider-center { margin: 20px auto; }
+
+  /* ── Spacer ── */
+  .gap-sm { height: 12px; }
+  .gap-md { height: 24px; }
+  .gap-lg { height: 40px; }
+
+  /* ── Table ── */
+  .mini-table { width: 100%; border-collapse: collapse; }
+  .mini-table th {
+    text-align: left; font-size: 13px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px; padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .mini-table td {
+    padding: 10px 0; font-size: 16px; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .mini-table td:first-child { font-weight: 500; color: var(--text); }
+  .mini-table tr:last-child td { border: none; }
+
+  /* ── Quote ── */
+  .quote-block {
+    background: var(--bg-card);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 24px 32px;
+    margin: 16px 0;
+  }
+  .quote-block p { font-size: 17px; font-style: italic; color: var(--text-muted); }
+  .quote-block .contrast { font-size: 15px; color: var(--red); font-style: normal; margin-top: 12px; font-weight: 500; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .slide { padding: 40px 28px; }
+    .two-col, .three-col, .four-col { grid-template-columns: 1fr; }
+    .logo-top { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ════════ SLIDE 1: TITLE ════════ -->
+  <div class="slide active centered" data-slide="0">
+    <div class="tag">Pitch Deck 2026</div>
+    <h1>Politika</h1>
+    <p class="subtitle">Inteligencia Politica Estrategica com IA Generativa</p>
+    <div class="gap-lg"></div>
+    <p style="font-size:16px;color:var(--text-dim)">O primeiro estrategista politico digital do Brasil</p>
+  </div>
+
+  <!-- ════════ SLIDE 2: PROBLEMA ════════ -->
+  <div class="slide left-aligned" data-slide="1">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">02</span>
+    <div class="tag">O Problema</div>
+    <h2>Campanhas operam no escuro</h2>
+    <div class="gap-md"></div>
+    <div class="two-col">
+      <div>
+        <ul class="bullet">
+          <li><span class="bold">Informacao fragmentada</span> em dezenas de fontes sem consolidacao</li>
+          <li><span class="bold">Crises virais em minutos</span> no WhatsApp, resposta em horas</li>
+          <li><span class="bold">Analise comparativa inexistente</span> — decisoes no achismo</li>
+          <li><span class="bold">Zero contexto regional</span> — discurso generico que nao ressoa</li>
+          <li><span class="bold">Monitoramento manual</span> caro, lento e inescalavel</li>
+        </ul>
+      </div>
+      <div>
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <h3 class="highlight-red">Como resolvem hoje</h3>
+          <div class="gap-sm"></div>
+          <p>Planilhas + WhatsApp + estagiarios lendo noticias + clipping terceirizado a R$ 10.000/mes + reunioes interminaveis + improviso</p>
+          <div class="gap-md"></div>
+          <p style="font-size:15px;color:var(--text-dim)">Resultado: decisoes reativas, crises mal gerenciadas, oportunidades invisíveis</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 3: SOLUCAO ════════ -->
+  <div class="slide left-aligned" data-slide="2">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">03</span>
+    <div class="tag">A Solucao</div>
+    <h2>Seu estrategista politico digital. <span class="highlight">Sempre ligado.</span></h2>
+    <div class="gap-md"></div>
+    <div class="three-col">
+      <div class="card">
+        <span class="icon">&#9876;</span>
+        <h3>Analise Estrategica</h3>
+        <p>Perfil completo de candidatos + Battle Cards comparativos em <span class="bold">30 segundos</span></p>
+      </div>
+      <div class="card">
+        <span class="icon">&#9888;</span>
+        <h3>War Room</h3>
+        <p>Resposta a crises com scripts prontos e avaliacao de efetividade por IA em <span class="bold">2 minutos</span></p>
+      </div>
+      <div class="card">
+        <span class="icon">&#9733;</span>
+        <h3>Pulse Monitor</h3>
+        <p>Sentimento em tempo real, alertas inteligentes e breaking news <span class="bold">24/7</span></p>
+      </div>
+    </div>
+    <div class="gap-lg"></div>
+    <p style="text-align:center;width:100%">Tudo com <span class="highlight">contexto regional brasileiro</span> — entende as nuances de cada estado e regiao</p>
+  </div>
+
+  <!-- ════════ SLIDE 4: PRODUTO ════════ -->
+  <div class="slide left-aligned" data-slide="3">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">04</span>
+    <div class="tag">O Produto</div>
+    <h2>6 modulos. 1 plataforma.</h2>
+    <div class="gap-md"></div>
+    <div class="three-col">
+      <div class="card">
+        <h3 class="highlight">Command Center</h3>
+        <p>Central de alertas, metricas e briefing situacional com auto-refresh</p>
+      </div>
+      <div class="card">
+        <h3 class="highlight">Analise Individual</h3>
+        <p>Perfil estrategico + gatilhos psicologicos + chat contextual com IA</p>
+      </div>
+      <div class="card">
+        <h3 class="highlight">Battle Card</h3>
+        <p>Confronto lado a lado de candidatos com vazios estrategicos e recomendacoes</p>
+      </div>
+      <div class="card">
+        <h3 class="highlight">War Room</h3>
+        <p>Gestao de crises multimodal com scripts prontos e grounding em dados reais</p>
+      </div>
+      <div class="card">
+        <h3 class="highlight">Pulse Monitor</h3>
+        <p>Sentimento, waveform 24h, breaking news, tendencias e alertas inteligentes</p>
+      </div>
+      <div class="card">
+        <h3 class="highlight">Multi-Workspace</h3>
+        <p>Gerencie multiplas campanhas com dados isolados e contexto regional proprio</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 5: DEMO MOMENT ════════ -->
+  <div class="slide centered" data-slide="4">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">05</span>
+    <div class="tag" style="background:rgba(16,185,129,0.15);color:var(--green)">Demo ao vivo</div>
+    <h1 style="font-size:clamp(32px,4vw,56px)">Vamos ver <span class="highlight">funcionando?</span></h1>
+    <div class="gap-md"></div>
+    <p class="subtitle" style="font-size:20px">politika-plum.vercel.app</p>
+    <div class="gap-lg"></div>
+    <div class="three-col" style="max-width:800px">
+      <div class="stat-card">
+        <div class="number">30s</div>
+        <div class="label">Analise estrategica</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">2min</div>
+        <div class="label">Resposta a crise</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">24/7</div>
+        <div class="label">Monitoramento</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 6: MERCADO ════════ -->
+  <div class="slide left-aligned" data-slide="5">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">06</span>
+    <div class="tag">Oportunidade de Mercado</div>
+    <h2>R$ 239M <span class="highlight">TAM</span> anual</h2>
+    <div class="gap-md"></div>
+    <div class="two-col">
+      <div>
+        <table class="mini-table">
+          <tr><th>Segmento</th><th style="text-align:right">TAM</th></tr>
+          <tr><td>Assessorias politicas (~3.000)</td><td style="text-align:right">R$ 35,9M</td></tr>
+          <tr><td>Candidatos com verba (~50.000)</td><td style="text-align:right">R$ 178,2M</td></tr>
+          <tr><td>Partidos e diretorios (~600)</td><td style="text-align:right">R$ 14,4M</td></tr>
+          <tr><td>Institutos e think tanks (~200)</td><td style="text-align:right">R$ 4,8M</td></tr>
+          <tr><td>Jornalistas e analistas (~5.000)</td><td style="text-align:right">R$ 5,8M</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="border-left: 3px solid var(--green);">
+          <h3 class="highlight-green">Timing perfeito</h3>
+          <div class="gap-sm"></div>
+          <ul class="bullet">
+            <li><span class="bold">Eleicoes Out/2026</span> — janela pre-campanha aberta agora</li>
+            <li><span class="bold">R$ 4,9 bi</span> em gastos de campanha (TSE 2024)</li>
+            <li><span class="bold">Zero</span> concorrentes com IA + politica no Brasil</li>
+            <li><span class="bold">IA generativa</span> em pico de adocao profissional</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 7: COMPETICAO ════════ -->
+  <div class="slide left-aligned" data-slide="6">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">07</span>
+    <div class="tag">Cenario Competitivo</div>
+    <h2>Vazio competitivo <span class="highlight">total</span></h2>
+    <div class="gap-md"></div>
+    <div style="width:100%;max-width:900px">
+      <div class="comparison-row" style="border:none;padding-bottom:4px">
+        <div class="comp-label" style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Capacidade</div>
+        <div class="comp-them" style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Alternativas</div>
+        <div class="comp-us" style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Politika</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Analise estrategica com IA</div>
+        <div class="comp-them">&#10005;</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Contexto politico regional</div>
+        <div class="comp-them">&#10005;</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Battle Cards comparativos</div>
+        <div class="comp-them">&#10005;</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">War Room com scripts prontos</div>
+        <div class="comp-them">&#10005;</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Sentimento em tempo real</div>
+        <div class="comp-them">Parcial (generico)</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Alertas inteligentes</div>
+        <div class="comp-them">&#10005;</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+      <div class="comparison-row">
+        <div class="comp-label">Preco acessivel (a partir de R$ 0)</div>
+        <div class="comp-them">R$ 2.000-50.000</div>
+        <div class="comp-us">&#10003;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 8: MODELO DE NEGOCIOS ════════ -->
+  <div class="slide left-aligned" data-slide="7">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">08</span>
+    <div class="tag">Modelo de Negocios</div>
+    <h2>SaaS com <span class="highlight">PLG</span></h2>
+    <div class="gap-md"></div>
+    <div class="four-col">
+      <div class="price-card">
+        <div class="plan-name">Observador</div>
+        <div class="price">Gratis</div>
+        <ul class="features">
+          <li>15 analises/mes</li>
+          <li>5 comparacoes</li>
+          <li>10 crises</li>
+          <li>1 workspace</li>
+          <li>Pulse basico</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="plan-name">Estrategista</div>
+        <div class="price">R$ 297<span>/mes</span></div>
+        <ul class="features">
+          <li>100 analises/mes</li>
+          <li>30 comparacoes</li>
+          <li>War Room ilimitado</li>
+          <li>3 workspaces</li>
+          <li>Exportacao PDF</li>
+        </ul>
+      </div>
+      <div class="price-card featured">
+        <div class="badge-featured">Popular</div>
+        <div class="plan-name">War Room</div>
+        <div class="price">R$ 997<span>/mes</span></div>
+        <ul class="features">
+          <li>Tudo do Estrategista</li>
+          <li>Ate 5 usuarios</li>
+          <li>10 workspaces</li>
+          <li>Alertas WhatsApp</li>
+          <li>Suporte prioritario</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="plan-name">Institucional</div>
+        <div class="price" style="font-size:28px">Sob consulta</div>
+        <ul class="features">
+          <li>Usuarios ilimitados</li>
+          <li>API de integracao</li>
+          <li>White-label</li>
+          <li>SLA 99.9%</li>
+          <li>Suporte dedicado</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 9: UNIT ECONOMICS ════════ -->
+  <div class="slide left-aligned" data-slide="8">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">09</span>
+    <div class="tag">Unit Economics</div>
+    <h2>Numeros que <span class="highlight-green">fazem sentido</span></h2>
+    <div class="gap-md"></div>
+    <div class="two-col">
+      <div>
+        <div class="four-col" style="grid-template-columns: 1fr 1fr;">
+          <div class="stat-card">
+            <div class="number" style="color:var(--green)">26.5x</div>
+            <div class="label">LTV / CAC</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" style="color:var(--green)">~85%</div>
+            <div class="label">Margem bruta</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" style="color:var(--green)">&lt; 1 mes</div>
+            <div class="label">Payback</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" style="color:var(--green)">R$ 15</div>
+            <div class="label">Custo/usuario/mes</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Detalhamento</h3>
+          <div class="gap-sm"></div>
+          <div class="metric-row">
+            <span class="metric-label">CAC (PLG)</span>
+            <span class="metric-value">R$ 150</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">LTV</span>
+            <span class="metric-value">R$ 3.976</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Ticket medio</span>
+            <span class="metric-value">R$ 497/mes</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Lifetime medio</span>
+            <span class="metric-value">8 meses</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Infra (Gemini+Supabase+Vercel)</span>
+            <span class="metric-value">~R$ 15/user</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 10: PROJECAO ════════ -->
+  <div class="slide left-aligned" data-slide="9">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">10</span>
+    <div class="tag">Projecao 12 Meses</div>
+    <h2>De zero a <span class="highlight">R$ 2.3M ARR</span></h2>
+    <div class="gap-md"></div>
+    <div class="two-col">
+      <div>
+        <table class="mini-table">
+          <tr><th>Periodo</th><th style="text-align:right">Free</th><th style="text-align:right">Pagos</th><th style="text-align:right">MRR</th></tr>
+          <tr><td>M1 (Abr/26)</td><td style="text-align:right">100</td><td style="text-align:right">5</td><td style="text-align:right">R$ 2.485</td></tr>
+          <tr><td>M3 (Jun/26)</td><td style="text-align:right">500</td><td style="text-align:right">35</td><td style="text-align:right">R$ 17.395</td></tr>
+          <tr><td style="color:var(--amber)">M6 (Set/26)</td><td style="text-align:right;color:var(--amber)">2.000</td><td style="text-align:right;color:var(--amber)">150</td><td style="text-align:right;color:var(--amber)">R$ 74.550</td></tr>
+          <tr><td>M9 (Dez/26)</td><td style="text-align:right">3.500</td><td style="text-align:right">280</td><td style="text-align:right">R$ 139.160</td></tr>
+          <tr><td style="color:var(--green)">M12 (Mar/27)</td><td style="text-align:right;color:var(--green)">5.000</td><td style="text-align:right;color:var(--green)">400</td><td style="text-align:right;color:var(--green)">R$ 198.800</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="border-left: 3px solid var(--amber);">
+          <h3 class="highlight-amber">Pico eleitoral</h3>
+          <div class="gap-sm"></div>
+          <p>Set-Out/2026: eleicoes estaduais e federais. Maior demanda por inteligencia politica em 4 anos.</p>
+          <div class="gap-md"></div>
+          <p style="font-size:14px;color:var(--text-dim)">Retencao pos-eleitoral via modulo Mandato Monitor e monitoramento legislativo.</p>
+        </div>
+        <div class="gap-md"></div>
+        <div class="card">
+          <h3>Premissas</h3>
+          <div class="gap-sm"></div>
+          <p style="font-size:14px">Conversao free→paid: 5% | Churn: 8%/mes | Crescimento organico via PLG + indicacoes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 11: GO-TO-MARKET ════════ -->
+  <div class="slide left-aligned" data-slide="10">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">11</span>
+    <div class="tag">Go-to-Market</div>
+    <h2>3 fases ate as <span class="highlight">eleicoes</span></h2>
+    <div class="gap-md"></div>
+    <div class="three-col">
+      <div class="card">
+        <h3 style="color:var(--blue-light)">Fase 1: Seed</h3>
+        <p style="font-size:14px;color:var(--text-dim);margin-bottom:12px">Abr/26 — 100 users, 10 pagantes</p>
+        <ul class="bullet">
+          <li style="font-size:15px">Rede pessoal + LinkedIn</li>
+          <li style="font-size:15px">WhatsApp groups de assessores</li>
+          <li style="font-size:15px">Demos ao vivo 1:1</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber)">Fase 2: Tracao</h3>
+        <p style="font-size:14px;color:var(--text-dim);margin-bottom:12px">Mai-Jun/26 — 500 users, 35 pagantes</p>
+        <ul class="bullet">
+          <li style="font-size:15px">Blog com analises reais (SEO)</li>
+          <li style="font-size:15px">Parcerias com influenciadores</li>
+          <li style="font-size:15px">Programa de indicacao</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--green)">Fase 3: Escala</h3>
+        <p style="font-size:14px;color:var(--text-dim);margin-bottom:12px">Jul-Out/26 — 2.000+ users, 150+ pagantes</p>
+        <ul class="bullet">
+          <li style="font-size:15px">Inside Sales para enterprise</li>
+          <li style="font-size:15px">Webinars pre-eleitorais</li>
+          <li style="font-size:15px">Case studies + PR</li>
+        </ul>
+      </div>
+    </div>
+    <div class="gap-lg"></div>
+    <p style="text-align:center;width:100%;font-size:18px"><span class="bold">Headline:</span> <span class="highlight">"Seu adversario ja esta usando IA. E voce?"</span></p>
+  </div>
+
+  <!-- ════════ SLIDE 12: CASO DE USO ════════ -->
+  <div class="slide left-aligned" data-slide="11">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">12</span>
+    <div class="tag">Na Pratica</div>
+    <h2>Historias que <span class="highlight">vendem</span></h2>
+    <div class="gap-md"></div>
+    <div class="quote-block">
+      <h3 style="font-size:18px;margin-bottom:8px">A crise das 6h da manha</h3>
+      <p>Video comprometedor viraliza as 6h no WhatsApp. Assessor abre o War Room, cola a descricao, faz upload do video. Em 3 minutos: severidade CRITICO, 3 estrategias com scripts prontos. As 6h30, nota oficial publicada.</p>
+      <p class="contrast">Sem Politika: 3-4 horas de improviso. O video ja tem 500K views.</p>
+    </div>
+    <div class="quote-block">
+      <h3 style="font-size:18px;margin-bottom:8px">O vazio que ninguem viu</h3>
+      <p>Estrategista gera Battle Card de 3 pre-candidatos. IA identifica: nenhum fala sobre transporte publico, tema que afeta 60% do eleitorado. Seu candidato adota a bandeira. Sobe 8 pontos nas pesquisas.</p>
+      <p class="contrast">Sem Politika: vazio invisivel entre centenas de paginas de pesquisa qualitativa.</p>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 13: PARCERIA ════════ -->
+  <div class="slide left-aligned" data-slide="12">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">13</span>
+    <div class="tag">Parceria</div>
+    <h2>O que buscamos em um <span class="highlight">parceiro</span></h2>
+    <div class="gap-md"></div>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:16px">O que oferecemos</h3>
+        <ul class="bullet">
+          <li><span class="bold">Produto pronto</span> — MVP em producao, validado</li>
+          <li><span class="bold">Tecnologia proprietaria</span> — IA com contexto politico brasileiro</li>
+          <li><span class="bold">Primeiro mover</span> — zero concorrentes diretos</li>
+          <li><span class="bold">Janela eleitoral</span> — 8 meses ate as eleicoes</li>
+          <li><span class="bold">Unit economics saudaveis</span> — LTV/CAC de 26x</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:16px">O que buscamos</h3>
+        <ul class="bullet">
+          <li><span class="bold">Rede de contatos</span> no meio politico e assessorias</li>
+          <li><span class="bold">Aceleracao comercial</span> para a janela eleitoral</li>
+          <li><span class="bold">Expertise complementar</span> (vendas, marketing politico, dados)</li>
+          <li><span class="bold">Distribuicao</span> em canais que ja alcancam o publico-alvo</li>
+          <li><span class="bold">Capital inteligente</span> (se aplicavel)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 14: CTA ════════ -->
+  <div class="slide centered" data-slide="13">
+    <span class="logo-top">Politika</span>
+    <span class="slide-number">14</span>
+    <h1 style="font-size:clamp(32px,4.5vw,60px)">A janela eleitoral de 2026<br/><span class="highlight">nao espera.</span></h1>
+    <div class="gap-lg"></div>
+    <div class="three-col" style="max-width:700px">
+      <div class="stat-card">
+        <div class="number">R$ 239M</div>
+        <div class="label">TAM anual</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" style="color:var(--green)">0</div>
+        <div class="label">Concorrentes diretos</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" style="color:var(--amber)">8 meses</div>
+        <div class="label">Ate as eleicoes</div>
+      </div>
+    </div>
+    <div class="gap-lg"></div>
+    <p class="subtitle" style="font-size:20px;color:var(--text-dim)">Vamos construir juntos?</p>
+    <div class="gap-md"></div>
+    <p style="font-size:16px;color:var(--text-dim)">politika-plum.vercel.app</p>
+  </div>
+
+</div>
+
+<!-- ── Navigation Bar ── -->
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" aria-label="Slide anterior">&#8592;</button>
+  <span class="slide-counter" id="slideCounter">1 / 14</span>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <button class="nav-btn" id="nextBtn" aria-label="Proximo slide">&#8594;</button>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function goTo(n) {
+    if (n < 0 || n >= total || n === current) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current === n ? current : current].classList.remove('exit'), 500);
+    const prev = current;
+    current = n;
+    slides[current].classList.add('active');
+    setTimeout(() => slides[prev].classList.remove('exit'), 460);
+    update();
+  }
+
+  function update() {
+    document.getElementById('slideCounter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('progressFill').style.width = ((current + 1) / total * 100) + '%';
+    document.getElementById('prevBtn').style.opacity = current === 0 ? '0.3' : '1';
+    document.getElementById('nextBtn').style.opacity = current === total - 1 ? '0.3' : '1';
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('nextBtn').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 60) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+  });
+
+  update();
+})();
+</script>
+
+</body>
+</html>

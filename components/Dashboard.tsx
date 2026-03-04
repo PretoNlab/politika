@@ -10,7 +10,7 @@ import { LOADING_STEPS } from '../constants';
 import { useGenerationStore } from '../store/generationStore';
 import { useLifecycleStore } from '../store/lifecycleStore';
 import SpotlightCard from '../components/ui/SpotlightCard';
-import AnimatedCounter from '../components/ui/AnimatedCounter';
+
 
 const Dashboard: React.FC = () => {
   const [handles, setHandles] = useState<string[]>(['']);
@@ -28,10 +28,10 @@ const Dashboard: React.FC = () => {
   const { isGenerating, generatingHandle, initialData, clearState } = useGenerationStore();
   const completeStep = useLifecycleStore(s => s.completeStep);
   const incrementTotalAnalyses = useLifecycleStore(s => s.incrementTotalAnalyses);
-  const { news, loading: loadingNews } = useNews({
+  const { news } = useNews({
     region: activeWorkspace?.region,
     watchwords: activeWorkspace?.watchwords || [],
-    limit: 3
+    limit: 100
   });
 
   // PLG Aha Moment handler
@@ -116,6 +116,25 @@ const Dashboard: React.FC = () => {
     } catch (e) {
       console.error('Failed to save analysis:', e);
       return null;
+    }
+  };
+  const handleClearHistory = async () => {
+    if (!user) return;
+    if (!window.confirm('Deseja realmente apagar todo o histórico de análises? Essa ação não pode ser desfeita.')) return;
+    try {
+      setHistoryLoading(true);
+      const { error } = await supabase
+        .from('analyses')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setHistory([]);
+    } catch (e) {
+      console.error('Failed to clear history:', e);
+      alert('Erro ao apagar o histórico');
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -205,63 +224,8 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Bento Grid: Top Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <SpotlightCard className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg">sentiment_satisfied</span>
-            </div>
-            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Sentimento</span>
-          </div>
-          <AnimatedCounter end={68} suffix="%" duration={1500} className="text-4xl font-bold text-text-heading mb-1" />
-          <div className="text-sm font-medium text-emerald-600 flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">trending_up</span> +5% nas últimas 24h
-          </div>
-        </SpotlightCard>
-
-        <SpotlightCard className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg">campaign</span>
-            </div>
-            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Termos Ativos</span>
-          </div>
-          <AnimatedCounter end={activeWorkspace?.watchwords?.length || 0} duration={1000} className="text-4xl font-bold text-text-heading mb-1" />
-          <div className="text-sm font-medium text-text-body flex items-center gap-1">
-            Monitorando radar
-          </div>
-        </SpotlightCard>
-
-        <SpotlightCard className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg">article</span>
-            </div>
-            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Notícias (24h)</span>
-          </div>
-          <AnimatedCounter end={news.length || 0} duration={2000} className="text-4xl font-bold text-text-heading mb-1" />
-          <div className="text-sm font-medium text-primary flex items-center gap-1">
-            Volume na região
-          </div>
-        </SpotlightCard>
-
-        <SpotlightCard className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg">warning</span>
-            </div>
-            <span className="text-sm font-bold text-text-subtle uppercase tracking-wider">Risco de Crise</span>
-          </div>
-          <div className="text-4xl font-bold text-text-heading mb-1">Baixo</div>
-          <div className="text-sm font-medium text-text-body flex items-center gap-1">
-            Sem anomalias detectadas
-          </div>
-        </SpotlightCard>
-      </div>
-
       {/* Main Analysis Input Card (Centered and Prominent) */}
-      <SpotlightCard className="p-8 lg:p-12 mb-10 max-w-4xl border-primary/20 bg-gradient-to-br from-white to-primary-soft/30 hover:shadow-2xl hover:border-primary/40">
+      <SpotlightCard className="p-8 lg:p-12 mb-10 max-w-4xl mx-auto bg-white border border-border-light shadow-sm hover:shadow-md transition-shadow">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="size-16 rounded-2xl bg-white shadow-sm border border-border-light flex items-center justify-center text-primary mb-2">
             <span className="material-symbols-outlined text-4xl">person_search</span>
@@ -309,7 +273,7 @@ const Dashboard: React.FC = () => {
             <button
               onClick={handleAnalysis}
               disabled={loading || handles.every(h => !h.trim())}
-              className="flex-1 py-4 bg-text-heading hover:bg-black text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -352,19 +316,29 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Bento Grid: Main Content Area (News + History) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Left/Middle Column - Recent History */}
-        <SpotlightCard className="p-8 lg:col-span-2">
+      {/* Main Content Area (History) */}
+      <div className="mt-6">
+        <SpotlightCard className="p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-text-heading tracking-tight flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">history</span>
               Análises Recentes
             </h2>
-            <Link to="/radar" className="text-sm font-bold text-primary hover:text-blue-700 transition-colors">
-              Radar Preditivo
-            </Link>
+            <div className="flex items-center gap-4">
+              {history.length > 0 && (
+                <button
+                  onClick={handleClearHistory}
+                  disabled={historyLoading}
+                  className="text-sm font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                  Limpar Histórico
+                </button>
+              )}
+              <Link to="/analyze" className="text-sm font-bold text-primary hover:text-blue-700 transition-colors flex items-center gap-1">
+                Ver Todos <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
+            </div>
           </div>
 
           {historyLoading ? (
@@ -374,8 +348,8 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
           ) : history.length > 0 ? (
-            <div className="grid gap-4">
-              {history.slice(0, 5).map((item) => (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {history.slice(0, 6).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -388,20 +362,20 @@ const Dashboard: React.FC = () => {
                   className="p-5 bg-surface border border-border-light rounded-2xl flex items-center justify-between hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-xl bg-white border border-border-light flex items-center justify-center group-hover:bg-primary-soft transition-colors text-text-subtle group-hover:text-primary">
+                    <div className="size-12 rounded-xl bg-white border border-border-light flex items-center justify-center group-hover:bg-primary-soft transition-colors text-text-subtle group-hover:text-primary shrink-0">
                       <span className="material-symbols-outlined text-xl">
                         {item.type === 'insight' ? 'person' : 'group'}
                       </span>
                     </div>
-                    <div>
-                      <p className="font-bold text-text-heading group-hover:text-primary transition-colors text-lg">{item.handle}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-text-heading group-hover:text-primary transition-colors text-lg truncate pr-2">{item.handle}</p>
                       <p className="text-sm font-medium text-text-subtle">
                         {new Date(item.created_at).toLocaleDateString('pt-BR')} às {new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs bg-white border border-border-light text-text-heading px-3 py-1.5 rounded-full font-bold shadow-sm">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs bg-white border border-border-light text-text-heading px-3 py-1.5 rounded-full font-bold shadow-sm hidden sm:block">
                       {item.type === 'insight' ? 'Individual' : 'Comparativa'}
                     </span>
                     <span className="material-symbols-outlined text-text-subtle group-hover:translate-x-1 group-hover:text-primary transition-all">arrow_forward</span>
@@ -417,56 +391,6 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </SpotlightCard>
-
-        {/* Right Column - Live Feed (News) */}
-        <SpotlightCard className="p-8 flex flex-col h-full bg-surface">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-text-heading tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">feed</span>
-              Live Feed {activeWorkspace?.region ? `- ${activeWorkspace.region}` : ''}
-            </h2>
-            <Link to="/pulse" className="text-sm font-bold text-text-subtle hover:text-primary transition-colors">
-              Radar Completo
-            </Link>
-          </div>
-
-          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-            {loadingNews ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-white border border-border-light h-28 rounded-2xl animate-pulse" />
-                ))}
-              </div>
-            ) : news.length > 0 ? (
-              news.map((item, idx) => (
-                <a
-                  key={idx}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-5 rounded-2xl bg-white shadow-sm border border-border-light hover:border-primary/40 hover:shadow-md transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-[10px] font-bold text-text-subtle uppercase tracking-widest">{item.source || 'Portal'}</span>
-                  </div>
-                  <p className="text-sm font-bold text-text-heading mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-3">
-                    {item.title.split(' - ')[0]}
-                  </p>
-                  <div className="flex justify-between items-center mt-3">
-                    <span className="text-xs font-medium text-text-subtle">Agora</span>
-                    <span className="material-symbols-outlined text-sm text-text-subtle group-hover:translate-x-1 group-hover:text-primary transition-all">open_in_new</span>
-                  </div>
-                </a>
-              ))
-            ) : (
-              <p className="text-center text-text-subtle py-8 text-sm font-medium bg-white rounded-2xl border border-dashed border-border-light">
-                Nenhuma notícia urgente detectada no radar agora.
-              </p>
-            )}
-          </div>
-        </SpotlightCard>
-
       </div>
     </div>
   );
