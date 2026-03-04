@@ -25,6 +25,9 @@
 
   --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-reveal: reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fade-in 0.6s ease forwards;
+  --animate-gradient: gradient-shift 3s linear infinite;
+  --animate-progress-indeterminate: progress-indeterminate 1.5s ease-in-out infinite;
 
   @keyframes fade-up {
     0% { opacity: 0; transform: translateY(24px); }
@@ -34,6 +37,22 @@
   @keyframes reveal {
     0% { transform: scale(0.95); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes progress-indeterminate {
+    0% { transform: translateX(-100%); width: 40%; }
+    50% { width: 60%; }
+    100% { transform: translateX(250%); width: 40%; }
   }
 }
 

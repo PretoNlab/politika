@@ -143,6 +143,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 Analisar
               </Link>
               <Link
+                to="/report"
+                title="Relatório Situacional — briefing diário consolidado"
+                className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/report') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}
+              >
+                <span className="material-symbols-outlined text-sm">assignment</span>
+                Relatório
+              </Link>
+              <Link
                 to="/pulse"
                 title="Monitoramento — feed de notícias e análise de sentimento por termos"
                 className={`text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5 ${isActive('/pulse') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}
@@ -185,6 +193,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Link>
             <Link to="/analyze" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/analyze') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
               <span className="material-symbols-outlined text-xl">insights</span> Analisar
+            </Link>
+            <Link to="/report" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/report') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`}>
+              <span className="material-symbols-outlined text-xl">assignment</span> Relatório
             </Link>
             <Link to="/crisis" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 text-base font-medium py-2 transition-colors ${isActive('/crisis') ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-red-500'}`}>
               <span className="material-symbols-outlined text-xl text-red-500">warning</span> War Room

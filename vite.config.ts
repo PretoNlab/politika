@@ -6,13 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
-    proxy: {
-      '/api': {
-        target: 'https://iapolitika.com.br',
-        changeOrigin: true,
-        secure: true,
-      }
-    }
+    // Omitido o proxy para forçar uso das funções Vercel locais
   },
   plugins: [react()],
   resolve: {

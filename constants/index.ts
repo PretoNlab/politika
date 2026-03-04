@@ -58,13 +58,14 @@ export const STORAGE_KEYS = {
   onboardingCompleted: 'politika_onboarding_completed',
   pulseCache: (term: string, articlesHash: string) =>
     `politika_pulse_sentiment_${term}_${articlesHash}`,
-  briefingCache: 'politika_briefing_cache'
+  briefingCache: 'politika_briefing_cache',
+  reportCache: 'politika_report_cache'
 };
 
 // Timeouts
 export const TIMEOUTS = {
   geolocation: 5000,
-  apiRequest: 30000,
+  apiRequest: 55000,
   debounce: 500
 };
 

@@ -25,6 +25,7 @@ const ComparisonDetail = React.lazy(() => import('./components/ComparisonDetail'
 const CrisisManagement = React.lazy(() => import('./components/CrisisManagement'));
 const PulseMonitor = React.lazy(() => import('./components/PulseMonitor'));
 const Workspaces = React.lazy(() => import('./components/Workspaces'));
+const SituationalReport = React.lazy(() => import('./pages/SituationalReport'));
 
 // Inicializa PostHog o mais cedo possível
 initPostHog();
@@ -88,6 +89,7 @@ const App: React.FC = () => {
               <Route path="/crisis" element={<CrisisManagement />} />
               <Route path="/pulse" element={<PulseMonitor />} />
               <Route path="/workspaces" element={<Workspaces />} />
+              <Route path="/report" element={<SituationalReport />} />
             </Route>
           </Routes>
         </AuthProvider>

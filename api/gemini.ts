@@ -204,6 +204,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { action, data, workspaceContext } = body;
 
+    console.log(`[API GEMINI] Recebido action: "${action}"`); // LOG PARA INVESTIGAR BUG INVALID ACTION
+
     if (!action || typeof action !== 'string') {
       return res.status(400).json({ error: 'Action is required' });
     }
@@ -253,8 +255,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case 'prediction:earlywarning':
         return await handleEarlyWarning(ai, data, res, wsCtx);
 
+      case 'situational_report':
+        return await handleSituationalReport(ai, data, res, wsCtx);
+
       default:
-        return res.status(400).json({ error: 'Invalid action' });
+        return res.status(400).json({ error: `Invalid action: ${action}` });
     }
   } catch (error: any) {
     console.error('API Error:', error);
@@ -1007,6 +1012,124 @@ TAREFA: Simule o impacto deste cenário.
   const result = safeParseAIResponse(response.text, ['scenario', 'impactPoints', 'recommendation']);
   return res.status(200).json({ success: true, data: result });
 }
+
+// ============================================
+// Situational Report (Daily Brief)
+// ============================================
+
+async function handleSituationalReport(
+  ai: GoogleGenAI,
+  data: {
+    metrics: {
+      totalMentions: number;
+      avgSentiment: number | null;
+      hottestTerm: string | null;
+      overallTrend: string;
+      termMetrics: Record<string, any>;
+    };
+    alerts: {
+      total: number;
+      dangerCount: number;
+      opportunityCount: number;
+      recentAlerts: string[];
+    };
+    topArticles: string[];
+  },
+  res: VercelResponse,
+  wsCtx: WorkspaceContext
+) {
+  const { metrics, alerts, topArticles } = data;
+
+  if (!metrics || typeof metrics !== 'object') {
+    return res.status(400).json({ error: 'Metrics data is required' });
+  }
+
+  const articlesContext = topArticles && topArticles.length > 0
+    ? `\nManchetes recentes:\n${topArticles.join('\n')}`
+    : '';
+
+  const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
+  const expertInstructions = buildExpertInstructions(wsCtx.state);
+  const stateName = wsCtx.state || 'Brasil';
+
+  const prompt = `Gere o Relatório Situacional Diário (Morning Briefing) para a campanha em ${stateName}.
+${expertInstructions}
+
+DADOS DO MONITORAMENTO ATUAL:
+- Total de menções: ${metrics.totalMentions}
+- Sentimento médio: ${metrics.avgSentiment !== null ? (metrics.avgSentiment * 100).toFixed(0) + '%' : 'sem dados'}
+- Tendência geral: ${metrics.overallTrend}
+- Termo mais quente: ${metrics.hottestTerm || 'nenhum'}
+- Termos em alta: ${Object.keys(metrics.termMetrics || {}).join(', ')}
+
+ALERTAS ATIVOS: ${alerts?.total || 0} (${alerts?.dangerCount || 0} perigos, ${alerts?.opportunityCount || 0} oportunidades)
+${alerts?.recentAlerts ? alerts.recentAlerts.join('\n') : ''}
+${articlesContext}
+
+${regionalContext}
+
+DIRETRIZES DO RELATÓRIO:
+1. "executiveSummary": 2 a 3 parágrafos curtos, diretos e estratégicos resumindo o cenário do dia. Nada de jargão de marketing, use linguagem de inteligência militar/política.
+2. "keyMovements": Array contendo os 2 a 4 movimentos principais da mídia ou redes (manchete, impacto na campanha, fonte estimada).
+3. "strategicRecommendations": Array contendo 2 a 3 ações recomendadas para hoje (área, ação prática, prioridade).
+
+FORMATO JSON OBRIGATÓRIO (NENHUM TEXTO FORA DO JSON):
+{
+  "executiveSummary": "texto",
+  "keyMovements": [
+    { "headline": "título curto", "impact": "descrição do risco/oportunidade", "source": "fonte provável baseada nos dados" }
+  ],
+  "strategicRecommendations": [
+    { "area": "Comunicação/Jurídico/etc", "action": "o que fazer hoje", "priority": "Alta/Crítica/Média" }
+  ]
+}`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          executiveSummary: { type: Type.STRING },
+          keyMovements: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                headline: { type: Type.STRING },
+                impact: { type: Type.STRING },
+                source: { type: Type.STRING }
+              },
+              required: ['headline', 'impact', 'source']
+            }
+          },
+          strategicRecommendations: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                area: { type: Type.STRING },
+                action: { type: Type.STRING },
+                priority: { type: Type.STRING }
+              },
+              required: ['area', 'action', 'priority']
+            }
+          }
+        },
+        required: ['executiveSummary', 'keyMovements', 'strategicRecommendations']
+      }
+    }
+  });
+
+  const result = safeParseAIResponse(response.text, ['executiveSummary', 'keyMovements', 'strategicRecommendations']);
+  return res.status(200).json({ success: true, data: result });
+}
+
+// ============================================
+// Early Warning (Crises Precedentes)
+// ============================================
 
 async function handleEarlyWarning(
   ai: GoogleGenAI,

@@ -308,6 +308,45 @@ export const generateBriefing = async (
 };
 
 /**
+ * Gera relatório situacional longo (Daily Briefing)
+ */
+export const generateSituationalReport = async (
+  metricsSnapshot: {
+    totalMentions: number;
+    avgSentiment: number | null;
+    hottestTerm: string | null;
+    overallTrend: string;
+    termMetrics: Record<string, any>;
+  },
+  alertsSummary: {
+    total: number;
+    dangerCount: number;
+    opportunityCount: number;
+    recentAlerts: string[];
+  },
+  topArticleTitles: string[],
+  workspaceContext?: WorkspaceContext
+): Promise<{
+  executiveSummary: string;
+  keyMovements: Array<{ headline: string; impact: string; source: string }>;
+  strategicRecommendations: Array<{ area: string; action: string; priority: string }>;
+}> => {
+  const sanitizedTitles = topArticleTitles
+    .slice(0, 15)
+    .map(t => sanitizeInput(t, { maxLength: 200 }));
+
+  return callApi({
+    action: 'situational_report',
+    data: {
+      metrics: metricsSnapshot,
+      alerts: alertsSummary,
+      topArticles: sanitizedTitles
+    },
+    workspaceContext,
+  });
+};
+
+/**
  * Chat com contexto de análise
  */
 export const chatWithAnalysis = async (
