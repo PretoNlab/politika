@@ -5,7 +5,6 @@ import UserMenu from './UserMenu';
 import OnboardingChecklist from './OnboardingChecklist';
 import MilestoneBadge from './MilestoneBadge';
 import { useLifecycleStore } from '../store/lifecycleStore';
-import { useLifecycleSignals } from '../hooks/useLifecycleSignals';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -18,8 +17,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Lifecycle: track page visits and milestone signals
   const recordPageVisit = useLifecycleStore(s => s.recordPageVisit);
   const completeStep = useLifecycleStore(s => s.completeStep);
-  useLifecycleSignals();
-
   useEffect(() => {
     recordPageVisit(location.pathname);
 
