@@ -1,8 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useWorkspace } from '../context/WorkspaceContext';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
+import { useGenerationStore } from '../store/generationStore';
+import { useLifecycleStore } from '../store/lifecycleStore';
+import { generatePoliticalInsight } from '../services/geminiClient';
 
 type OnboardingStep = 'acesso' | 'perfil' | 'projeto' | 'pronto';
 
@@ -152,8 +155,9 @@ const DossierPreviewCard: React.FC<{ data: DossierPreview }> = ({ data }) => {
 // ─── Main component ───────────────────────────────────────────────────────────
 const OnboardingFlow: React.FC = () => {
     const navigate = useNavigate();
-    const { signUp } = useAuth();
-    const { addWorkspace } = useWorkspace();
+    const { signUp, user } = useAuth();
+    const { startGeneration, finishGeneration, failGeneration } = useGenerationStore();
+    const completeLifecycleStep = useLifecycleStore(s => s.completeStep);
 
     const [currentStep, setCurrentStep] = useState<OnboardingStep>('acesso');
     const [loading, setLoading] = useState(false);
@@ -217,6 +221,10 @@ const OnboardingFlow: React.FC = () => {
             toast.error('Dê um nome à sua campanha');
             return;
         }
+        if (!user) {
+            toast.error('Sessão expirada. Faça login novamente.');
+            return;
+        }
         setLoading(true);
         try {
             const parsedWatchwords = formData.watchwordsRaw
@@ -224,17 +232,48 @@ const OnboardingFlow: React.FC = () => {
                 .map((w) => w.trim())
                 .filter(Boolean);
 
-            await addWorkspace(
-                {
+            // Insert workspace directly via Supabase (no WorkspaceProvider needed here)
+            const { data, error } = await supabase
+                .from('workspaces')
+                .insert({
+                    user_id: user.id,
                     name: formData.workspaceName,
                     state: formData.state,
                     region: formData.region,
-                    customContext: formData.customContext,
+                    custom_context: formData.customContext || null,
                     watchwords: parsedWatchwords,
-                },
-                formData.candidateHandle
-            );
+                    status: 'active',
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            completeLifecycleStep('create_workspace');
             setFormData((prev) => ({ ...prev, watchwords: parsedWatchwords }));
+
+            // Trigger background analysis if candidate handle is provided
+            if (formData.candidateHandle && data) {
+                startGeneration(data.id, formData.candidateHandle);
+                generatePoliticalInsight(formData.candidateHandle, {
+                    state: formData.state,
+                    region: formData.region,
+                    customContext: formData.customContext || undefined,
+                })
+                    .then((insightData) => {
+                        if (insightData) {
+                            finishGeneration(insightData as any);
+                            toast.success('Dossiê Estratégico gerado!', { duration: 5000 });
+                        } else {
+                            throw new Error('Retorno vazio');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('Error generating initial insight:', err);
+                        failGeneration('Falha ao gerar o dossiê inicial.');
+                    });
+            }
+
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 2800);
             handleNext();
@@ -288,10 +327,10 @@ const OnboardingFlow: React.FC = () => {
                         <div key={step.id} className="flex flex-col items-center gap-2 bg-white px-2">
                             <div
                                 className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isActive
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                                        : isPast
-                                            ? 'bg-primary/10 text-primary'
-                                            : 'bg-slate-100 text-slate-400'
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                                    : isPast
+                                        ? 'bg-primary/10 text-primary'
+                                        : 'bg-slate-100 text-slate-400'
                                     }`}
                             >
                                 <span className="material-symbols-outlined text-xl">{isPast ? 'check' : step.icon}</span>
@@ -413,14 +452,14 @@ const OnboardingFlow: React.FC = () => {
                                             handleNext();
                                         }}
                                         className={`group flex items-center gap-6 p-6 rounded-3xl border text-left transition-all duration-300 hover:border-primary/30 hover:bg-slate-50 ${formData.role === role.id
-                                                ? 'border-primary bg-primary/5 ring-4 ring-primary/5 shadow-inner'
-                                                : 'border-slate-200 bg-white'
+                                            ? 'border-primary bg-primary/5 ring-4 ring-primary/5 shadow-inner'
+                                            : 'border-slate-200 bg-white'
                                             }`}
                                     >
                                         <div
                                             className={`size-14 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${formData.role === role.id
-                                                    ? 'bg-primary text-white'
-                                                    : 'bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'
+                                                ? 'bg-primary text-white'
+                                                : 'bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'
                                                 }`}
                                         >
                                             <span className="material-symbols-outlined text-2xl">{role.icon}</span>
@@ -552,8 +591,8 @@ const OnboardingFlow: React.FC = () => {
                                                             disabled={added}
                                                             onClick={() => addWatchwordSuggestion(s)}
                                                             className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${added
-                                                                    ? 'bg-primary/10 text-primary/40 cursor-default'
-                                                                    : 'bg-white text-primary border border-primary/20 hover:border-primary hover:shadow-sm'
+                                                                ? 'bg-primary/10 text-primary/40 cursor-default'
+                                                                : 'bg-white text-primary border border-primary/20 hover:border-primary hover:shadow-sm'
                                                                 }`}
                                                         >
                                                             {added ? '✓ ' : '+ '}
