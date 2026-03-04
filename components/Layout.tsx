@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
 import UserMenu from './UserMenu';
 import OnboardingChecklist from './OnboardingChecklist';
+import MilestoneBadge from './MilestoneBadge';
 import { useLifecycleStore } from '../store/lifecycleStore';
 import { useLifecycleSignals } from '../hooks/useLifecycleSignals';
 
@@ -24,7 +25,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     // Auto-complete onboarding steps based on page visits
     const pathToStep: Record<string, string> = {
-      '/radar': 'visit_radar',
+      '/pulse': 'visit_radar',
       '/crisis': 'visit_warroom',
     };
     const stepId = pathToStep[location.pathname];
@@ -213,6 +214,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </footer>
 
       <OnboardingChecklist />
+      <MilestoneBadge />
     </div>
   );
 };
