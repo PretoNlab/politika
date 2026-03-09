@@ -139,9 +139,9 @@ const Workspaces: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {workspace.watchwords.map((word, i) => (
+                                {workspace.watchwords.map((w, i) => (
                                     <span key={i} className="px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-full text-[9px] font-black text-text-subtle dark:text-slate-300 uppercase tracking-widest border border-slate-100 dark:border-slate-700">
-                                        {word}
+                                        {w.term}
                                     </span>
                                 ))}
                             </div>

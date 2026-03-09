@@ -6,7 +6,7 @@ import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { useAlertEngine } from '../hooks/useAlertEngine';
 import { useBriefing } from '../hooks/useBriefing';
 import { TERM_COLORS } from '../constants';
-import type { PolitikaAlert, TaggedNewsArticle, BriefingResult, TermMetrics } from '../types';
+import type { PolitikaAlert, TaggedNewsArticle, BriefingResult, TermMetrics, Watchword } from '../types';
 import { useGenerationStore } from '../store/generationStore';
 import { supabase } from '../lib/supabase';
 
@@ -180,7 +180,7 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
 // --- TermFilterBar ---
 
 interface TermFilterBarProps {
-  terms: string[];
+  terms: Watchword[];
   activeTerm: string | null;
   onSelect: (term: string | null) => void;
   metrics: Record<string, TermMetrics>;
@@ -197,7 +197,8 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
     >
       Todos
     </button>
-    {terms.map((term, idx) => {
+    {terms.map((w, idx) => {
+      const term = w.term;
       const color = TERM_COLORS[idx % TERM_COLORS.length];
       const m = metrics[term];
       const isActive = activeTerm === term;
@@ -278,7 +279,7 @@ interface ExpandedTermPanelProps {
   term: string;
   metrics: TermMetrics;
   color: string;
-  terms: string[];
+  terms: Watchword[];
   onClose: () => void;
 }
 
@@ -369,14 +370,14 @@ const relativeTime = (dateStr: string): string => {
 
 // --- HighlightedTitle ---
 
-const HighlightedTitle: React.FC<{ title: string; terms: string[] }> = ({ title, terms }) => {
+const HighlightedTitle: React.FC<{ title: string; terms: Watchword[] }> = ({ title, terms }) => {
   if (terms.length === 0) return <>{title}</>;
-  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const pattern = new RegExp(`(${terms.map(t => t.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
   const parts = title.split(pattern);
   return (
     <>
       {parts.map((part, i) => {
-        const isMatch = terms.some(t => t.toLowerCase() === part.toLowerCase());
+        const isMatch = terms.some(t => t.term.toLowerCase() === part.toLowerCase());
         return isMatch ? (
           <mark key={i} className="bg-primary/20 text-primary rounded px-0.5 font-black">{part}</mark>
         ) : (
@@ -653,7 +654,8 @@ const CommandCenter: React.FC = () => {
           {/* Bento Grid: Term Cards */}
           {terms.length > 0 && Object.keys(metrics).length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {terms.map((term, idx) => {
+              {terms.map((w, idx) => {
+                const term = w.term;
                 const m = metrics[term];
                 if (!m) return null;
                 return (
@@ -675,7 +677,7 @@ const CommandCenter: React.FC = () => {
             <ExpandedTermPanel
               term={expandedTerm}
               metrics={metrics[expandedTerm]}
-              color={TERM_COLORS[terms.indexOf(expandedTerm) % TERM_COLORS.length]}
+              color={TERM_COLORS[terms.findIndex(t => t.term === expandedTerm) % TERM_COLORS.length]}
               terms={terms}
               onClose={() => setExpandedTerm(null)}
             />
@@ -759,7 +761,8 @@ const CommandCenter: React.FC = () => {
                 >
                   Todos
                 </button>
-                {terms.map((term, idx) => {
+                {terms.map((w, idx) => {
+                  const term = w.term;
                   const color = TERM_COLORS[idx % TERM_COLORS.length];
                   const isActive = activeTerm === term;
                   return (
@@ -822,11 +825,11 @@ const CommandCenter: React.FC = () => {
                           <div className="flex gap-1 flex-wrap">
                             {article.matchedTerms.map((t, ti) => (
                               <span
-                                key={t}
+                                key={t.term}
                                 className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full text-white"
-                                style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
+                                style={{ backgroundColor: TERM_COLORS[terms.findIndex(wt => wt.term === t.term) % TERM_COLORS.length] }}
                               >
-                                {t}
+                                {t.term}
                               </span>
                             ))}
                           </div>
