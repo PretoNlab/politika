@@ -6,7 +6,7 @@ import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { useAlertEngine } from '../hooks/useAlertEngine';
 import { useBriefing } from '../hooks/useBriefing';
 import { TERM_COLORS } from '../constants';
-import type { PolitikaAlert, TaggedNewsArticle, BriefingResult, TermMetrics, Watchword } from '../types';
+import type { PolitikaAlert, TaggedNewsArticle, BriefingResult, TermMetrics } from '../types';
 import { useGenerationStore } from '../store/generationStore';
 import { supabase } from '../lib/supabase';
 
@@ -180,7 +180,7 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
 // --- TermFilterBar ---
 
 interface TermFilterBarProps {
-  terms: Watchword[];
+  terms: string[];
   activeTerm: string | null;
   onSelect: (term: string | null) => void;
   metrics: Record<string, TermMetrics>;
@@ -197,8 +197,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
     >
       Todos
     </button>
-    {terms.map((w, idx) => {
-      const term = w.term;
+    {terms.map((term, idx) => {
       const color = TERM_COLORS[idx % TERM_COLORS.length];
       const m = metrics[term];
       const isActive = activeTerm === term;
@@ -279,7 +278,7 @@ interface ExpandedTermPanelProps {
   term: string;
   metrics: TermMetrics;
   color: string;
-  terms: Watchword[];
+  terms: string[];
   onClose: () => void;
 }
 
@@ -370,7 +369,7 @@ const relativeTime = (dateStr: string): string => {
 
 // --- HighlightedTitle ---
 
-const HighlightedTitle: React.FC<{ title: string; terms: Watchword[] }> = ({ title, terms }) => {
+const HighlightedTitle: React.FC<{ title: string; terms: { term: string }[] }> = ({ title, terms }) => {
   if (terms.length === 0) return <>{title}</>;
   const pattern = new RegExp(`(${terms.map(t => t.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
   const parts = title.split(pattern);
@@ -615,27 +614,78 @@ const CommandCenter: React.FC = () => {
       )}
 
       {!activeWorkspace && !isGenerating ? (
-        /* No workspace CTA */
-        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-16 border border-slate-100 dark:border-slate-800 shadow-sm text-center space-y-6">
-          <div className="size-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto text-primary">
-            <span className="material-symbols-outlined text-4xl">rocket_launch</span>
+        /* No workspace — onboarding hero */
+        <div className="space-y-6">
+          {/* Hero card */}
+          <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-14 border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden relative">
+            {/* Decorative gradient blob */}
+            <div className="absolute -top-20 -right-20 size-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative flex flex-col md:flex-row md:items-center gap-10">
+              {/* Left: text */}
+              <div className="flex-1 space-y-6">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Passo 1 de 4</span>
+                  <h3 className="text-3xl md:text-4xl font-black text-text-heading dark:text-white tracking-tighter leading-tight">
+                    Ative seu QG<br />de Inteligência
+                  </h3>
+                  <p className="text-text-subtle dark:text-slate-400 font-medium max-w-sm leading-relaxed">
+                    Crie sua campanha para desbloquear monitoramento em tempo real, análise de sentimento e alertas automáticos.
+                  </p>
+                </div>
+                <Link
+                  to="/workspaces"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-primary/20"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Criar Campanha
+                </Link>
+              </div>
+
+              {/* Right: feature grid */}
+              <div className="grid grid-cols-2 gap-4 md:w-80 flex-shrink-0">
+                {[
+                  { icon: 'radar', color: 'text-primary bg-primary/10', label: 'Radar ao Vivo', desc: 'Notícias filtradas por termo' },
+                  { icon: 'psychology', color: 'text-violet-500 bg-violet-500/10', label: 'Análise com IA', desc: 'Dossiê de candidatos' },
+                  { icon: 'notifications_active', color: 'text-amber-500 bg-amber-500/10', label: 'Alertas Automáticos', desc: 'Crise detectada antes de viralizar' },
+                  { icon: 'shield', color: 'text-red-500 bg-red-500/10', label: 'War Room', desc: 'Contra-medidas em tempo real' },
+                ].map(f => (
+                  <div key={f.label} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl space-y-2">
+                    <div className={`size-9 rounded-xl flex items-center justify-center ${f.color}`}>
+                      <span className="material-symbols-outlined text-lg">{f.icon}</span>
+                    </div>
+                    <p className="text-xs font-black text-text-heading dark:text-white leading-tight">{f.label}</p>
+                    <p className="text-[10px] text-text-subtle dark:text-slate-400 leading-snug">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="space-y-3 max-w-md mx-auto">
-            <h3 className="text-2xl md:text-3xl font-black text-text-heading dark:text-white tracking-tighter">
-              Comece Aqui
-            </h3>
-            <p className="text-text-subtle dark:text-slate-400 font-medium">
-              Crie sua primeira campanha para ativar o monitoramento de inteligência política,
-              alertas em tempo real e análise de sentimento.
-            </p>
+
+          {/* Steps preview */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { step: '01', label: 'Criar campanha', icon: 'folder_shared', done: false, route: '/workspaces' },
+              { step: '02', label: 'Primeira análise', icon: 'analytics', done: false, route: '/analyze' },
+              { step: '03', label: 'Explorar Radar', icon: 'radar', done: false, route: '/pulse' },
+              { step: '04', label: 'Simular War Room', icon: 'shield', done: false, route: '/crisis' },
+            ].map((s, i) => (
+              <Link
+                key={s.step}
+                to={s.route}
+                className={`p-5 rounded-2xl border transition-all group flex flex-col gap-3 ${i === 0
+                  ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:bg-blue-600'
+                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-primary/30 opacity-50 pointer-events-none'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${i === 0 ? 'text-white/70' : 'text-text-subtle dark:text-slate-500'}`}>{s.step}</span>
+                  <span className={`material-symbols-outlined text-lg ${i === 0 ? 'text-white' : 'text-slate-300 dark:text-slate-600'}`}>{s.icon}</span>
+                </div>
+                <p className={`text-sm font-black tracking-tight ${i === 0 ? 'text-white' : 'text-text-heading dark:text-white'}`}>{s.label}</p>
+              </Link>
+            ))}
           </div>
-          <Link
-            to="/workspaces"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-primary/20"
-          >
-            <span className="material-symbols-outlined text-sm">add</span>
-            Criar Campanha
-          </Link>
         </div>
       ) : !isGenerating ? (
         <>
@@ -654,8 +704,7 @@ const CommandCenter: React.FC = () => {
           {/* Bento Grid: Term Cards */}
           {terms.length > 0 && Object.keys(metrics).length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {terms.map((w, idx) => {
-                const term = w.term;
+              {terms.map((term, idx) => {
                 const m = metrics[term];
                 if (!m) return null;
                 return (
@@ -677,7 +726,7 @@ const CommandCenter: React.FC = () => {
             <ExpandedTermPanel
               term={expandedTerm}
               metrics={metrics[expandedTerm]}
-              color={TERM_COLORS[terms.findIndex(t => t.term === expandedTerm) % TERM_COLORS.length]}
+              color={TERM_COLORS[terms.indexOf(expandedTerm) % TERM_COLORS.length]}
               terms={terms}
               onClose={() => setExpandedTerm(null)}
             />
@@ -761,8 +810,7 @@ const CommandCenter: React.FC = () => {
                 >
                   Todos
                 </button>
-                {terms.map((w, idx) => {
-                  const term = w.term;
+                {terms.map((term, idx) => {
                   const color = TERM_COLORS[idx % TERM_COLORS.length];
                   const isActive = activeTerm === term;
                   return (
@@ -827,7 +875,7 @@ const CommandCenter: React.FC = () => {
                               <span
                                 key={t.term}
                                 className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full text-white"
-                                style={{ backgroundColor: TERM_COLORS[terms.findIndex(wt => wt.term === t.term) % TERM_COLORS.length] }}
+                                style={{ backgroundColor: TERM_COLORS[terms.indexOf(t.term) % TERM_COLORS.length] }}
                               >
                                 {t.term}
                               </span>
