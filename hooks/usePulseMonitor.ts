@@ -5,12 +5,12 @@ import { useSentiment } from './useSentiment';
 import { useMultiTermTrends } from './useTrendsData';
 import { tagArticlesWithTerms, computeTimeDistribution } from '../services/newsService';
 import { buildTrendFromArticles, computeTrendDirection, buildDailyTrendFromArticles, groupArticlesByDay } from '../services/trendsService';
-import type { TaggedNewsArticle, TermMetrics, SentimentResult } from '../types';
+import type { TaggedNewsArticle, TermMetrics } from '../types';
 import type { TrendPoint, DailyTrendPoint, DayGroup } from '../services/trendsService';
 import type { TrendDataPoint } from './useTrendsData';
 
 interface UsePulseMonitorReturn {
-  terms: Watchword[];
+  terms: string[];
   activeTerm: string | null;
   setActiveTerm: (term: string | null) => void;
   metrics: Record<string, TermMetrics>;
@@ -216,7 +216,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   }, [refetchNews]);
 
   return {
-    terms: watchwords,
+    terms: watchwords.map(w => w.term),
     activeTerm,
     setActiveTerm,
     metrics,
