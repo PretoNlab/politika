@@ -8,7 +8,8 @@
       "Bash(echo $GITHUB_TOKEN)",
       "Bash(echo $GH_TOKEN)",
       "Bash(git config --global github.token)",
-      "Bash(git checkout components/RadarPreditivo.tsx)"
+      "Bash(git checkout components/RadarPreditivo.tsx)",
+      "Read(//Users/diegomachado/politika/**)"
     ]
   }
 }

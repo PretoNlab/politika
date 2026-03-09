@@ -6,14 +6,15 @@ import toast from 'react-hot-toast';
 import { useGenerationStore } from '../store/generationStore';
 import { generatePoliticalInsight } from '../services/geminiClient';
 import { useLifecycleStore } from '../store/lifecycleStore';
+import { Watchword } from '../types';
 
 export interface Workspace {
     id: string;
     name: string;
     state: string;
-    region: string;
+    region?: string;
     customContext?: string;
-    watchwords: string[];
+    watchwords: Watchword[];
     status: 'active' | 'archived';
     createdAt: string;
 }
@@ -59,7 +60,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 state: row.state || 'Bahia',
                 region: row.region || '',
                 customContext: row.custom_context || undefined,
-                watchwords: row.watchwords || [],
+                watchwords: Array.isArray(row.watchwords)
+                    ? row.watchwords.map((w: any) => typeof w === 'string' ? { term: w } : w)
+                    : [],
                 status: row.status,
                 createdAt: row.created_at,
             }));

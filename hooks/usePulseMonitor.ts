@@ -10,7 +10,7 @@ import type { TrendPoint, DailyTrendPoint, DayGroup } from '../services/trendsSe
 import type { TrendDataPoint } from './useTrendsData';
 
 interface UsePulseMonitorReturn {
-  terms: string[];
+  terms: Watchword[];
   activeTerm: string | null;
   setActiveTerm: (term: string | null) => void;
   metrics: Record<string, TermMetrics>;
@@ -52,9 +52,10 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
     autoFetch: true
   });
 
-  // Dados reais do Google Trends para todos os watchwords
+  // Dados reais do Google Trends para todos os watchwords (somente extraindo a property 'term')
+  const trendTerms = watchwords.map(w => w.term);
   const { mergedData: googleTrendsData, loading: isTrendsLoading } = useMultiTermTrends(
-    watchwords,
+    trendTerms,
     region
   );
 
@@ -81,15 +82,16 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   const metrics = useMemo((): Record<string, TermMetrics> => {
     const result: Record<string, TermMetrics> = {};
 
-    for (const term of watchwords) {
-      const termArticles = taggedArticles.filter(a => a.matchedTerms.includes(term));
-      const timeDistribution = computeTimeDistribution(taggedArticles, term);
+    for (const w of watchwords) {
+      const termName = w.term;
+      const termArticles = taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === termName));
+      const timeDistribution = computeTimeDistribution(taggedArticles, termName);
 
-      result[term] = {
-        term,
+      result[termName] = {
+        term: termName,
         mentions: termArticles.length,
-        sentiment: sentimentResults[term] || null,
-        sentimentLoading: loadingTerms.has(term),
+        sentiment: sentimentResults[termName] || null,
+        sentimentLoading: loadingTerms.has(termName),
         articles: termArticles,
         timeDistribution
       };
@@ -106,11 +108,12 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
     if (sentimentTriggeredRef.current === articlesKey) return;
     sentimentTriggeredRef.current = articlesKey;
 
-    for (const term of watchwords) {
-      const termArticles = taggedArticles.filter(a => a.matchedTerms.includes(term));
+    for (const w of watchwords) {
+      const termName = w.term;
+      const termArticles = taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === termName));
       if (termArticles.length > 0) {
         const titles = termArticles.map(a => a.title);
-        analyze(term, titles);
+        analyze(termName, titles);
       }
     }
   }, [taggedArticles, watchwords, analyze]);
@@ -118,7 +121,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   // Build waveform: combina dados do Google Trends reais com contagem de artigos
   const { pulseData, trendPoints } = useMemo(() => {
     const source = activeTerm
-      ? taggedArticles.filter(a => a.matchedTerms.includes(activeTerm))
+      ? taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === activeTerm))
       : taggedArticles;
 
     const articlePoints = buildTrendFromArticles(source);
@@ -134,7 +137,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   // Filtered articles based on active term
   const filteredArticles = useMemo(() => {
     if (!activeTerm) return taggedArticles;
-    return taggedArticles.filter(a => a.matchedTerms.includes(activeTerm));
+    return taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === activeTerm));
   }, [taggedArticles, activeTerm]);
 
   // Global metrics
@@ -152,11 +155,11 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
 
     let hottestTerm: string | null = null;
     let maxMentions = 0;
-    for (const term of watchwords) {
-      const count = metrics[term]?.mentions || 0;
+    for (const w of watchwords) {
+      const count = metrics[w.term]?.mentions || 0;
       if (count > maxMentions) {
         maxMentions = count;
-        hottestTerm = term;
+        hottestTerm = w.term;
       }
     }
 
@@ -170,7 +173,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   // Se temos dados reais do Google Trends, usa eles para enriquecer a visão diária
   const { dailyPulseData, dailyTrendPoints } = useMemo(() => {
     const source = activeTerm
-      ? taggedArticles.filter(a => a.matchedTerms.includes(activeTerm))
+      ? taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === activeTerm))
       : taggedArticles;
 
     const articlePoints = buildDailyTrendFromArticles(source);
@@ -196,7 +199,7 @@ export const usePulseMonitor = (): UsePulseMonitorReturn => {
   // Articles grouped by day (most recent first)
   const articlesByDay = useMemo(() => {
     const source = activeTerm
-      ? taggedArticles.filter(a => a.matchedTerms.includes(activeTerm))
+      ? taggedArticles.filter(a => a.matchedTerms.some(mt => mt.term === activeTerm))
       : taggedArticles;
     return groupArticlesByDay(source);
   }, [taggedArticles, activeTerm]);

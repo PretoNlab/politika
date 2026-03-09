@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politika - Pitch Deck Executivo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6', // Teal mais fechado para botões se quiser
+                            blue: '#0066FF', // Azul vibrante do logo (Politika)
+                            dark: '#0F172A', // Slate 900
+                            darker: '#020617', // Slate 950
+                        },
+                        alert: {
+                            danger: '#FF3B30', // Vermelho de crise
+                            warning: '#FFCC00',
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .glass-card-dark {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1.5rem;
+        }
+
+        /* Animações suaves de entrada */
+        .fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 antialiased selection:bg-brand-blue selection:text-white">
+
+    <!-- NAV/LOGO -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card mx-4 mt-4 rounded-2xl md:mx-12 lg:mx-24 px-6 py-4 flex justify-between items-center transition-all">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-brand-blue text-white flex items-center justify-center font-bold text-xl">
+                <i data-lucide="radar"></i>
+            </div>
+            <span class="font-bold text-xl tracking-tight text-slate-900">Politika</span>
+        </div>
+        <a href="#oferta" class="hidden md:block px-5 py-2.5 bg-brand-blue hover:bg-blue-700 text-white text-sm font-semibold rounded-full transition-colors shadow-lg shadow-blue-500/30">
+            Bloquear Vaga Exclusiva
+        </a>
+    </nav>
+
+    <!-- 1. HERO -->
+    <section class="slide-section relative overflow-hidden bg-white">
+        <!-- Background Elements -->
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[100px] opacity-70"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-red-50 rounded-full blur-[100px] opacity-60"></div>
+
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-blue text-sm font-semibold mb-6 fade-in-up">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span>
+                </span>
+                Inteligência Política de Precisão
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1] fade-in-up delay-100">
+                O jogo político mudou.<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-cyan-500">Sua campanha está cega?</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed fade-in-up delay-200">
+                Domine a narrativa, antecipe crises antes que virem manchetes e tome decisões táticas baseadas em dados em tempo real. O <strong>Politika</strong> é o primeiro QG digital movido a IA para mandatos e campanhas de alto nível.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in-up delay-300">
+                <a href="#problema" class="px-8 py-4 bg-brand-blue hover:bg-blue-700 text-white text-lg font-semibold rounded-full transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 group">
+                    Descobrir Como Funciona
+                    <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. PROBLEMA (STORYTELLING) -->
+    <section id="problema" class="slide-section bg-brand-darker text-white relative">
+        <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6 pr-0 md:pr-12">
+                <h2 class="text-alert-danger font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> A Dor Silenciosa
+                </h2>
+                <h3 class="text-4xl md:text-5xl font-bold leading-tight">
+                    Você perde pontos nas pesquisas <span class="italic text-slate-400">enquanto sua equipe dorme.</span>
+                </h3>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    A velha política operava no tempo do jornal impresso. A nova política opera no tempo do algoritmo. O volume de notícias, tweets e pressões nas redes sociais é humanamente impossível de processar.
+                </p>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    Quando sua equipe detecta uma "faísca" de crise, ela já incendiou grupos de WhatsApp e destruiu seu capital político. Decisões baseadas em "achismos" ou relatórios atrasados de sexta-feira custam mandatos.
+                </p>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-tr from-brand-blue/20 to-alert-danger/20 rounded-3xl blur-2xl"></div>
+                <div class="glass-card-dark rounded-3xl p-8 relative border border-slate-700">
+                    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-700">
+                        <div class="w-12 h-12 rounded-full bg-alert-danger/20 flex items-center justify-center text-alert-danger">
+                            <i data-lucide="trending-down"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold">Crise Iminente Ignorada</h4>
+                            <p class="text-sm text-slate-400">O que acontece na sala de guerra tradicional</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3 text-slate-300">
+                            <i data-lucide="x-circle" class="w-6 h-6 text-alert-danger shrink-0"></i>
+                            <span>Equipe afogada lendo milhares de comentários sem extrair dados reais.</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-slate-300">
+                            <i data-lucide="x-circle" class="w-6 h-6 text-alert-danger shrink-0"></i>
+                            <span>Ataques da oposição ganham tração antes do seu posicionamento oficial.</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-slate-300">
+                            <i data-lucide="x-circle" class="w-6 h-6 text-alert-danger shrink-0"></i>
+                            <span>Dinheiro queimado em campanhas sem saber o sentimento real do eleitor.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SOLUÇÃO -->
+    <section class="slide-section bg-slate-50">
+        <div class="max-w-4xl mx-auto text-center space-y-8">
+            <h2 class="text-brand-blue font-bold uppercase tracking-wider text-sm">A Virada de Chave</h2>
+            <h3 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+                Apresentamos sua <br>Vantagem Assimétrica.
+            </h3>
+            <p class="text-xl text-slate-600 leading-relaxed">
+                O <strong>Politika</strong> não é mais um painel de gráficos confusos. É um "Conselheiro de Inteligência" movido nativamente pela IA do Google Gemini. Ele monitora a internet 24/7, analisa o sentimento do eleitor, aciona alarmes de crise antes dela estourar e entrega Relatórios Situacionais prontos para o Comando.
+            </p>
+            <div class="pt-8">
+                <!-- Mockup de UI abstrato -->
+                <div class="relative mx-auto max-w-3xl rounded-2xl overflow-hidden glass-card border border-slate-200 shadow-2xl">
+                    <div class="h-8 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <div class="bg-white p-6 md:p-10">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- Col 1 -->
+                            <div class="flex-1 space-y-4">
+                                <div class="h-4 w-32 bg-slate-100 rounded"></div>
+                                <div class="h-24 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center p-4 gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 text-brand-blue flex items-center justify-center font-bold">98%</div>
+                                    <div class="space-y-2 flex-1">
+                                        <div class="h-3 w-3/4 bg-slate-200 rounded"></div>
+                                        <div class="h-2 w-1/2 bg-slate-200 rounded"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Col 2 -->
+                            <div class="flex-1 space-y-4">
+                                <div class="h-4 w-24 bg-slate-100 rounded"></div>
+                                <div class="h-24 bg-red-50/50 rounded-xl border border-red-100 flex p-4 gap-4 relative overflow-hidden">
+                                    <div class="absolute right-0 top-0 text-red-100 opacity-50 m-[-10px]"><i data-lucide="triangle-alert" class="w-24 h-24"></i></div>
+                                    <div class="relative z-10 w-full space-y-2">
+                                        <div class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4 text-alert-danger"></i><span class="text-sm font-bold text-alert-danger">RISCO DETECTADO</span></div>
+                                        <div class="text-xs text-slate-600">Pico anômalo de menções negativas sobre "saúde" nas últimas 2 horas.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Botão Gerar Relatório Mock -->
+                        <div class="mt-6 flex justify-end">
+                            <div class="px-6 py-2 bg-brand-blue text-white rounded-lg text-sm font-semibold flex items-center gap-2 shadow-md">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i> Relatório Situacional
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. COMO FUNCIONA -->
+    <section class="slide-section bg-white border-y border-slate-100">
+        <div class="max-w-6xl mx-auto w-full">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">A Máquina de Decisões Táticas</h2>
+                <p class="text-slate-600">3 passos invisíveis para você, 1 resultado explosivo para a campanha.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Passo 1 -->
+                <div class="glass-card p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-900/20">
+                        <i data-lucide="activity" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">1. O Radar (Coleta)</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Nossos monitores varrem continuamente menções e termos críticos, capturando o batimento cardíaco da opinião pública em tempo real, sem limites de volume.
+                    </p>
+                </div>
+                
+                <!-- Passo 2 -->
+                <div class="glass-card p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform border border-brand-blue/20 bg-blue-50/30">
+                    <div class="w-14 h-14 bg-brand-blue text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
+                        <i data-lucide="brain-circuit" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-blue mb-3">2. O Motor Neural (Sentimento)</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        A IA processa o texto sujo e extrai contexto real (sarcasmo, duplo sentido). Ela mede polaridade, identifica tendências de queda e categoriza alertas de perigo e oportunidade.
+                    </p>
+                </div>
+
+                <!-- Passo 3 -->
+                <div class="glass-card p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-900/20">
+                        <i data-lucide="file-check-2" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">3. A Síntese (Ação)</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Com um clique, o Comando aciona a IA Generativa (Gemini) que devora os dados do dia e cospe um Relatório Situacional: Resumo Executivo, O que Aconteceu e O que Fazer Agora.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. DIFERENCIAIS -->
+    <section class="slide-section bg-slate-900 text-white relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-brand-blue/20 to-cyan-500/5 rounded-full blur-3xl opacity-50 translate-x-1/2 -translate-y-1/2"></div>
+        
+        <div class="max-w-6xl mx-auto w-full relative z-10">
+            <h2 class="text-3xl md:text-5xl font-bold mb-16 max-w-2xl">Por que ferramentas genéricas vão custar sua eleição?</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Card -->
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="p-3 bg-white/10 rounded-xl text-cyan-400"><i data-lucide="rocket"></i></div>
+                        <h4 class="text-xl font-bold">Relatórios Instantâneos (Não Amanhã)</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm">Contratar agências para compilar relatórios leva horas ou dias. O Politika gera o <span class="text-white font-semibold">Relatório Situacional Diário</span> em 5 segundos, cruzando métricas com notícias reais. Acesso premium à IA militar na palma da mão.</p>
+                </div>
+                
+                <!-- Card -->
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="p-3 bg-red-500/20 rounded-xl text-red-400"><i data-lucide="radar"></i></div>
+                        <h4 class="text-xl font-bold">Early Warning System Integrado</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm">Nossa heurística detecta quedas sutis de sentimento em termos específicos (ex: "saúde", "transporte") e gera alertas vermelhos <span class="text-white font-semibold">antes da crise ganhar os jornais</span>. Antecipação é poder.</p>
+                </div>
+
+                <!-- Card -->
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="p-3 bg-white/10 rounded-xl text-green-400"><i data-lucide="target"></i></div>
+                        <h4 class="text-xl font-bold">Recomendações Táticas, não "Métricas de Vaidade"</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm">Likes não ganham eleição. O Politika entende o contexto regional e fornece <span class="text-white font-semibold">diretrizes ativas</span> (ex: "Reunir equipe e postar nota desmentindo boato da UPA em até 2hrs").</p>
+                </div>
+
+                <!-- Card -->
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="p-3 bg-white/10 rounded-xl text-purple-400"><i data-lucide="lock"></i></div>
+                        <h4 class="text-xl font-bold">Sigilo e Soberania de Dados</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm">Plataforma fechada para o seu QG. Não rodamos anúncios, não vendemos seus dados para opositores. Ambiente seguro, autenticação corporativa e foco 100% no seu projeto político.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. PROVA SOCIAL (PLACEHOLDER DE IMPACTO) -->
+    <section class="slide-section bg-blue-50">
+        <div class="max-w-4xl mx-auto text-center space-y-12">
+            <div>
+                <i data-lucide="quote" class="w-12 h-12 text-blue-200 mx-auto mb-6"></i>
+                <h3 class="text-3xl md:text-4xl font-semibold text-slate-800 leading-relaxed italic">
+                    "Numa sexta-feira à noite, o Radar Politika acusou um termo perigoso subindo rápido no interior. Acionamos nossa base e abafamos a narrativa antes do sábado de manhã. <strong class="text-brand-blue">O concorrente nem soube o que os atropelou.</strong>"
+                </h3>
+            </div>
+            <div class="flex items-center justify-center gap-4">
+                <div class="w-14 h-14 rounded-full bg-slate-300"></div>
+                <div class="text-left">
+                    <p class="font-bold text-slate-900">Coordenador de Estratégia Digital</p>
+                    <p class="text-sm text-slate-500">Campanha Vencedora - Governo (Norte/Nordeste)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. OFERTA & 8. CTA FINAL -->
+    <section id="oferta" class="slide-section bg-white relative">
+        <div class="max-w-5xl mx-auto w-full">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Stack de Valor (Brunson style) -->
+                <div class="space-y-8">
+                    <h2 class="text-4xl font-bold text-slate-900">Sua Sala de Guerra, Blindada.</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                            <i data-lucide="check-circle-2" class="text-emerald-500 w-6 h-6 shrink-0"></i>
+                            <div>
+                                <h5 class="font-bold text-slate-900">Pulse Monitor & Radar 24/7</h5>
+                                <p class="text-sm text-slate-500">Valor real: Imensurável em contenção de danos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                            <i data-lucide="check-circle-2" class="text-emerald-500 w-6 h-6 shrink-0"></i>
+                            <div>
+                                <h5 class="font-bold text-slate-900">IA Generativa Nativa (Situational Reports)</h5>
+                                <p class="text-sm text-slate-500">Valor real: Substitui uma agência de análise dedicada</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                            <i data-lucide="check-circle-2" class="text-emerald-500 w-6 h-6 shrink-0"></i>
+                            <div>
+                                <h5 class="font-bold text-slate-900">Alert Engine Automático (Early Warning)</h5>
+                                <p class="text-sm text-slate-500">Valor real: Protege a reputação instantaneamente</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 relative overflow-hidden">
+                            <div class="absolute right-[-10px] top-1/2 -translate-y-1/2 text-blue-200 opacity-20"><i data-lucide="gift" class="w-32 h-32"></i></div>
+                            <i data-lucide="star" class="text-brand-blue w-6 h-6 shrink-0 relative z-10"></i>
+                            <div class="relative z-10">
+                                <h5 class="font-bold text-brand-blue">BÔNUS: Setup & Onboarding Tático</h5>
+                                <p class="text-sm text-blue-800">Mapeamento de suas palavras-chave estratégicas com nossos especialistas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Painel de Compra -->
+                <div class="glass-card rounded-3xl p-8 border-2 border-brand-blue relative shadow-2xl shadow-blue-500/10 text-center">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-blue text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Vagas Limitadas por Região
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 mt-4">Acesso Corporativo Premium</h3>
+                    <p class="text-slate-500 text-sm mb-8">Licença eleitoral completa. Sem surpresas.</p>
+                    
+                    <button class="w-full py-4 bg-brand-blue hover:bg-blue-700 text-white text-lg font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mb-6 flex items-center justify-center gap-2">
+                        Agendar Demonstração VIP
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                    
+                    <p class="text-xs text-slate-400 mt-4 flex items-center justify-center gap-1">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i> Tecnologia validada, dados encriptados
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. ELEVATOR PITCH (FOOTER STYLE) -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-4xl mx-auto px-6 text-center space-y-4">
+            <div class="w-10 h-10 mx-auto rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center mb-6">
+                <i data-lucide="radar"></i>
+            </div>
+            <p class="text-lg">
+                "O <strong>Politika</strong> é a plataforma de Inteligência Artificial que monitora o cenário em tempo real, prevê crises e gera planos de ação diretos para campanhas. Nós transformamos o caos da internet em táticas precisas para que você foque no que importa: <strong>ganhar votos</strong>."
+            </p>
+            <div class="pt-8 text-sm text-slate-600">
+                &copy; 2026 Politika - Inteligência de Precisão. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+
+        // Simple Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        });
+
+        document.querySelectorAll('.fade-in-up').forEach((el) => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
 import SpotlightCard from '../components/ui/SpotlightCard';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
-import type { TaggedNewsArticle } from '../types';
+import type { TaggedNewsArticle, Watchword } from '../types';
 import type { DailyTrendPoint, DayGroup } from '../services/trendsService';
 
 // ============================================
@@ -68,7 +68,7 @@ const MetricCard: React.FC<MetricProps> = ({ label, value, trend, color, isNumer
 };
 
 interface TermFilterBarProps {
-  terms: string[];
+  terms: Watchword[];
   activeTerm: string | null;
   onSelect: (term: string | null) => void;
   metrics: Record<string, { mentions: number; sentiment: { score: number; classification: string } | null; sentimentLoading: boolean }>;
@@ -85,10 +85,11 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
     >
       Todos
     </button>
-    {terms.map((term, idx) => {
+    {terms.map((w, idx) => {
+      const termName = w.term;
       const color = TERM_COLORS[idx % TERM_COLORS.length];
-      const m = metrics[term];
-      const isActive = activeTerm === term;
+      const m = metrics[termName];
+      const isActive = activeTerm === termName;
       const sentimentColor = !m?.sentiment ? 'bg-slate-400'
         : m.sentiment.score > 0.2 ? 'bg-emerald-500'
           : m.sentiment.score < -0.2 ? 'bg-red-500'
@@ -96,8 +97,8 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
 
       return (
         <button
-          key={term}
-          onClick={() => onSelect(isActive ? null : term)}
+          key={termName}
+          onClick={() => onSelect(isActive ? null : termName)}
           className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${isActive
             ? 'text-white shadow-md'
             : 'bg-white text-text-heading border-border-light hover:border-text-heading/30 hover:bg-surface'
@@ -107,7 +108,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
           <span
             className={`size-2 rounded-full ${m?.sentimentLoading ? 'animate-pulse bg-slate-400' : sentimentColor}`}
           />
-          {term}
+          {termName}
           {m && <span className="text-[10px] opacity-70">({m.mentions})</span>}
         </button>
       );
@@ -115,16 +116,17 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
   </div>
 );
 
-const HighlightedTitle: React.FC<{ title: string; terms: string[] }> = ({ title, terms }) => {
+const HighlightedTitle: React.FC<{ title: string; terms: {term: string}[] }> = ({ title, terms }) => {
   if (terms.length === 0) return <>{title}</>;
 
-  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const termNames = terms.map(t => t.term);
+  const pattern = new RegExp(`(${termNames.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
   const parts = title.split(pattern);
 
   return (
     <>
       {parts.map((part, i) => {
-        const isMatch = terms.some(t => t.toLowerCase() === part.toLowerCase());
+        const isMatch = termNames.some(t => t.toLowerCase() === part.toLowerCase());
         return isMatch ? (
           <mark key={i} className="bg-primary/20 text-primary rounded px-0.5 font-black">{part}</mark>
         ) : (
@@ -208,7 +210,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
 
 interface DayGroupedNewsFeedProps {
   articlesByDay: DayGroup[];
-  terms: string[];
+  terms: Watchword[];
   activeTerm: string | null;
   isLoading: boolean;
 }
@@ -329,11 +331,11 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                         <div className="flex gap-1 ml-auto">
                           {article.matchedTerms.map(t => (
                             <span
-                              key={t}
+                              key={t.term}
                               className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
-                              style={{ backgroundColor: TERM_COLORS[terms.indexOf(t) % TERM_COLORS.length] }}
+                              style={{ backgroundColor: TERM_COLORS[terms.findIndex(x => x.term === t.term) % TERM_COLORS.length] || TERM_COLORS[0] }}
                             >
-                              {t}
+                              {t.term}
                             </span>
                           ))}
                         </div>
@@ -364,6 +366,85 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
   );
 }
 
+interface AuditModalProps {
+  term: string | null;
+  metrics: Record<string, any>;
+  onClose: () => void;
+}
+
+const AuditModal: React.FC<AuditModalProps> = ({ term, metrics, onClose }) => {
+  if (!term) return null;
+  const m = metrics[term];
+  if (!m) return null;
+  const articles = m.articles || [];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-[3rem] shadow-2xl border border-white/10 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="p-6 md:p-8 border-b border-border-light flex items-center justify-between bg-surface/50">
+           <div>
+             <h3 className="text-2xl font-black text-text-heading dark:text-white uppercase tracking-tighter flex items-center gap-3">
+               <span className="material-symbols-outlined text-primary text-3xl">query_stats</span>
+               Auditoria de Dados
+             </h3>
+             <p className="text-text-subtle text-sm font-medium mt-1">Base de dados analisada pela IA para o termo <strong className="text-primary">"{term}"</strong></p>
+           </div>
+           <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+             <span className="material-symbols-outlined text-text-subtle text-2xl">close</span>
+           </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-slate-50 dark:bg-slate-900">
+           <div className="mb-6 p-5 rounded-2xl border border-primary/20 bg-primary/5">
+              <h4 className="text-xs font-black uppercase text-primary mb-2 tracking-widest flex items-center gap-2">
+                 <span className="material-symbols-outlined text-[14px]">psychology</span>
+                 Resumo Inteligente
+              </h4>
+              <p className="text-sm font-medium text-text-heading dark:text-slate-300 leading-relaxed">
+                 {m.sentimentLoading ? 'Análise em andamento...' : (m.sentiment?.summary || 'Nenhum resumo disponível.')}
+              </p>
+              {!m.sentimentLoading && m.sentiment && (
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-bold text-slate-500">
+                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">label</span> Score: {m.sentiment?.score !== undefined ? m.sentiment.score.toFixed(2) : 'N/A'}</span>
+                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">analytics</span> {m.sentiment.classification}</span>
+                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">article</span> {articles.length} notícias validadas</span>
+                </div>
+              )}
+           </div>
+
+           <h4 className="text-xs font-black uppercase text-text-subtle mb-4 tracking-widest">Notícias Base:</h4>
+           {articles.length === 0 ? (
+             <div className="text-center py-10 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-border-light">
+               <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">article</span>
+               <p className="text-text-subtle text-sm font-bold">Nenhum artigo extraído para este termo.</p>
+             </div>
+           ) : (
+             <div className="space-y-3">
+               {articles.map((article: any, idx: number) => (
+                 <a key={idx} href={article.link} target="_blank" rel="noopener noreferrer" className="block p-5 bg-white dark:bg-slate-800 border border-border-light rounded-2xl hover:border-primary/40 hover:shadow-md transition-all group">
+                    <p className="text-sm font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                      {article.title.split(' - ')[0]}
+                    </p>
+                    <p className="text-xs text-text-subtle mt-1.5 line-clamp-2 leading-relaxed">
+                       {article.description || 'Sem descrição (apenas título capturado).'}
+                    </p>
+                    <div className="flex items-center gap-3 mt-4">
+                      <p className="text-[10px] font-black text-slate-500 uppercase px-2 py-1 rounded border border-border-subtle bg-slate-50 dark:bg-slate-700">{article.source}</p>
+                      <span className="text-[10px] uppercase font-bold text-text-subtle">{formatRelativeTime(article.pubDate)}</span>
+                      <span className="material-symbols-outlined text-text-subtle group-hover:text-primary transition-colors text-sm ml-auto">
+                        arrow_outward
+                      </span>
+                    </div>
+                 </a>
+               ))}
+             </div>
+           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ============================================
 // Main Component — Radar de Notícias
 // ============================================
@@ -371,6 +452,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
 const PulseMonitor: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [auditingTerm, setAuditingTerm] = useState<string | null>(null);
 
   const {
     terms,
@@ -402,6 +484,12 @@ const PulseMonitor: React.FC = () => {
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-10 animate-reveal">
+      <AuditModal
+        term={auditingTerm}
+        metrics={metrics}
+        onClose={() => setAuditingTerm(null)}
+      />
+
       {/* Onboarding Modal */}
       <OnboardingModal
         show={showOnboarding}
@@ -655,8 +743,9 @@ const PulseMonitor: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {terms.map((term, idx) => {
-              const m = metrics[term];
+            {terms.map((w, idx) => {
+              const termName = w.term;
+              const m = metrics[termName];
               if (!m) return null;
               const color = TERM_COLORS[idx % TERM_COLORS.length];
               const sentColor = !m.sentiment ? '#94a3b8'
@@ -666,9 +755,9 @@ const PulseMonitor: React.FC = () => {
 
               return (
                 <div
-                  key={term}
-                  onClick={() => setActiveTerm(activeTerm === term ? null : term)}
-                  className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 transition-all cursor-pointer group ${activeTerm === term ? 'border-primary shadow-lg' : 'border-transparent hover:border-primary'
+                  key={termName}
+                  onClick={() => setActiveTerm(activeTerm === termName ? null : termName)}
+                  className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 transition-all cursor-pointer group ${activeTerm === termName ? 'border-primary shadow-lg' : 'border-transparent hover:border-primary'
                     }`}
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -676,16 +765,25 @@ const PulseMonitor: React.FC = () => {
                       className="text-[10px] font-black uppercase tracking-widest"
                       style={{ color }}
                     >
-                      {term}
+                      {termName}
                     </span>
-                    {m.sentimentLoading ? (
-                      <div className="size-3 rounded-full bg-slate-400 animate-pulse" />
-                    ) : (
-                      <div
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: sentColor }}
-                      />
-                    )}
+                    <div className="flex items-center gap-2">
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); setAuditingTerm(termName); }}
+                         className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hidden group-hover:block"
+                         title={`Auditar base de dados de ${termName}`}
+                       >
+                         <span className="material-symbols-outlined text-[14px] block">query_stats</span>
+                       </button>
+                      {m.sentimentLoading ? (
+                        <div className="size-3 rounded-full bg-slate-400 animate-pulse" />
+                      ) : (
+                        <div
+                          className="size-3 rounded-full shadow-sm"
+                          style={{ backgroundColor: sentColor }}
+                        />
+                      )}
+                    </div>
                   </div>
                   <p className="text-2xl font-black text-slate-900 dark:text-white">{m.mentions}</p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">

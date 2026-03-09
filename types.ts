@@ -63,12 +63,17 @@ export interface CrisisAnalysis {
 
 // Pulse Monitor types
 
+export interface Watchword {
+  term: string;
+  context?: string;
+}
+
 export interface TaggedNewsArticle {
   title: string;
   link: string;
   pubDate: string;
   source: string;
-  matchedTerms: string[];
+  matchedTerms: Watchword[];
   description?: string;   // Snippet/resume do artigo (extraído do RSS)
   isBreaking?: boolean;  // true se publicado há menos de 2h
   relevanceScore?: number; // Pontuação de relevância (maior = mais relevante)
@@ -90,7 +95,7 @@ export interface TermMetrics {
 }
 
 export interface PulseState {
-  terms: string[];
+  terms: Watchword[];
   activeTerm: string | null; // null = "Todos"
   metrics: Record<string, TermMetrics>;
   allArticles: TaggedNewsArticle[];

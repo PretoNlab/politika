@@ -13,7 +13,7 @@
  * - Deduplicação por link + título
  */
 
-import type { TaggedNewsArticle } from '../types';
+import type { TaggedNewsArticle, Watchword } from '../types';
 import { supabase } from '../lib/supabase';
 
 export interface NewsArticle {
@@ -41,7 +41,7 @@ const CORS_PROXIES = [
 /**
  * Busca notícias de um termo via backend proxy (sem CORS).
  */
-async function fetchViaBackend(region: string, term: string): Promise<NewsArticle[]> {
+async function fetchViaBackend(region: string, term: Watchword): Promise<NewsArticle[]> {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -69,10 +69,10 @@ async function fetchViaBackend(region: string, term: string): Promise<NewsArticl
 /**
  * Fallback: busca RSS via CORS proxy público.
  */
-async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArticle[]> {
-    // Query enriquecida igual ao backend
-    const electoralContext = 'eleição política candidato';
-    const queryStr = `"${term}" ${electoralContext} ${region}`;
+async function fetchViaCORSProxy(region: string, term: Watchword): Promise<NewsArticle[]> {
+    // Query enriquecida igual ao backend ou estrita com o contexto Custom
+    const electoralContext = term.context ? `"${term.context}"` : 'eleição política candidato';
+    const queryStr = `"${term.term}" ${electoralContext} ${region}`;
     const query = encodeURIComponent(queryStr);
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 
@@ -118,9 +118,9 @@ async function fetchViaCORSProxy(region: string, term: string): Promise<NewsArti
  * - Artigo mais recente: +1 (últimas 6h)
  * - Breaking news (< 2h): +2
  */
-function computeRelevanceScore(article: NewsArticle, term: string): number {
+function computeRelevanceScore(article: NewsArticle, termName: string): number {
     const titleLower = article.title.toLowerCase();
-    const termLower = term.toLowerCase();
+    const termLower = termName.toLowerCase();
     const descLower = (article.description || '').toLowerCase();
 
     let score = 0;
@@ -146,7 +146,7 @@ function computeRelevanceScore(article: NewsArticle, term: string): number {
 /**
  * Enriquece artigos com isBreaking e relevanceScore.
  */
-function enrichArticles(articles: NewsArticle[], term: string): NewsArticle[] {
+function enrichArticles(articles: NewsArticle[], termName: string): NewsArticle[] {
     const now = Date.now();
     return articles.map(article => {
         const pubTime = article.pubDate ? new Date(article.pubDate).getTime() : 0;
@@ -154,7 +154,7 @@ function enrichArticles(articles: NewsArticle[], term: string): NewsArticle[] {
         return {
             ...article,
             isBreaking: ageMs < BREAKING_NEWS_THRESHOLD_MS,
-            relevanceScore: computeRelevanceScore(article, term),
+            relevanceScore: computeRelevanceScore(article, termName),
         };
     });
 }
@@ -163,8 +163,8 @@ function enrichArticles(articles: NewsArticle[], term: string): NewsArticle[] {
  * Busca notícias por termo com cache.
  * Tenta backend primeiro, fallback pra CORS proxies.
  */
-async function fetchNewsForTerm(region: string, term: string): Promise<NewsArticle[]> {
-    const cacheKey = `${CACHE_KEY_PREFIX}${region}_${term}`;
+async function fetchNewsForTerm(region: string, term: Watchword): Promise<NewsArticle[]> {
+    const cacheKey = `${CACHE_KEY_PREFIX}${region}_${term.term}`;
     const cachedData = localStorage.getItem(cacheKey);
 
     if (cachedData) {
@@ -189,7 +189,7 @@ async function fetchNewsForTerm(region: string, term: string): Promise<NewsArtic
     }
 
     // Enriquecer com isBreaking e relevanceScore
-    const enriched = enrichArticles(articles, term);
+    const enriched = enrichArticles(articles, term.term);
 
     if (enriched.length > 0) {
         localStorage.setItem(cacheKey, JSON.stringify({
@@ -225,7 +225,7 @@ function deduplicateArticles(articles: NewsArticle[]): NewsArticle[] {
  * Backend como fonte primária, CORS proxies como fallback.
  * Artigos ordenados por relevanceScore desc, depois por data.
  */
-export const fetchGoogleNews = async (region: string, watchwords: string[]): Promise<NewsArticle[]> => {
+export const fetchGoogleNews = async (region: string, watchwords: Watchword[]): Promise<NewsArticle[]> => {
     if (watchwords.length === 0) return [];
     const safeRegion = region?.trim() || 'Brasil';
 
@@ -272,14 +272,16 @@ export const fetchGoogleNews = async (region: string, watchwords: string[]): Pro
  */
 export const tagArticlesWithTerms = (
     articles: NewsArticle[],
-    watchwords: string[]
+    watchwords: Watchword[]
 ): TaggedNewsArticle[] => {
     return articles.map(article => {
         const titleLower = article.title.toLowerCase();
         const descLower = (article.description || '').toLowerCase();
-        const matchedTerms = watchwords.filter(term =>
-            titleLower.includes(term.toLowerCase()) ||
-            descLower.includes(term.toLowerCase())
+        
+        // Mantemos os objectos term inteiros que matam com o relatorio de sentimentos 
+        const matchedTerms = watchwords.filter(w =>
+            titleLower.includes(w.term.toLowerCase()) ||
+            descLower.includes(w.term.toLowerCase())
         );
         return {
             ...article,
@@ -293,12 +295,12 @@ export const tagArticlesWithTerms = (
  */
 export const computeTimeDistribution = (
     articles: TaggedNewsArticle[],
-    term: string
+    termName: string
 ): number[] => {
     const distribution = new Array(24).fill(0);
 
-    const relevant = term
-        ? articles.filter(a => a.matchedTerms.includes(term))
+    const relevant = termName
+        ? articles.filter(a => a.matchedTerms.some(w => w.term === termName))
         : articles;
 
     for (const article of relevant) {

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWorkspace, Workspace } from '../context/WorkspaceContext';
+import { toast } from 'react-hot-toast';
 
 interface WorkspaceFormProps {
     onClose: () => void;
@@ -57,7 +58,16 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
     const [candidateHandle, setCandidateHandle] = useState('');
     const [candidateName, setCandidateName] = useState(''); // Nome completo para sugestões
     const [customContext, setCustomContext] = useState(editWorkspace?.customContext || '');
-    const [watchwords, setWatchwords] = useState(editWorkspace?.watchwords.join(', ') || '');
+    const [watchwords, setWatchwords] = useState<{term: string, context: string}[]>(
+        editWorkspace?.watchwords.map(w => ({
+            term: w.term,
+            context: w.context || ''
+        })) || []
+    );
+    const [newWatchwordTerm, setNewWatchwordTerm] = useState('');
+    const [newWatchwordContext, setNewWatchwordContext] = useState('');
+    
+    // Sugestões inteligentes passam a ser geradas apenas para 'term'
     const [suggestedWatchwords, setSuggestedWatchwords] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -74,29 +84,64 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
     }, [candidateName, state, region, isEditing]);
 
     const handleAcceptAllSuggestions = () => {
-        const currentWatchwords = watchwords
-            .split(',')
-            .map(w => w.trim())
-            .filter(w => w !== '');
-        const merged = [...new Set([...currentWatchwords, ...suggestedWatchwords])];
-        setWatchwords(merged.join(', '));
+        const addedTerms = watchwords.map(w => w.term);
+        const toAdd = suggestedWatchwords
+            .filter(s => !addedTerms.includes(s))
+            .map(s => ({ term: s, context: '' }));
+            
+        if (toAdd.length > 0) {
+            setWatchwords([...watchwords, ...toAdd]);
+        }
         setShowSuggestions(false);
     };
 
     const handleAcceptSuggestion = (suggestion: string) => {
-        const currentWatchwords = watchwords
-            .split(',')
-            .map(w => w.trim())
-            .filter(w => w !== '');
-        if (!currentWatchwords.includes(suggestion)) {
-            const merged = [...currentWatchwords, suggestion];
-            setWatchwords(merged.join(', '));
+        if (!watchwords.some(w => w.term === suggestion)) {
+            setWatchwords([...watchwords, { term: suggestion, context: '' }]);
         }
+    };
+
+    const handleAddWatchword = () => {
+        if (!newWatchwordTerm.trim()) return;
+        
+        // Evita duplicatas de termos principais
+        if (watchwords.some(w => w.term.toLowerCase() === newWatchwordTerm.toLowerCase().trim())) {
+            toast.error('Termo já adicionado');
+            return;
+        }
+
+        setWatchwords([
+            ...watchwords,
+            {
+                term: newWatchwordTerm.trim(),
+                context: newWatchwordContext.trim()
+            }
+        ]);
+        setNewWatchwordTerm('');
+        setNewWatchwordContext('');
+    };
+
+    const handleRemoveWatchword = (index: number) => {
+        setWatchwords(watchwords.filter((_, i) => i !== index));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const parsed = watchwords.split(',').map(w => w.trim()).filter(w => w !== '');
+        
+        // Incluir o input atual se o usuário digitou e esqueceu de add
+        let finalWatchwords = [...watchwords];
+        if (newWatchwordTerm.trim()) {
+            finalWatchwords.push({
+                term: newWatchwordTerm.trim(),
+                context: newWatchwordContext.trim()
+            });
+        }
+        
+        // Remove contexto vazio e passa ao backend
+        const parsed = finalWatchwords.map(w => ({
+            term: w.term,
+            ...(w.context ? { context: w.context } : {})
+        }));
 
         if (isEditing) {
             updateWorkspace(editWorkspace.id, {
@@ -224,19 +269,71 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                         />
                     </div>
 
-                    {/* Watchwords com Sugestões Inteligentes */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1">Termos Monitorados <span className="text-slate-400 normal-case font-normal">(separados por vírgula)</span></label>
-                        <textarea
-                            value={watchwords}
-                            onChange={(e) => setWatchwords(e.target.value)}
-                            placeholder="Ex: prefeitura, saúde, candidato, segurança"
-                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all text-sm text-text-heading dark:text-white font-medium h-20"
-                        />
+                    {/* Watchwords Dinamicas */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 ml-1">Termos Monitorados</label>
+                        
+                        {/* Lista de Termos Atuais */}
+                        {watchwords.length > 0 && (
+                            <div className="flex flex-col gap-2 mb-4">
+                                {watchwords.map((w, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-text-heading dark:text-white">{w.term}</span>
+                                            {w.context && (
+                                                <span className="text-[10px] text-slate-500 font-medium">Contexto: <span className="text-primary">{w.context}</span></span>
+                                            )}
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => handleRemoveWatchword(idx)}
+                                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">close</span>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Formulário para Novo Termo */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-text-subtle dark:text-slate-400">Termo Alvo *</label>
+                                <input
+                                    type="text"
+                                    value={newWatchwordTerm}
+                                    onChange={(e) => setNewWatchwordTerm(e.target.value)}
+                                    placeholder="Ex: João Silva"
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary transition-all text-sm font-bold"
+                                />
+                            </div>
+                            
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-text-subtle dark:text-slate-400">Palavra Obrigatória (And) <span className="normal-case font-normal text-slate-400">- Opcional</span></label>
+                                <input
+                                    type="text"
+                                    value={newWatchwordContext}
+                                    onChange={(e) => setNewWatchwordContext(e.target.value)}
+                                    placeholder="Ex: prefeito"
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary transition-all text-sm font-medium"
+                                />
+                                <p className="text-[9px] text-slate-500 mt-1">Serve para filtrar homônimos. Exige que esta palavra esteja na notícia.</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleAddWatchword}
+                                disabled={!newWatchwordTerm.trim()}
+                                className="w-full py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl font-bold text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                + Adicionar Termo
+                            </button>
+                        </div>
 
                         {/* Sugestões automáticas */}
                         {showSuggestions && suggestedWatchwords.length > 0 && (
-                            <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 space-y-3">
+                            <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 space-y-3 mt-4">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
                                         <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
@@ -252,10 +349,7 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {suggestedWatchwords.map((suggestion) => {
-                                        const alreadyAdded = watchwords
-                                            .split(',')
-                                            .map(w => w.trim())
-                                            .includes(suggestion);
+                                        const alreadyAdded = watchwords.some(w => w.term === suggestion);
                                         return (
                                             <button
                                                 key={suggestion}

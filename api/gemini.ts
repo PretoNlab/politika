@@ -615,13 +615,15 @@ async function handleSentiment(
     ${regionalContext}
     
     TAREFA: Diferencie RUÍDO de CRISE REAL.
-    - Se o sentimento for negativo, avalie o RISCO DE CONTÁGIO (Quão rápido isso explode no WhatsApp da região?).
+    - Se as manchetes forem de homônimos (pessoas com o mesmo nome) ou assuntos COMPLETAMENTE fora do contexto político/público, descarte o ruído.
+    - Se NÃO houver contexto político/público nas manchetes, classifique obrigatoriamente como "Neutro" e indique "Ruído/Fora de contexto" no summary.
+    - Se o sentimento político for negativo, avalie o RISCO DE CONTÁGIO (Quão rápido isso explode no WhatsApp da região?).
     - Se for positivo, identifique a OPORTUNIDADE DE CAPITALIZAÇÃO.
     
     Retorne um JSON com:
     - score: número de -1.0 a 1.0.
     - classification: "Positivo", "Neutro" ou "Negativo".
-    - summary: Fato -> Impacto -> Recomendação (1-2 frases).`,
+    - summary: Fato -> Impacto -> Recomendação (1-2 frases). (Se ruído, explique que parece se tratar de homônimo/outro assunto)`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {

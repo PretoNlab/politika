@@ -1,0 +1,72 @@
+# Custos do Projeto e Estratégia de Prospecção B2B (Mapeamento Exato)
+
+Este documento destrincha o seu balanço mensal de operação com o **Politika** atualmente implantado, e define os *Tomadores de Decisão (C-Level)* corretos para você fechar contratos High-Ticket.
+
+---
+
+## 1. O Custo Atual do Projeto (Seu "Caixa Zero")
+O Politika usa arquitetura Serverless. Você paga pelo que consome. O sistema foi feito para não sangrar seu bolso se os prefeitos não estiverem usando, mas para escalar até milhões de acessos instantaneamente durante um debate na TV.
+
+### A) Custo Básico: Manter a plataforma ligada
+Para manter 1 plataforma conectada com recursos corporativos ativos, seus custos atuais de licença das ferramentas (no plano mínimo profissional) são:
+*   **Vercel Pro (Hospedagem & Functions):** US$ 20,00/mês
+*   **Supabase Pro (Banco de Dados & Autenticação):** US$ 25,00/mês
+*   **Domínio & Analytics Básico:** ~US$ 5,00/mês
+*   *(Total Fixo: ~US$ 50,00 ou **R$ 250,00 a R$ 300,00 mensal**)*
+
+### B) Custo Variável por Cliente: O Cérebro (Gemini IA)
+A IA do Google cobra por Tokens (palavras lidas e geras). 
+Cada vez que um político aperta o botão "Gerar Relatório Situacional", o Politika pega as 10 notícias do dia, carrega os 50 termos de sentimento e as 5 piores menções, joga no Gemini 1.5 e pede a síntese.
+
+**A Matemática Pura por Ação:**
+*   1 "Gerar Relatório Situacional" consome em média 5.000 tokens de contexto.
+*   O custo no Google é de US$ 0,00000035 por token (No Gemini 1.5 Flash).
+*   Isso dá espantosos **US$ 0,0017 por relatório gerado (Menos de 1 Centavo de Real)**.
+*   Se um comitê gerar 100 alertas de crises pesadas no Simulador e 3 relatórios Diários todos os dias no mês (uso absurdo e frenético), essa única campanha vai custar em média **R$ 5,00 a R$ 15,00 em chamadas de IA totais no mês inteiro**.
+
+### C) Projeção de Cenários (Lucratividade Bizarra)
+Vendendo o sistema no ticket intermediário sugerido de **R$ 5.000/mês por prefeitura/candidato**:
+
+*   **Com 1 Cliente Ativo:**
+    *   Sua Receita: +R$ 5.000,00
+    *   Seu Custo Total (Fixo + Gemini p/ 1 clt): -R$ 315,00
+    *   **LUCRO LÍQUIDO DO MÊS:** **+R$ 4.685,00** *(Margem de 93%)*
+
+*   **Com 10 Clientes Ativos (Meta Viável Pós-Onda 1):**
+    *   Sua Receita: +R$ 50.000,00
+    *   Seu Custo Total (Fixo + Gemini p/ 10 clts): -R$ 500,00 (O custo fixo de R$300 não muda muito. Apenas a API escala).
+    *   **LUCRO LÍQUIDO DO MÊS:** **+R$ 49.500,00** *(Margem de 99%)*
+
+> **Aviso Técnico de Crescimento:** O Supabase Pro aguenta até 100.000 usuários ativos. O seu custo não vai estourar até você ter *dezenas* de mandatos gigantestos operando ao mesmo tempo. A única coisa que encarece proporcionalmente é a API do Gemini. 
+
+---
+
+## 2. Para QUEM e QUANTOS eu devo oferecer?
+
+### O Tamanho do seu Funil
+O Politika B2B **NÃO É** produto de colocar anúncio no Instagram rodando pra R$ 10,00 por dia tentando vender sozinho. Isso mancha a marca corporativa.
+**A sua meta para testar a máquina deve ser falar com 10 tomadores de decisão.** Desses 10 contatos qualificados, seu objetivo é fechar seus **2 primeiros clientes High-Ticket.** Com 2 usuários gerando dados, você tem *Proof of Concept (Prova Social)* para captar tubarões maiores no próximo mês.
+
+### QUEM SÃO AS PERSONAS PAGANTES?
+O candidato ou o governante quase nunca é quem compra a ferramenta ou tem paciência para ver a sua "Demo Call". Ele apenas assina o cheque.
+**Você deve mirar explicitamente nestes 3 cargos:**
+
+#### 1. O Estrategista / Marqueteiro-Chefe da Campanha
+*   *Quem é:* O coordenador geral de comunicação. Aquele que responde se "Deu M*rda" na internet ou se a campanha tá brilhando.
+*   *Por que compra:* O Politika vai fazer o trabalho que precisaria de uma equipe de 8 analistas júniores. E para ele, entregar o *Relatório Situacional Limpinho* para o Chefe de manhã sem nenhum esforço faz ele parecer um gênio tático. 
+*   *Como oferecer:* "Sua campanha sabe dizer o minuto exato em que uma fake news subiu de tom e está destruindo seu candidato no Nordeste da cidade?"
+
+#### 2. O Assessor de Imprensa Institucional (Prefeituras)
+*   *Quem é:* O coitado que precisa se explicar para os jornais quando uma rua afunda ou tem problema em obra da Prefeitura.
+*   *Por que compra:* Se ele sabe horas antes pelo "Pulse Monitor" que o termo "saúde / buraco / licitação" tá começando a gerar raiva natural da população, ele prepara a versão oficial *antes* da TV local perguntar. Dinheiro público farta. A prefeitura já gasta meio milhão / ano só mantendo site institucional. R$ 5k é troco (modalidade dispensa de licitação e compra direta SaaS limite R$ 54k).
+
+#### 3. Presidentes de Partido ou Consultorias Estratégicas "Atacadistas"
+*   *Quem é:* O cara que cuida de 15 candidatos a vereador ou várias prefeituras ao mesmo tempo.
+*   *Por que compra:* Vender licenças Master para que *ele* distribua logins isolados (Multi-tenant B2B). Ele fecha pacote pra você de R$ 25.000 e acopla o Politika nos pacotes da agência dele.
+*   *Como oferecer:* Mostre que o *Simulador de Crise (War Room)* pode ser usado na agência dele como serviço premium com cada candidato da rede dele.
+
+### O Roteiro Curto de Primeiro Contato (LinkedIn / WhatsApp do Assessor)
+> "Olá [Nome], admiro o trabalho estratégico que fazem na comunicação do mandato [X]. 
+> Desenvolvemos o *Politika*, uma central de inteligência militar (AI) focada em proteger narrativas de campanhas e governos. 
+> Nosso motor capta crises antes da imprensa (Early Warning) e a nossa IA gera e envia o resumo diário focado no sentimento dos bairros. Eu sei o quanto a equipe sofre lendo milhares de comentários no dedo ou usando sistemas lentos das agências antigas.
+> Posso tomar 12 minutos seus essa semana, pra testarmos ao vivo uma simulação do projeto [Nome do Candidato] na ferramenta?"

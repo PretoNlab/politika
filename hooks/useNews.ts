@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchGoogleNews, NewsArticle } from '../services/newsService';
+import { Watchword } from '../types';
 
 interface UseNewsOptions {
   region?: string;
-  watchwords?: string[];
+  watchwords?: Watchword[];
   limit?: number;
   autoFetch?: boolean;
 }
@@ -43,7 +44,7 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   // Stable key for watchwords to avoid infinite re-renders
-  const watchwordsKey = useMemo(() => watchwords.join(','), [watchwords]);
+  const watchwordsKey = useMemo(() => watchwords.map(w => `${w.term}|${w.context||''}`).join(','), [watchwords]);
 
   const fetchNews = async () => {
 

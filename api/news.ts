@@ -48,19 +48,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { region, term } = req.body || {};
 
-    if (!region || typeof region !== 'string' || !term || typeof term !== 'string') {
+    if (!region || typeof region !== 'string' || !term) {
       return res.status(400).json({ error: 'region and term are required' });
     }
 
-    // Sanitize
+    // Safely parse term string or Watchword object
+    const termObj = typeof term === 'string' ? { term: term, context: '' } : term;
     const cleanRegion = region.slice(0, 100).replace(/[<>"'&]/g, '');
-    const cleanTerm = term.slice(0, 100).replace(/[<>"'&]/g, '');
+    const cleanTermName = termObj.term?.slice(0, 100).replace(/[<>"'&]/g, '') || '';
+    const cleanTermContext = termObj.context?.slice(0, 100).replace(/[<>"'&]/g, '') || '';
 
-    // Query direta — sem contexto eleitoral forçado para não restringir demais
+    // Adiciona contexto político genérico como fallback ou contexto restrito do usuário
+    const genericContext = '(política OR político OR governo OR prefeito OR eleição OR câmara OR deputado OR senador OR vereador OR prefeitura)';
+    const queryContext = cleanTermContext ? `"${cleanTermContext}"` : genericContext;
+    
     // after: restringe aos últimos 7 dias para garantir frescor das notícias
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       .toISOString().slice(0, 10); // YYYY-MM-DD
-    const query = encodeURIComponent(`"${cleanTerm}" ${cleanRegion} after:${sevenDaysAgo}`);
+    const query = encodeURIComponent(`"${cleanTermName}" ${queryContext} ${cleanRegion} after:${sevenDaysAgo}`);
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 
     const response = await fetch(rssUrl, {

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   region TEXT NOT NULL DEFAULT '',
-  watchwords TEXT[] DEFAULT '{}',
+  watchwords JSONB DEFAULT '[]'::jsonb, -- Mudado de TEXT[] para array JSONB para suportar {term, context}
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
