@@ -4,8 +4,7 @@ import { usePulseMonitor } from '../hooks/usePulseMonitor';
 import { PULSE_ONBOARDING_STEPS, TERM_COLORS } from '../constants';
 import SpotlightCard from '../components/ui/SpotlightCard';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
-import type { TaggedNewsArticle, Watchword } from '../types';
-import type { DailyTrendPoint, DayGroup } from '../services/trendsService';
+import type { DayGroup } from '../services/trendsService';
 
 // ============================================
 // Helpers
@@ -68,7 +67,7 @@ const MetricCard: React.FC<MetricProps> = ({ label, value, trend, color, isNumer
 };
 
 interface TermFilterBarProps {
-  terms: Watchword[];
+  terms: string[];
   activeTerm: string | null;
   onSelect: (term: string | null) => void;
   metrics: Record<string, { mentions: number; sentiment: { score: number; classification: string } | null; sentimentLoading: boolean }>;
@@ -85,8 +84,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
     >
       Todos
     </button>
-    {terms.map((w, idx) => {
-      const termName = w.term;
+    {terms.map((termName, idx) => {
       const color = TERM_COLORS[idx % TERM_COLORS.length];
       const m = metrics[termName];
       const isActive = activeTerm === termName;
@@ -99,6 +97,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
         <button
           key={termName}
           onClick={() => onSelect(isActive ? null : termName)}
+
           className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${isActive
             ? 'text-white shadow-md'
             : 'bg-white text-text-heading border-border-light hover:border-text-heading/30 hover:bg-surface'
@@ -210,7 +209,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
 
 interface DayGroupedNewsFeedProps {
   articlesByDay: DayGroup[];
-  terms: Watchword[];
+  terms: string[];
   activeTerm: string | null;
   isLoading: boolean;
 }
@@ -333,7 +332,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                             <span
                               key={t.term}
                               className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
-                              style={{ backgroundColor: TERM_COLORS[terms.findIndex(x => x.term === t.term) % TERM_COLORS.length] || TERM_COLORS[0] }}
+                              style={{ backgroundColor: TERM_COLORS[terms.indexOf(t.term) % TERM_COLORS.length] || TERM_COLORS[0] }}
                             >
                               {t.term}
                             </span>
@@ -743,8 +742,7 @@ const PulseMonitor: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {terms.map((w, idx) => {
-              const termName = w.term;
+            {terms.map((termName, idx) => {
               const m = metrics[termName];
               if (!m) return null;
               const color = TERM_COLORS[idx % TERM_COLORS.length];
