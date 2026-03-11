@@ -24,9 +24,9 @@ interface WorkspaceContextType {
     activeWorkspace: Workspace | null;
     loading: boolean;
     setActiveWorkspace: (workspace: Workspace) => void;
-    addWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => void;
-    updateWorkspace: (id: string, updates: Partial<Omit<Workspace, 'id' | 'createdAt'>>) => void;
-    deleteWorkspace: (id: string) => void;
+    addWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => Promise<boolean>;
+    updateWorkspace: (id: string, updates: Partial<Omit<Workspace, 'id' | 'createdAt'>>) => Promise<void>;
+    deleteWorkspace: (id: string) => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -38,7 +38,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
     const [loading, setLoading] = useState(true);
-    const { startGeneration, finishGeneration, failGeneration } = useGenerationStore();
+    const { startGeneration, finishGeneration, failGeneration, clearState: clearGenerationState } = useGenerationStore();
     const completeLifecycleStep = useLifecycleStore(s => s.completeStep);
 
     const loadWorkspaces = useCallback(async () => {
@@ -86,12 +86,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [loadWorkspaces]);
 
     const setActiveWorkspace = (workspace: Workspace) => {
+        clearGenerationState(); // Evita vazamento de estado entre workspaces
         setActiveWorkspaceState(workspace);
         localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspace.id);
     };
 
-    const addWorkspace = async (newWorkspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string) => {
-        if (!user) return;
+    const addWorkspace = async (newWorkspace: Omit<Workspace, 'id' | 'createdAt' | 'status'>, candidateHandle?: string): Promise<boolean> => {
+        if (!user) return false;
 
         try {
             const { data, error } = await supabase
@@ -138,7 +139,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     customContext: workspace.customContext,
                 }).then(insightData => {
                     if (insightData) {
-                        finishGeneration(insightData as any); // Type cast since services/geminiClient returns an untyped object or DetailedAnalysis 
+                        finishGeneration(insightData as any); // Type cast since services/geminiClient returns an untyped object or DetailedAnalysis
                         toast.success('Dossiê Estratégico gerado com sucesso!', { duration: 5000 });
                     } else {
                         throw new Error('Retorno vazio da análise');
@@ -150,13 +151,15 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 });
             }
 
+            return true;
         } catch (err: any) {
             console.error('Failed to add workspace:', err);
             toast.error('Erro ao criar workspace');
+            return false;
         }
     };
 
-    const updateWorkspace = async (id: string, updates: Partial<Omit<Workspace, 'id' | 'createdAt'>>) => {
+    const updateWorkspace = async (id: string, updates: Partial<Omit<Workspace, 'id' | 'createdAt'>>): Promise<void> => {
         if (!user) return;
 
         try {
@@ -187,7 +190,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
     };
 
-    const deleteWorkspace = async (id: string) => {
+    const deleteWorkspace = async (id: string): Promise<void> => {
         if (!user) return;
 
         try {

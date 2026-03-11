@@ -26,10 +26,14 @@ const Workspaces: React.FC = () => {
         setWorkspaceToDelete(workspace);
     };
 
-    const confirmDelete = () => {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const confirmDelete = async () => {
         if (workspaceToDelete) {
+            setIsDeleting(true);
             track('workspace_deleted', { workspace_id: workspaceToDelete.id });
-            deleteWorkspace(workspaceToDelete.id);
+            await deleteWorkspace(workspaceToDelete.id);
+            setIsDeleting(false);
             setWorkspaceToDelete(null);
         }
     };
@@ -54,13 +58,15 @@ const Workspaces: React.FC = () => {
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={confirmDelete}
-                                className="w-full py-5 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20"
+                                disabled={isDeleting}
+                                className="w-full py-5 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-xl shadow-red-600/20"
                             >
-                                Sim, Excluir Agora
+                                {isDeleting ? 'Excluindo...' : 'Sim, Excluir Agora'}
                             </button>
                             <button
                                 onClick={() => setWorkspaceToDelete(null)}
-                                className="w-full py-5 bg-slate-50 dark:bg-slate-800 text-text-heading dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                                disabled={isDeleting}
+                                className="w-full py-5 bg-slate-50 dark:bg-slate-800 text-text-heading dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                             >
                                 Cancelar
                             </button>

@@ -104,6 +104,36 @@ export const fetchVoterDemographics = async (
 };
 
 /**
+ * Busca candidatos por nome (fuzzy, case-insensitive)
+ * Retorna os registros mais recentes primeiro
+ */
+export const searchCandidates = async (
+  query: string,
+  state?: string,
+  limit = 30
+): Promise<TseElectionResult[]> => {
+  if (!query || query.trim().length < 2) return [];
+
+  let q = supabase
+    .from('tse_election_results')
+    .select('*')
+    .ilike('candidate_name', `%${query.trim()}%`)
+    .order('election_year', { ascending: false })
+    .order('votes', { ascending: false })
+    .limit(limit);
+
+  if (state) {
+    q = q.eq('state', state);
+  }
+
+  const { data, error } = await q;
+
+  if (error) throw new Error(error.message);
+
+  return (data || []) as TseElectionResult[];
+};
+
+/**
  * Verifica status da sincronização de dados TSE
  */
 export const checkSyncStatus = async (

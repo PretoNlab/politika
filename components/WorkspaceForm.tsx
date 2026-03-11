@@ -125,9 +125,12 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
         setWatchwords(watchwords.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+        if (isSubmitting) return;
+
         // Incluir o input atual se o usuário digitou e esqueceu de add
         let finalWatchwords = [...watchwords];
         if (newWatchwordTerm.trim()) {
@@ -136,31 +139,36 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                 context: newWatchwordContext.trim()
             });
         }
-        
+
         // Remove contexto vazio e passa ao backend
         const parsed = finalWatchwords.map(w => ({
             term: w.term,
             ...(w.context ? { context: w.context } : {})
         }));
 
-        if (isEditing) {
-            updateWorkspace(editWorkspace.id, {
-                name,
-                state,
-                region,
-                customContext: customContext.trim() || undefined,
-                watchwords: parsed,
-            });
-            onClose();
-        } else {
-            addWorkspace({
-                name,
-                state,
-                region,
-                customContext: customContext.trim() || undefined,
-                watchwords: parsed,
-            }, candidateHandle);
-            onClose();
+        setIsSubmitting(true);
+        try {
+            if (isEditing) {
+                await updateWorkspace(editWorkspace.id, {
+                    name,
+                    state,
+                    region,
+                    customContext: customContext.trim() || undefined,
+                    watchwords: parsed,
+                });
+                onClose();
+            } else {
+                const success = await addWorkspace({
+                    name,
+                    state,
+                    region,
+                    customContext: customContext.trim() || undefined,
+                    watchwords: parsed,
+                }, candidateHandle);
+                if (success) onClose();
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -370,8 +378,8 @@ const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onClose, editWorkspace })
                         )}
                     </div>
 
-                    <button type="submit" className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-primary/20">
-                        {isEditing ? 'Salvar Alterações' : 'Criar Campanha'}
+                    <button type="submit" disabled={isSubmitting} className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-xl shadow-primary/20">
+                        {isSubmitting ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Campanha'}
                     </button>
                 </form>
             </div>

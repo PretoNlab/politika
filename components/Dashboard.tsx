@@ -10,13 +10,45 @@ import { LOADING_STEPS } from '../constants';
 import { useGenerationStore } from '../store/generationStore';
 import { useLifecycleStore } from '../store/lifecycleStore';
 import SpotlightCard from '../components/ui/SpotlightCard';
+import { useTSECandidateSearch } from '../hooks/useTSECandidateSearch';
+import type { TseElectionResult } from '../types';
 
+
+// Formata número de votos de forma legível
+const formatVotes = (v: number) =>
+  v >= 1_000_000
+    ? `${(v / 1_000_000).toFixed(1)}M`
+    : v >= 1_000
+    ? `${(v / 1_000).toFixed(1)}k`
+    : String(v);
+
+// Agrupa resultados TSE por candidato (nome + partido), listando todos os anos
+function groupByCandidateName(results: TseElectionResult[]) {
+  const map = new Map<string, TseElectionResult[]>();
+  for (const r of results) {
+    const key = `${r.candidate_name}|${r.party}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(r);
+  }
+  return Array.from(map.entries()).map(([key, rows]) => ({
+    key,
+    candidate_name: rows[0].candidate_name,
+    party: rows[0].party,
+    state: rows[0].state,
+    rows: rows.sort((a, b) => b.election_year - a.election_year),
+    latestYear: rows[0].election_year,
+    latestVotes: rows[0].votes,
+    latestMunicipality: rows[0].municipality,
+    latestType: rows[0].election_type,
+  }));
+}
 
 const Dashboard: React.FC = () => {
   const [handles, setHandles] = useState<string[]>(['']);
   const [stepIndex, setStepIndex] = useState(0);
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [expandedCandidate, setExpandedCandidate] = useState<string | null>(null);
   const { activeWorkspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +57,8 @@ const Dashboard: React.FC = () => {
 
   // Custom hooks
   const { analyzeCandidate, compareCandidates, loading } = usePoliticalAnalysis();
+  // State filter omitido: workspace guarda nome completo ('Bahia') mas TSE usa sigla ('BA')
+  const { query: tseQuery, setQuery: setTseQuery, results: tseRaw, isLoading: tseLoading, error: tseError, clear: clearTse } = useTSECandidateSearch();
   const { isGenerating, generatingHandle, initialData, clearState } = useGenerationStore();
   const completeStep = useLifecycleStore(s => s.completeStep);
   const incrementTotalAnalyses = useLifecycleStore(s => s.incrementTotalAnalyses);
@@ -52,20 +86,26 @@ const Dashboard: React.FC = () => {
     }
   }, [initialData, generatingHandle, navigate, clearState]);
 
-  // Load history from Supabase
+  // Load history from Supabase — filtrado pelo workspace ativo
   useEffect(() => {
     if (!user) return;
 
     const loadHistory = async () => {
       setHistoryLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('analyses')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(5);
 
+        // Filtra pelo workspace ativo para evitar cruzamento entre projetos
+        if (activeWorkspace?.id) {
+          query = query.eq('workspace_id', activeWorkspace.id);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         setHistory(data || []);
       } catch (e) {
@@ -76,7 +116,7 @@ const Dashboard: React.FC = () => {
     };
 
     loadHistory();
-  }, [user]);
+  }, [user, activeWorkspace?.id]); // Recarrega ao trocar workspace
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -212,6 +252,8 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const tseGroups = groupByCandidateName(tseRaw);
+
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-10">
       {/* Header */}
@@ -283,7 +325,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <>
                   <span className="material-symbols-outlined">analytics</span>
-                  {handles.length === 1 ? 'Analisar Perfil' : 'Comparar Candidatos'}
+                  {handles.filter(h => h.trim() !== '').length <= 1 ? 'Analisar Perfil' : 'Comparar Candidatos'}
                 </>
               )}
             </button>
@@ -315,6 +357,149 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* TSE Candidate Search */}
+      <SpotlightCard className="p-8 max-w-4xl mx-auto bg-white border border-border-light shadow-sm">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <span className="material-symbols-outlined text-xl">how_to_vote</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-text-heading tracking-tight">Busca TSE — Candidatos</h2>
+            <p className="text-sm text-text-subtle">Pesquise pelo nome no banco de dados oficial do TSE</p>
+          </div>
+        </div>
+
+        {/* Search input */}
+        <div className="relative mb-4">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-subtle text-xl pointer-events-none">search</span>
+          <input
+            type="text"
+            placeholder="Ex: João Silva, Maria Santos..."
+            value={tseQuery}
+            onChange={e => { setTseQuery(e.target.value); setExpandedCandidate(null); }}
+            className="w-full pl-11 pr-10 py-3.5 bg-surface border border-border-light rounded-2xl text-text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all outline-none"
+          />
+          {tseQuery && (
+            <button
+              onClick={() => { clearTse(); setExpandedCandidate(null); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-subtle hover:text-text-heading transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
+          )}
+        </div>
+
+        {/* States */}
+        {tseLoading && (
+          <div className="flex items-center gap-2 text-sm text-text-subtle py-4">
+            <div className="size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            Buscando...
+          </div>
+        )}
+
+        {tseError && (
+          <p className="text-sm text-red-500 py-2">{tseError}</p>
+        )}
+
+        {!tseLoading && tseQuery.trim().length >= 2 && tseGroups.length === 0 && !tseError && (
+          <p className="text-sm text-text-subtle py-4 text-center">Nenhum candidato encontrado. Os dados TSE podem ainda não estar carregados para esta região.</p>
+        )}
+
+        {/* Results */}
+        {tseGroups.length > 0 && (
+          <div className="space-y-2">
+            {tseGroups.map(group => (
+              <div key={group.key} className="border border-border-light rounded-2xl overflow-hidden">
+                {/* Candidate header row */}
+                <button
+                  onClick={() => setExpandedCandidate(prev => prev === group.key ? null : group.key)}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface transition-colors text-left"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 text-xs font-black">
+                      {group.party.slice(0, 3)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-text-heading truncate capitalize">
+                        {group.candidate_name.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                      </p>
+                      <p className="text-xs text-text-subtle">
+                        {group.party} · {group.latestMunicipality} · {group.rows.length} eleição{group.rows.length > 1 ? 'ões' : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 ml-4">
+                    <span className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-bold hidden sm:block">
+                      {group.latestVotes > 0
+                        ? `${formatVotes(group.latestVotes)} votos em ${group.latestYear}`
+                        : group.latestYear}
+                    </span>
+                    <span className={`material-symbols-outlined text-text-subtle transition-transform ${expandedCandidate === group.key ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
+                  </div>
+                </button>
+
+                {/* Expanded: election history */}
+                {expandedCandidate === group.key && (
+                  <div className="border-t border-border-light bg-surface px-5 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <p className="text-xs font-bold text-text-subtle uppercase tracking-widest mb-3">Histórico Eleitoral</p>
+                    <div className="space-y-2">
+                      {group.rows.map(r => (
+                        <div key={r.id} className="flex items-center justify-between bg-white border border-border-light rounded-xl px-4 py-3 gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-sm font-black text-primary shrink-0">{r.election_year}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-text-heading truncate">{r.election_type}</p>
+                              <p className="text-xs text-text-subtle truncate">{r.municipality} · Nº {r.candidate_number}</p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            {r.votes > 0 ? (
+                              <>
+                                <p className="text-sm font-black text-text-heading">{formatVotes(r.votes)}</p>
+                                <p className="text-xs text-text-subtle">votos</p>
+                              </>
+                            ) : r.coalition ? (
+                              <span className={`text-xs px-2 py-1 rounded-full font-bold ${r.coalition === 'ELEITO' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-surface text-text-subtle border border-border-light'}`}>
+                                {r.coalition}
+                              </span>
+                            ) : (
+                              <p className="text-xs text-text-subtle">cadastrado</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* CTA: usar este candidato na análise IA */}
+                    <button
+                      onClick={() => {
+                        const name = group.candidate_name.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                        setHandles([name]);
+                        clearTse();
+                        setExpandedCandidate(null);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="mt-2 w-full py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">analytics</span>
+                      Analisar {group.candidate_name.split(' ')[0].charAt(0).toUpperCase() + group.candidate_name.split(' ')[0].slice(1).toLowerCase()} com IA
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!tseQuery && (
+          <p className="text-xs text-text-subtle text-center py-2">
+            Digite pelo menos 2 caracteres para buscar
+            {activeWorkspace?.state ? ` · Filtrado por ${activeWorkspace.state}` : ''}
+          </p>
+        )}
+      </SpotlightCard>
 
       {/* Main Content Area (History) */}
       <div className="mt-6">

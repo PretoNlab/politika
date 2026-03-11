@@ -22,9 +22,9 @@ export const useGenerationStore = create<GenerationState>((set) => ({
     startGeneration: (workspaceId: string, handle: string) =>
         set({ isGenerating: true, generatingForWorkspaceId: workspaceId, generatingHandle: handle, error: null, initialData: null }),
     finishGeneration: (data: DetailedAnalysis) =>
-        set({ isGenerating: false, initialData: data }),
+        set({ isGenerating: false, initialData: data, generatingForWorkspaceId: null }),
     failGeneration: (error: string) =>
-        set({ isGenerating: false, error }),
+        set({ isGenerating: false, error, generatingForWorkspaceId: null }),
     clearState: () =>
         set({ isGenerating: false, generatingForWorkspaceId: null, generatingHandle: null, initialData: null, error: null }),
 }));
