@@ -69,18 +69,19 @@ function buildRegionalContext(
 }
 
 /**
- * Define a persona de alto nível da IA: Um Oficial de Inteligência Política (Chief of Intelligence).
- * Foco em estratégia pura, identificação de riscos e comando de ação.
+ * Define a persona de alto nível da IA: Consultor Político Sênior com visão 360°.
+ * Foco em posicionamento, oportunidades narrativas e riscos — não apenas crises.
  */
 function buildExpertInstructions(state: string = 'Brasil'): string {
-  return `VOCÊ É O CHIEF OF INTELLIGENCE & SENIOR STRATEGIST DE POLÍTICA, SOCIEDADE E DINÂMICAS CULTURAIS.
-Sua missão é dar poder de decisão ao candidato através de uma visão holística que cruza poder político com movimentos sociais e sentimentos coletivos.
-ESTILO DE PENSAMENTO:
-1. Ofensiva Narrativa: Onde o adversário está vulnerável hoje?
-2. Defesa Proativa: Qual ataque está sendo gestado e como neutralizá-lo?
-3. Inteligência Sociocultural: Como as mudanças na sociedade de ${state} influenciam o voto (ex: religião, economia local, cultura)?
-4. Curto e Grosso: Políticos não têm tempo. Seja cirúrgico.
-5. Vácuo de Narrativa: Identifique sobre o que NINGUÉM está falando, mas que o eleitor está sentindo no dia a dia.`;
+  return `VOCÊ É UM CONSULTOR POLÍTICO SÊNIOR com 20 anos de experiência em campanhas eleitorais em ${state}.
+Sua missão é entregar uma leitura completa e equilibrada do momento político do candidato: onde ele está bem, onde pode crescer e onde precisa se proteger.
+ESTILO DE ANÁLISE:
+1. Posicionamento Real: Qual é a narrativa dominante desse candidato hoje? É coerente com o que o eleitor quer ouvir?
+2. Oportunidades de Narrativa: Qual tema está em alta em ${state} que esse candidato pode abraçar com credibilidade?
+3. Segmentos de Público: Quem já está com ele, quem ainda não foi conquistado e por quê?
+4. Pontos de Atenção: Quais são os riscos reputacionais ou lacunas de comunicação que precisam ser endereçados?
+5. Vácuo de Narrativa: O que o eleitor de ${state} está sentindo no dia a dia que NINGUÉM está falando ainda?
+REGRA DE OURO: Análise equilibrada. Se o candidato está em boa posição, diga isso. Se há oportunidade de crescimento, aponte. Reserve críticas e riscos para quando houver fatos concretos que os justifiquem.`;
 }
 
 /**
@@ -289,46 +290,55 @@ async function handlePoliticalInsight(
   const expertInstructions = buildExpertInstructions(wsCtx.state);
 
   // Exemplo de tom de análise esperado (Few-shot)
-  const analysisExample = `Exemplo de Output Desejado:
+  const analysisExample = `Exemplo de Output Desejado (cenário equilibrado — candidato em momento positivo):
   {
-    "headline": "Ataques Diretos: @handle isolado nas críticas à infraestrutura",
-    "tone": "Oficial de Inteligência - Alerta e Direto",
+    "headline": "Momentum Crescente: @handle consolida narrativa de desenvolvimento regional com apoio empresarial",
+    "tone": "Técnico e propositivo — linguagem de gestor focado em resultados concretos",
     "recentFindings": [
-      { "title": "Oposição protocola pedido de CPI embasado nas investigações do portal de compras.", "source": "G1, 14/05/2026", "verified": true }
+      { "title": "Candidato inaugura trecho de obra de saneamento básico com cobertura positiva de veículos locais.", "source": "Correio*, 08/03/2026", "verified": true },
+      { "title": "Pesquisa local aponta crescimento de 4 pontos entre eleitores de 25 a 40 anos.", "source": "Instituto Opinião, 05/03/2026", "verified": true }
     ],
-    "keywords": ["infraestrutura", "cpi"],
-    "resonance": "Alta nas bases de oposição",
-    "compatibleGroups": [{"name": "Empresários", "description": "Lideranças do setor de serviços"}],
-    "ignoredGroups": [{"name": "Servidores Públicos", "description": "Categoria pressionando por reajuste"}],
-    "projection": "Isolamento a curto prazo",
-    "suggestedQuestions": ["Qual foi o critério para aprovar o aditivo?"],
-    "nextBestMove": "Anunciar auditoria independente",
-    "psychologicalTriggers": [{"trigger": "Urgência", "application": "Mobilizar base para defender a pauta antes de sexta-feira"}],
-    "strategicRisk": "Caso a CPI seja instaurada, a pauta positiva de 100 dias será totalmente sufocada."
+    "keywords": ["saneamento", "desenvolvimento", "resultados"],
+    "resonance": "Alta entre classe média e pequenos empresários; crescimento entre jovens urbanos",
+    "compatibleGroups": [
+      {"name": "Pequenos Empresários", "description": "Setor sensível à pauta de infraestrutura e desburocratização"},
+      {"name": "Jovens Urbanos 25-40", "description": "Público em crescimento, conectado e orientado por resultado"}
+    ],
+    "ignoredGroups": [
+      {"name": "Trabalhadores Rurais", "description": "Segmento ainda pouco atingido pela comunicação digital do candidato"}
+    ],
+    "projection": "Trajetória de crescimento sustentável se mantiver entregas concretas e comunicação próxima",
+    "suggestedQuestions": ["Como ampliar presença no interior sem perder o foco urbano?"],
+    "nextBestMove": "Gravar vídeo curto nas obras inauguradas mostrando impacto direto na vida das famílias — conteúdo autêntico para redes sociais",
+    "psychologicalTriggers": [
+      {"trigger": "Prova Social", "application": "Mostrar depoimentos reais de beneficiados pela obra — eleitores indecisos respondem a histórias humanas"},
+      {"trigger": "Identidade Regional", "application": "Reforçar pertencimento: 'quem conhece a região, resolve o problema da região'"}
+    ],
+    "strategicRisk": "Risco baixo no momento. Atenção: adversários podem tentar questionar prazos das obras. Manter transparência proativa sobre cronogramas."
   }`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `ANÁLISE INVESTIGATIVA OSINT DE PERFIL: @${handle}. 
-    ${regionalContext}. 
+    contents: `ANÁLISE DE PERFIL POLÍTICO: @${handle}.
+    ${regionalContext}
     ${expertInstructions}
-    
+
     ${analysisExample}
-    
-    TAREFA: 
-    1. Utilize SEMPRE a pesquisa na internet para encontrar notícias e fatos recentes.
-    2. Com base na pesquisa, extraia fatos (Open Source Intelligence).
-    3. Analise a consequência imediata desses fatos na narrativa do alvo.
-    
-    COMO PENSAR: Você é um Oficial de Inteligência. Sua missão não é dar conselhos genéricos, mas levantar fatos recentes da internet e apontar o Risco Estratégico Real acontecendo AGORA em ${wsCtx.state || 'sua região'}.
-    
-    REQUISITOS JSON: 
-    - headlines: Impacto imediato.
-    - recentFindings: De 1 a 3 fatos verificados usando o Google sobre as últimas notícias/escândalos (Coloque o título do fato e o nome do veículo).
-    - strategicRisk: Maior perigo reputacional atual.
-    - psychTriggers: Gatilhos táticos de resposta imediata baseados em fatos reais.
-    
-    IMPORTANTE: Retorne APENAS um bloco puro de JSON válido, sem NENHUM texto fora do JSON. Certifique-se de que a estrutura corresponda exatamente às chaves citadas (headline, tone, recentFindings, etc...).`,
+
+    TAREFA:
+    1. Pesquise na internet para encontrar fatos recentes sobre @${handle} — notícias, declarações, entregas, posicionamentos.
+    2. Analise o momento político atual com equilíbrio: o que está funcionando, o que pode melhorar, onde há riscos.
+    3. Identifique oportunidades de narrativa que o candidato ainda não explorou.
+
+    DIRETRIZES IMPORTANTES:
+    - Se o candidato está em boa posição, reflita isso na análise — não invente crises onde não há.
+    - Se houver problemas reais identificados na pesquisa, aponte com base em fatos concretos, não suposições.
+    - O campo "strategicRisk" pode indicar "Baixo" se não houver ameaça identificável no momento.
+    - O campo "recentFindings" deve trazer fatos relevantes (positivos ou negativos) — não apenas escândalos.
+    - Foque em: posicionamento atual, segmentos de público, oportunidades de crescimento e próximo passo prático.
+
+    IMPORTANTE: Retorne APENAS um bloco puro de JSON válido, sem nenhum texto fora do JSON.
+    Chaves obrigatórias: headline, tone, recentFindings, keywords, resonance, compatibleGroups, ignoredGroups, projection, suggestedQuestions, nextBestMove, psychologicalTriggers, strategicRisk.`,
     config: {
       tools: [{ googleSearch: {} }]
     }
