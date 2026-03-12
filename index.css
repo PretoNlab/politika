@@ -164,6 +164,28 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* ================================================
+   Design System — Typography & Layout Utilities
+   ================================================ */
+@layer components {
+  /* Títulos principais de página */
+  .type-page-title  { @apply text-xl font-bold tracking-tight; color: var(--text-heading); }
+  /* Títulos de seção / card */
+  .type-section     { @apply text-base font-semibold; color: var(--text-heading); }
+  /* Rótulos uppercase (ALIADOS, BARREIRAS, etc.) */
+  .type-label       { @apply text-[11px] font-semibold uppercase tracking-widest; color: var(--text-subtle); }
+  /* Texto corrido */
+  .type-body        { @apply text-sm leading-relaxed; color: var(--text-body); }
+  /* Metadados, datas, fontes */
+  .type-caption     { @apply text-xs; color: var(--text-subtle); }
+  /* Números de destaque / KPIs */
+  .type-stat        { @apply text-3xl font-bold; color: var(--text-heading); }
+
+  /* Containers de página */
+  .page-container   { @apply max-w-[1200px] mx-auto px-6 py-10; }
+  .detail-container { @apply max-w-[900px] mx-auto px-6 py-8; }
+}
+
 @media print {
   header, footer, nav { display: none !important; }
   .no-print { display: none !important; }

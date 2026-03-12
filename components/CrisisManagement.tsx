@@ -140,10 +140,10 @@ const CrisisManagement: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-10 space-y-10">
+    <div className="page-container space-y-10">
       <div className="space-y-4">
-        <h1 className="text-4xl font-black text-text-heading flex items-center gap-3">
-          <span className="material-symbols-outlined text-red-600 text-5xl animate-pulse">warning</span>
+        <h1 className="type-page-title flex items-center gap-2">
+          <span className="material-symbols-outlined text-red-600 text-xl animate-pulse">warning</span>
           War Room: Inteligência Multimodal
         </h1>
         <p className="text-text-subtle">
@@ -156,7 +156,7 @@ const CrisisManagement: React.FC = () => {
 
         {/* Seletor de tipo de crise */}
         <div className="space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-1.5">
+          <p className="type-label text-text-subtle dark:text-slate-400 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">bolt</span>
             Escolha o tipo de crise — ou descreva livremente abaixo
           </p>
@@ -170,7 +170,7 @@ const CrisisManagement: React.FC = () => {
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border text-center transition-all hover:shadow-md hover:scale-[1.02] ${t.bg} ${t.border} disabled:opacity-50`}
               >
                 <span className={`material-symbols-outlined text-xl ${t.color}`}>{t.icon}</span>
-                <span className={`text-[10px] font-black uppercase tracking-wide leading-tight ${t.color}`}>{t.label}</span>
+                <span className={`text-xs font-black uppercase tracking-wide leading-tight ${t.color}`}>{t.label}</span>
               </button>
             ))}
           </div>
@@ -277,7 +277,7 @@ const CrisisManagement: React.FC = () => {
           {/* Grounding Sources */}
           {result.sources && result.sources.length > 0 && (
             <div className="space-y-3">
-              <p className="text-[10px] font-black uppercase text-text-subtle tracking-widest flex items-center gap-2">
+              <p className="text-xs font-black uppercase text-text-subtle tracking-widest flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">travel_explore</span>
                 Fontes de Inteligência em Tempo Real
               </p>
@@ -307,14 +307,14 @@ const CrisisManagement: React.FC = () => {
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-red-600 text-3xl">crisis_alert</span>
-                  <h2 className="text-2xl font-black text-text-heading">Resumo do Incidente</h2>
+                  <h2 className="type-section">Resumo do Incidente</h2>
                 </div>
                 <p className="text-text-heading text-lg leading-relaxed font-medium">
                   {result.incidentSummary}
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2 min-w-[120px]">
-                <span className="text-[10px] font-black uppercase text-text-subtle tracking-widest">
+                <span className="text-xs font-black uppercase text-text-subtle tracking-widest">
                   Severidade
                 </span>
                 <div
@@ -335,7 +335,7 @@ const CrisisManagement: React.FC = () => {
 
           {/* Strategic Responses */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-black text-text-heading flex items-center gap-3">
+            <h3 className="type-section flex items-center gap-3">
               <span className="material-symbols-outlined text-primary">strategy</span>
               Estratégias de Resposta
             </h3>
@@ -424,7 +424,7 @@ const CrisisManagement: React.FC = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-3">
-                    <p className="text-xs font-black uppercase text-emerald-600 tracking-widest">Pontos Fortes</p>
+                    <p className="type-label text-emerald-600">Pontos Fortes</p>
                     <ul className="space-y-2">
                       {evaluation.pros.map((pro: string, i: number) => (
                         <li key={i} className="text-sm text-text-subtle font-medium flex items-start gap-2">
@@ -436,7 +436,7 @@ const CrisisManagement: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-xs font-black uppercase text-red-600 tracking-widest">Pontos de Melhoria</p>
+                    <p className="type-label text-red-600">Pontos de Melhoria</p>
                     <ul className="space-y-2">
                       {evaluation.cons.map((con: string, i: number) => (
                         <li key={i} className="text-sm text-text-subtle font-medium flex items-start gap-2">
@@ -449,7 +449,7 @@ const CrisisManagement: React.FC = () => {
                 </div>
 
                 <div className="p-6 bg-emerald-50/50 border border-emerald-100 rounded-2xl mt-4">
-                  <p className="text-xs font-black uppercase tracking-widest text-emerald-700 mb-3">Versão Otimizada Proposta</p>
+                  <p className="type-label text-emerald-700 mb-3">Versão Otimizada Proposta</p>
                   <p className="text-base text-text-heading font-medium leading-relaxed italic">"{evaluation.optimizedVersion}"</p>
                 </div>
               </div>

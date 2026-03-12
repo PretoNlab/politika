@@ -108,7 +108,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
             className={`size-2 rounded-full ${m?.sentimentLoading ? 'animate-pulse bg-slate-400' : sentimentColor}`}
           />
           {termName}
-          {m && <span className="text-[10px] opacity-70">({m.mentions})</span>}
+          {m && <span className="text-xs opacity-70">({m.mentions})</span>}
         </button>
       );
     })}
@@ -161,7 +161,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ show, step, onNext, o
           </div>
 
           <div className="space-y-3 px-4">
-            <h3 className="text-3xl font-black text-text-heading dark:text-white tracking-tighter uppercase italic">
+            <h3 className="type-section dark:text-white uppercase italic">
               {currentStep.title}
             </h3>
             <p className="text-text-subtle dark:text-slate-400 text-lg leading-relaxed font-medium">
@@ -244,7 +244,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
     <SpotlightCard className="p-8 md:p-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle flex items-center gap-2">
+          <h3 className="type-label flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">newspaper</span>
             Notícias por Dia
           </h3>
@@ -255,14 +255,14 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${filter === 'all' ? 'bg-text-heading text-white border-text-heading' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-primary'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border ${filter === 'all' ? 'bg-text-heading text-white border-text-heading' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-primary'
               }`}
           >
             Todas
           </button>
           <button
             onClick={() => setFilter('negative')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'negative' ? 'bg-red-500 text-white border-red-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-red-400 hover:text-red-500'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'negative' ? 'bg-red-500 text-white border-red-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-red-400 hover:text-red-500'
               }`}
           >
             <span className="material-symbols-outlined text-[12px]">warning</span>
@@ -270,7 +270,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
           </button>
           <button
             onClick={() => setFilter('positive')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'positive' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-emerald-400 hover:text-emerald-500'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'positive' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-emerald-400 hover:text-emerald-500'
               }`}
           >
             <span className="material-symbols-outlined text-[12px]">thumb_up</span>
@@ -278,7 +278,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
           </button>
           <button
             onClick={() => setFilter('urgent')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'urgent' ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-amber-400 hover:text-amber-500'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === 'urgent' ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-surface-input border-border-subtle text-text-subtle hover:border-amber-400 hover:text-amber-500'
               }`}
           >
             <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
@@ -302,7 +302,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                 <h4 className="text-sm font-black text-text-heading uppercase tracking-widest">
                   {group.label}
                 </h4>
-                <span className="text-[10px] font-bold text-text-subtle bg-white border border-border-light px-2.5 py-1 rounded-full shadow-sm">
+                <span className="text-xs font-bold text-text-subtle bg-white border border-border-light px-2.5 py-1 rounded-full shadow-sm">
                   {group.articles.length} {group.articles.length === 1 ? 'artigo' : 'artigos'}
                 </span>
                 <div className="flex-1 h-px bg-border-light" />
@@ -322,8 +322,8 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                       <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
                     </p>
                     <div className="flex items-center gap-2 mt-3">
-                      <p className="text-[10px] font-medium text-text-subtle">{article.source}</p>
-                      <span className="text-[10px] text-text-subtle/50">
+                      <p className="text-xs font-medium text-text-subtle">{article.source}</p>
+                      <span className="text-xs text-text-subtle/50">
                         {formatRelativeTime(article.pubDate)}
                       </span>
                       {article.matchedTerms.length > 0 && (
@@ -331,7 +331,7 @@ const DayGroupedNewsFeed: React.FC<DayGroupedNewsFeedProps> = ({ articlesByDay, 
                           {article.matchedTerms.map(t => (
                             <span
                               key={t.term}
-                              className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
+                              className="text-xs font-black uppercase px-2 py-0.5 rounded-full text-white shadow-sm"
                               style={{ backgroundColor: TERM_COLORS[terms.indexOf(t.term) % TERM_COLORS.length] || TERM_COLORS[0] }}
                             >
                               {t.term}
@@ -382,7 +382,7 @@ const AuditModal: React.FC<AuditModalProps> = ({ term, metrics, onClose }) => {
       <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-[3rem] shadow-2xl border border-white/10 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-6 md:p-8 border-b border-border-light flex items-center justify-between bg-surface/50">
            <div>
-             <h3 className="text-2xl font-black text-text-heading dark:text-white uppercase tracking-tighter flex items-center gap-3">
+             <h3 className="type-section dark:text-white uppercase flex items-center gap-3">
                <span className="material-symbols-outlined text-primary text-3xl">query_stats</span>
                Auditoria de Dados
              </h3>
@@ -428,8 +428,8 @@ const AuditModal: React.FC<AuditModalProps> = ({ term, metrics, onClose }) => {
                        {article.description || 'Sem descrição (apenas título capturado).'}
                     </p>
                     <div className="flex items-center gap-3 mt-4">
-                      <p className="text-[10px] font-black text-slate-500 uppercase px-2 py-1 rounded border border-border-subtle bg-slate-50 dark:bg-slate-700">{article.source}</p>
-                      <span className="text-[10px] uppercase font-bold text-text-subtle">{formatRelativeTime(article.pubDate)}</span>
+                      <p className="text-xs font-black text-slate-500 uppercase px-2 py-1 rounded border border-border-subtle bg-slate-50 dark:bg-slate-700">{article.source}</p>
+                      <span className="text-xs uppercase font-bold text-text-subtle">{formatRelativeTime(article.pubDate)}</span>
                       <span className="material-symbols-outlined text-text-subtle group-hover:text-primary transition-colors text-sm ml-auto">
                         arrow_outward
                       </span>
@@ -482,7 +482,7 @@ const PulseMonitor: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-10 animate-reveal">
+    <div className="page-container space-y-10 animate-reveal">
       <AuditModal
         term={auditingTerm}
         metrics={metrics}
@@ -503,12 +503,12 @@ const PulseMonitor: React.FC = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-lg">radar</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">
               Radar de Notícias
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-text-heading dark:text-white tracking-tighter">
-            Ultimos 15 Dias
+          <h2 className="type-page-title dark:text-white">
+            Últimos 15 Dias
           </h2>
           <p className="text-text-subtle dark:text-slate-400 font-medium max-w-lg">
             Monitoramento continuo das suas watchwords. Cada mencao rastreada e classificada por sentimento via IA.
@@ -580,13 +580,13 @@ const PulseMonitor: React.FC = () => {
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 className="text-sm font-black text-text-heading dark:text-white uppercase tracking-widest flex items-center gap-2">
+              <h3 className="type-section dark:text-white uppercase flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-xl">monitoring</span>
                 Evolução (15 Dias)
               </h3>
               <p className="text-xs text-text-subtle mt-1 font-medium">Volume de Menções vs. Sentimento Médio</p>
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-surface-input px-4 py-2 rounded-2xl border border-border-subtle">
+            <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-slate-500 bg-surface-input px-4 py-2 rounded-2xl border border-border-subtle">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-1 bg-primary rounded-full"></div>
                 Volume
@@ -657,14 +657,14 @@ const PulseMonitor: React.FC = () => {
                             <div className="space-y-2">
                               {/* Volume */}
                               <div className="flex items-center justify-between gap-4">
-                                <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                                <span className="text-xs uppercase font-bold text-slate-400 flex items-center gap-1.5">
                                   <div className="size-2 bg-primary rounded-full"></div> Menções
                                 </span>
                                 <span className="text-sm font-black text-white">{data.count}</span>
                               </div>
                               {/* Sentiment */}
                               <div className="flex items-center justify-between gap-4">
-                                <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                                <span className="text-xs uppercase font-bold text-slate-400 flex items-center gap-1.5">
                                   <div className={`size-2 rounded-full ${data.sentimentClassification === 'Positivo' ? 'bg-emerald-500' : data.sentimentClassification === 'Negativo' ? 'bg-red-500' : 'bg-amber-500'}`}></div> Sentimento
                                 </span>
                                 <span className={`text-sm font-black ${data.sentimentClassification === 'Positivo' ? 'text-emerald-500' : data.sentimentClassification === 'Negativo' ? 'text-red-500' : 'text-amber-500'}`}>
@@ -720,12 +720,12 @@ const PulseMonitor: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 space-y-8 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-2xl font-black text-text-heading dark:text-white">Sentimento por Termo</h3>
+              <h3 className="type-section dark:text-white">Sentimento por Termo</h3>
               <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">
                 Análise de sentimento via IA para cada watchword do seu workspace
               </p>
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-slate-500">
               <div className="flex items-center gap-2">
                 <span className="size-3 bg-emerald-500 rounded"></span>
                 Positivo
@@ -760,7 +760,7 @@ const PulseMonitor: React.FC = () => {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span
-                      className="text-[10px] font-black uppercase tracking-widest"
+                      className="type-label"
                       style={{ color }}
                     >
                       {termName}
@@ -784,13 +784,13 @@ const PulseMonitor: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-2xl font-black text-slate-900 dark:text-white">{m.mentions}</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {m.sentimentLoading ? 'Analisando...'
                       : m.sentiment ? m.sentiment.classification
                         : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
                   </p>
                   {m.sentiment?.summary && (
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 line-clamp-2 leading-relaxed">
                       {m.sentiment.summary}
                     </p>
                   )}

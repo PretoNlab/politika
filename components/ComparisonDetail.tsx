@@ -66,7 +66,7 @@ const ComparisonDetail: React.FC = () => {
   }
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-10 space-y-12 animate-reveal">
+    <div className="page-container space-y-12 animate-reveal">
       {/* Breadcrumb & Header */}
       <header className="space-y-4">
         <div className="flex items-center justify-between">
@@ -82,14 +82,14 @@ const ComparisonDetail: React.FC = () => {
         </div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-4xl font-black text-text-heading flex items-center gap-3 tracking-tighter">
+            <h2 className="type-page-title flex items-center gap-3">
               Módulo de Confronto
             </h2>
             <p className="text-sm text-text-subtle font-medium">Battle Card Analítico de Precisão</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10">
             <span className="size-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(19,109,236,0.5)]"></span>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Inteligência Estratégica Ativa</span>
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">Inteligência Estratégica Ativa</span>
           </div>
         </div>
       </header>
@@ -105,7 +105,7 @@ const ComparisonDetail: React.FC = () => {
               }`}
           >
             {idx === 0 && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-text-heading text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-text-heading text-xs font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
                 Seu Candidato
               </div>
             )}
@@ -116,13 +116,13 @@ const ComparisonDetail: React.FC = () => {
                 <span className="material-symbols-outlined text-4xl">{idx === 0 ? 'shield_person' : 'person_search'}</span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-text-heading tracking-tighter">@{c.handle.replace('@', '')}</h3>
-                <p className="text-[10px] font-black text-text-subtle uppercase tracking-widest mt-1">{c.profileType}</p>
+                <h3 className="type-section">@{c.handle.replace('@', '')}</h3>
+                <p className="text-xs font-black text-text-subtle uppercase tracking-widest mt-1">{c.profileType}</p>
               </div>
 
               <div className="w-full grid grid-cols-2 gap-3 text-left">
                 <div className="p-4 rounded-3xl bg-surface border border-border-light">
-                  <p className="text-[9px] text-text-subtle uppercase font-black mb-1.5 tracking-widest">Tendência</p>
+                  <p className="text-xs text-text-subtle uppercase font-black mb-1.5 tracking-widest">Tendência</p>
                   <p className="text-xs font-bold text-text-heading flex items-center gap-1.5">
                     {c.sentimentTrend === 'Crescente' && <span className="material-symbols-outlined text-emerald-500 text-sm">trending_up</span>}
                     {c.sentimentTrend === 'Em queda' && <span className="material-symbols-outlined text-red-500 text-sm">trending_down</span>}
@@ -130,14 +130,14 @@ const ComparisonDetail: React.FC = () => {
                   </p>
                 </div>
                 <div className="p-4 rounded-3xl bg-surface border border-border-light">
-                  <p className="text-[9px] text-text-subtle uppercase font-black mb-1.5 tracking-widest">Base Forte</p>
+                  <p className="text-xs text-text-subtle uppercase font-black mb-1.5 tracking-widest">Base Forte</p>
                   <p className="text-xs font-bold text-text-heading truncate">{c.regionalStrength}</p>
                 </div>
               </div>
 
               <div className={`w-full p-5 rounded-3xl text-left ${idx === 0 ? 'bg-red-50 border border-red-100' : 'bg-surface border border-border-light'
                 }`}>
-                <p className={`text-[9px] font-black uppercase mb-1.5 tracking-widest ${idx === 0 ? 'text-red-500' : 'text-text-subtle'}`}>Ponto de Ataque</p>
+                <p className={`text-xs font-black uppercase mb-1.5 tracking-widest ${idx === 0 ? 'text-red-500' : 'text-text-subtle'}`}>Ponto de Ataque</p>
                 <p className={`text-sm font-bold leading-tight ${idx === 0 ? 'text-red-950' : 'text-text-heading'}`}>{c.mainVulnerability}</p>
               </div>
             </div>
@@ -156,20 +156,20 @@ const ComparisonDetail: React.FC = () => {
           {result.confrontationPillars.map((p, idx) => (
             <div key={idx} className="bg-white rounded-[2rem] border border-border-light overflow-hidden shadow-sm flex flex-col md:flex-row transition-all hover:shadow-md">
               <div className="md:w-1/4 p-8 bg-surface border-r border-border-light flex flex-col justify-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 italic">Pilastro de Análise</span>
+                <span className="type-label text-primary mb-2 italic">Pilastro de Análise</span>
                 <h4 className="text-base font-black text-text-heading leading-tight mb-3">{p.pillar}</h4>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-text-subtle">
+                <div className="flex items-center gap-2 text-xs font-bold text-text-subtle">
                   <span className="material-symbols-outlined text-sm text-primary">verified</span>
                   Domínio: @{p.winner_handle.replace('@', '')}
                 </div>
               </div>
               <div className="md:w-3/4 p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <p className="text-[9px] font-black text-text-subtle uppercase tracking-widest">Posicionamento Estratégico</p>
+                  <p className="text-xs font-black text-text-subtle uppercase tracking-widest">Posicionamento Estratégico</p>
                   <p className="text-sm text-text-subtle leading-relaxed italic border-l-2 border-primary/30 pl-4">{p.candidateA_status}</p>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-[9px] font-black text-text-subtle uppercase tracking-widest">Veredito do Radar</p>
+                  <p className="text-xs font-black text-text-subtle uppercase tracking-widest">Veredito do Radar</p>
                   <p className="text-sm font-bold text-text-heading leading-relaxed">{p.analysis}</p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ const ComparisonDetail: React.FC = () => {
           <div className="relative space-y-4">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-500">visibility_off</span>
-              <h3 className="font-black uppercase tracking-widest text-sm text-amber-600">O Vácuo Estratégico</h3>
+              <h3 className="type-label text-amber-600">O Vácuo Estratégico</h3>
             </div>
             <p className="text-xl font-medium leading-relaxed text-text-heading">
               {result.strategicVoid}
@@ -206,9 +206,9 @@ const ComparisonDetail: React.FC = () => {
           <div className="relative space-y-6">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary">rocket_launch</span>
-              <h3 className="font-black uppercase tracking-widest text-sm text-primary">A Jogada de Vitória</h3>
+              <h3 className="type-label text-primary">A Jogada de Vitória</h3>
             </div>
-            <p className="text-3xl font-black leading-tight tracking-tight text-text-heading">
+            <p className="type-section leading-tight">
               {result.winningMove}
             </p>
             <button className="px-6 py-3 bg-primary text-white rounded-2xl font-black text-sm hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-md">
@@ -227,7 +227,7 @@ const ComparisonDetail: React.FC = () => {
         <div className="relative space-y-4">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-indigo-600">target</span>
-            <h3 className="font-black uppercase tracking-widest text-sm text-indigo-600">Alavancagem Psicológica (Expertise AI)</h3>
+            <h3 className="type-label text-indigo-600">Alavancagem Psicológica (Expertise AI)</h3>
           </div>
           <p className="text-xl font-medium leading-relaxed italic text-indigo-950">
             "{result.psychologicalLeverage}"

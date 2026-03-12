@@ -69,7 +69,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
               <span className="material-symbols-outlined">radar</span>
             </div>
-            <h2 className="text-text-heading dark:text-white text-xl font-black tracking-tighter">Politika</h2>
+            <h2 className="text-text-heading dark:text-white text-xl font-bold tracking-tight">Politika</h2>
           </Link>
 
           <div className="flex flex-1 justify-end gap-8 items-center">
@@ -80,7 +80,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-slate-100 transition-all group"
               >
                 <span className="material-symbols-outlined text-lg text-primary">folder_shared</span>
-                <span className="text-xs font-black uppercase tracking-widest text-text-heading dark:text-white max-w-[120px] truncate">
+                <span className="type-label text-text-heading dark:text-white max-w-[120px] truncate">
                   {activeWorkspace?.name || 'Selecionar Projeto'}
                 </span>
                 <span className="material-symbols-outlined text-sm text-slate-400 group-hover:rotate-180 transition-transform">expand_more</span>
@@ -89,7 +89,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {showWorkspaceMenu && (
                 <div className="absolute top-12 right-0 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Alternar Projeto</p>
+                    <p className="type-label">Alternar Projeto</p>
                   </div>
                   {workspaces.map(w => (
                     <button
@@ -109,7 +109,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <Link
                       to="/workspaces"
                       onClick={() => setShowWorkspaceMenu(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-black text-primary uppercase tracking-widest"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 type-label text-primary"
                     >
                       <span className="material-symbols-outlined text-sm">settings</span>
                       Gerenciar Projetos
@@ -217,7 +217,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <span>|</span>
             <Link to="/terms" className="hover:text-primary transition-colors">Termos</Link>
           </div>
-          <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Acesso Restrito - Equipe de Campanha</p>
+          <p className="type-label">Acesso Restrito - Equipe de Campanha</p>
         </div>
       </footer>
 

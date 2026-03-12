@@ -92,11 +92,11 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${style.pulseColor} opacity-75`} />
               <span className={`relative inline-flex rounded-full size-3 ${style.pulseColor}`} />
             </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+            <span className="type-label text-primary">
               Quartel General
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-text-heading dark:text-white tracking-tighter">
+          <h2 className="type-page-title dark:text-white">
             {getGreeting()}, {firstName}
           </h2>
           <p className="text-text-subtle dark:text-slate-400 font-medium max-w-lg">
@@ -129,15 +129,15 @@ const BriefingBanner: React.FC<BriefingBannerProps> = ({
             </div>
             <div className="flex-1 min-w-0 space-y-3">
               <div className="flex items-center gap-3">
-                <span className={`text-[10px] font-black uppercase tracking-widest ${style.iconColor}`}>
+                <span className={`type-label ${style.iconColor}`}>
                   {style.label}
                 </span>
                 {isBriefingLoading && (
-                  <span className="text-[10px] font-bold text-text-subtle dark:text-slate-500 animate-pulse">
+                  <span className="text-xs font-bold text-text-subtle dark:text-slate-500 animate-pulse">
                     Gerando briefing...
                   </span>
                 )}
-                <span className="text-[10px] font-medium text-text-subtle/60 dark:text-slate-500 ml-auto">
+                <span className="text-xs font-medium text-text-subtle/60 dark:text-slate-500 ml-auto">
                   {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -218,7 +218,7 @@ const TermFilterBar: React.FC<TermFilterBarProps> = ({ terms, activeTerm, onSele
         >
           <span className={`size-2 rounded-full ${m?.sentimentLoading ? 'animate-pulse bg-slate-400' : sentimentColor}`} />
           {term}
-          {m && <span className="text-[10px] opacity-70">({m.mentions})</span>}
+          {m && <span className="text-xs opacity-70">({m.mentions})</span>}
         </button>
       );
     })}
@@ -248,7 +248,7 @@ const CompactTermCard: React.FC<CompactTermCardProps> = ({ term, metrics: m, col
         }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color }}>
+        <span className="type-label" style={{ color }}>
           {term}
         </span>
         <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ const CompactTermCard: React.FC<CompactTermCardProps> = ({ term, metrics: m, col
         </div>
       </div>
       <p className="text-2xl font-black text-text-heading dark:text-white">{m.mentions}</p>
-      <p className="text-[10px] text-text-subtle dark:text-slate-400 mt-0.5">
+      <p className="text-xs text-text-subtle dark:text-slate-400 mt-0.5">
         {m.sentimentLoading ? 'Analisando...'
           : m.sentiment ? m.sentiment.classification
             : m.mentions > 0 ? 'Aguardando análise' : 'Sem menções'}
@@ -318,7 +318,7 @@ const ExpandedTermPanel: React.FC<ExpandedTermPanelProps> = ({ term, metrics: m,
     {/* Related articles */}
     {m.articles.length > 0 && (
       <div className="space-y-2">
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-400">
+        <h4 className="type-label text-text-subtle dark:text-slate-400">
           Artigos relacionados
         </h4>
         <div className="space-y-2 max-h-[240px] overflow-y-auto">
@@ -333,7 +333,7 @@ const ExpandedTermPanel: React.FC<ExpandedTermPanelProps> = ({ term, metrics: m,
               <p className="text-xs font-bold text-text-heading dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
                 <HighlightedTitle title={article.title.split(' - ')[0]} terms={article.matchedTerms} />
               </p>
-              <p className="text-[10px] text-text-subtle dark:text-slate-500 mt-1">{article.source}</p>
+              <p className="text-xs text-text-subtle dark:text-slate-500 mt-1">{article.source}</p>
             </a>
           ))}
         </div>
@@ -413,7 +413,7 @@ const CompactAlertCard: React.FC<CompactAlertCardProps> = ({ alert, isExpanded, 
           <p className="text-xs text-text-subtle dark:text-slate-400 mt-0.5 line-clamp-1">{alert.description}</p>
         </div>
         {alert.sentimentDelta !== undefined && (
-          <span className={`px-2 py-0.5 text-[10px] rounded-full font-black flex-shrink-0
+          <span className={`px-2 py-0.5 text-xs rounded-full font-black flex-shrink-0
             ${alert.sentimentDelta < 0 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
             {alert.sentimentDelta > 0 ? '+' : ''}{Math.round(alert.sentimentDelta * 100)}%
           </span>
@@ -427,7 +427,7 @@ const CompactAlertCard: React.FC<CompactAlertCardProps> = ({ alert, isExpanded, 
 
           {alert.relatedArticles.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-subtle dark:text-slate-500">Artigos que geraram este alerta</p>
+              <p className="type-label text-text-subtle dark:text-slate-500">Artigos que geraram este alerta</p>
               {alert.relatedArticles.slice(0, 3).map((article, i) => (
                 <a key={i} href={article.link} target="_blank" rel="noopener noreferrer"
                   className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl hover:bg-primary/5 transition-colors group">
@@ -439,9 +439,9 @@ const CompactAlertCard: React.FC<CompactAlertCardProps> = ({ alert, isExpanded, 
                       {article.title.split(' - ')[0]}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-text-subtle dark:text-slate-500">{article.source}</span>
+                      <span className="text-xs text-text-subtle dark:text-slate-500">{article.source}</span>
                       {(article as any).pubDate && (
-                        <span className="text-[10px] text-text-subtle/60 dark:text-slate-600">{relativeTime((article as any).pubDate)}</span>
+                        <span className="text-xs text-text-subtle/60 dark:text-slate-600">{relativeTime((article as any).pubDate)}</span>
                       )}
                     </div>
                   </div>
@@ -467,7 +467,7 @@ const CompactAlertCard: React.FC<CompactAlertCardProps> = ({ alert, isExpanded, 
             ))}
           </div>
 
-          <p className="text-[10px] text-text-subtle/60 dark:text-slate-500 font-medium">
+          <p className="text-xs text-text-subtle/60 dark:text-slate-500 font-medium">
             {new Date(alert.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -578,7 +578,7 @@ const CommandCenter: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-8 animate-reveal">
+    <div className="page-container space-y-8 animate-reveal">
 
       {/* LAYER 1: Briefing Banner */}
       <BriefingBanner
@@ -604,7 +604,7 @@ const CommandCenter: React.FC = () => {
             <span className="material-symbols-outlined text-3xl animate-pulse">neurology</span>
             <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
           </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+          <h3 className="type-section dark:text-white">
             Gerando Dossiê Estratégico Inicial...
           </h3>
           <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto">
@@ -625,8 +625,8 @@ const CommandCenter: React.FC = () => {
               {/* Left: text */}
               <div className="flex-1 space-y-6">
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Passo 1 de 4</span>
-                  <h3 className="text-3xl md:text-4xl font-black text-text-heading dark:text-white tracking-tighter leading-tight">
+                  <span className="type-label text-primary">Passo 1 de 4</span>
+                  <h3 className="type-section dark:text-white leading-tight">
                     Ative seu QG<br />de Inteligência
                   </h3>
                   <p className="text-text-subtle dark:text-slate-400 font-medium max-w-sm leading-relaxed">
@@ -655,7 +655,7 @@ const CommandCenter: React.FC = () => {
                       <span className="material-symbols-outlined text-lg">{f.icon}</span>
                     </div>
                     <p className="text-xs font-black text-text-heading dark:text-white leading-tight">{f.label}</p>
-                    <p className="text-[10px] text-text-subtle dark:text-slate-400 leading-snug">{f.desc}</p>
+                    <p className="text-xs text-text-subtle dark:text-slate-400 leading-snug">{f.desc}</p>
                   </div>
                 ))}
               </div>
@@ -679,7 +679,7 @@ const CommandCenter: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${i === 0 ? 'text-white/70' : 'text-text-subtle dark:text-slate-500'}`}>{s.step}</span>
+                  <span className={`type-label ${i === 0 ? 'text-white/70' : 'text-text-subtle dark:text-slate-500'}`}>{s.step}</span>
                   <span className={`material-symbols-outlined text-lg ${i === 0 ? 'text-white' : 'text-slate-300 dark:text-slate-600'}`}>{s.icon}</span>
                 </div>
                 <p className={`text-sm font-black tracking-tight ${i === 0 ? 'text-white' : 'text-text-heading dark:text-white'}`}>{s.label}</p>
@@ -735,10 +735,10 @@ const CommandCenter: React.FC = () => {
           {/* Alerts Section */}
           {activeAlerts.length > 0 && (
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-text-subtle dark:text-slate-400 flex items-center gap-2">
+              <h3 className="type-label dark:text-slate-400 flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-red-500">notifications_active</span>
                 Alertas
-                <span className="ml-1 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full text-[10px]">
+                <span className="ml-1 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full text-xs">
                   {activeAlerts.length}
                 </span>
               </h3>
@@ -755,7 +755,7 @@ const CommandCenter: React.FC = () => {
                 ))}
               </div>
               {activeAlerts.length > 4 && (
-                <p className="text-[10px] font-bold text-text-subtle dark:text-slate-500 text-center">
+                <p className="text-xs font-bold text-text-subtle dark:text-slate-500 text-center">
                   + {activeAlerts.length - 4} alertas adicionais
                 </p>
               )}
@@ -768,7 +768,7 @@ const CommandCenter: React.FC = () => {
               <div className="size-14 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mx-auto text-emerald-500">
                 <span className="material-symbols-outlined text-2xl">verified</span>
               </div>
-              <h3 className="text-xl font-black text-text-heading dark:text-white tracking-tighter">
+              <h3 className="type-section dark:text-white">
                 Tudo sob controle
               </h3>
               <p className="text-sm text-text-subtle dark:text-slate-400 font-medium max-w-md mx-auto">
@@ -786,15 +786,15 @@ const CommandCenter: React.FC = () => {
                   <span className="material-symbols-outlined text-primary text-lg">rss_feed</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-text-heading dark:text-white tracking-tight">Feed ao Vivo</h3>
-                  <p className="text-[10px] text-text-subtle dark:text-slate-400 font-medium">
+                  <h3 className="type-section dark:text-white">Feed ao Vivo</h3>
+                  <p className="text-xs text-text-subtle dark:text-slate-400 font-medium">
                     {filteredArticles.length} artigos · atualizado {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Ao vivo</span>
+                <span className="type-label text-emerald-500">Ao vivo</span>
               </div>
             </div>
 
@@ -803,7 +803,7 @@ const CommandCenter: React.FC = () => {
               <div className="flex gap-2 px-6 py-3 border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
                 <button
                   onClick={() => setActiveTerm(null)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 ${activeTerm === null
+                  className={`px-4 py-1.5 rounded-xl type-label transition-all flex-shrink-0 ${activeTerm === null
                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow'
                     : 'bg-slate-100 dark:bg-slate-800 text-text-subtle dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
@@ -817,7 +817,7 @@ const CommandCenter: React.FC = () => {
                     <button
                       key={term}
                       onClick={() => setActiveTerm(isActive ? null : term)}
-                      className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 flex items-center gap-1.5`}
+                      className={`px-4 py-1.5 rounded-xl type-label transition-all flex-shrink-0 flex items-center gap-1.5`}
                       style={isActive
                         ? { backgroundColor: color, color: '#fff' }
                         : { backgroundColor: `${color}18`, color }}
@@ -874,7 +874,7 @@ const CommandCenter: React.FC = () => {
                             {article.matchedTerms.map((t, ti) => (
                               <span
                                 key={t.term}
-                                className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full text-white"
+                                className="text-xs font-black uppercase px-2 py-0.5 rounded-full text-white"
                                 style={{ backgroundColor: TERM_COLORS[terms.indexOf(t.term) % TERM_COLORS.length] }}
                               >
                                 {t.term}
@@ -927,7 +927,7 @@ const CommandCenter: React.FC = () => {
                   <span className="material-symbols-outlined">person_search</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-text-heading dark:text-white tracking-tight">
+                  <h3 className="type-section dark:text-white">
                     Nova Análise
                   </h3>
                   <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">
@@ -949,7 +949,7 @@ const CommandCenter: React.FC = () => {
                   <span className="material-symbols-outlined">shield</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-text-heading dark:text-white tracking-tight">
+                  <h3 className="type-section dark:text-white">
                     War Room
                   </h3>
                   <p className="text-sm text-text-subtle dark:text-slate-400 mt-1">

@@ -255,15 +255,11 @@ const Dashboard: React.FC = () => {
   const tseGroups = groupByCandidateName(tseRaw);
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-10 space-y-10">
+    <div className="page-container space-y-10">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-text-heading mb-2">
-          Resumo da Operação
-        </h1>
-        <p className="text-text-body text-lg">
-          Visão consolidada do cenário em tempo real para tomada de decisão estratégica.
-        </p>
+        <h1 className="type-page-title mb-1">Resumo da Operação</h1>
+        <p className="type-body">Visão consolidada do cenário em tempo real para tomada de decisão estratégica.</p>
       </div>
 
       {/* Main Analysis Input Card (Centered and Prominent) */}
@@ -273,8 +269,8 @@ const Dashboard: React.FC = () => {
             <span className="material-symbols-outlined text-4xl">person_search</span>
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-text-heading tracking-tight">Nova Análise Estratégica</h2>
-            <p className="text-text-body mt-2 text-lg">Insira o @handle para traçar o perfil ou até 3 para comparar.</p>
+            <h2 className="type-section">Nova Análise Estratégica</h2>
+            <p className="type-body mt-1">Insira o @handle para traçar o perfil ou até 3 para comparar.</p>
           </div>
 
           <div className="w-full space-y-4 max-w-2xl mt-4">
@@ -349,10 +345,8 @@ const Dashboard: React.FC = () => {
             <span className="material-symbols-outlined text-3xl animate-pulse">neurology</span>
             <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
           </div>
-          <h3 className="text-3xl font-bold text-text-heading tracking-tight mt-6">
-            Gerando Dossiê Estratégico...
-          </h3>
-          <p className="text-text-body text-lg max-w-xl mx-auto">
+          <h3 className="type-section mt-6">Gerando Dossiê Estratégico...</h3>
+          <p className="type-body max-w-xl mx-auto">
             A Inteligência Artificial está analisando o histórico, o tom dominante e as vulnerabilidades de <strong className="text-primary font-bold">@{generatingHandle}</strong>. Você será redirecionado em instantes.
           </p>
         </div>
@@ -365,7 +359,7 @@ const Dashboard: React.FC = () => {
             <span className="material-symbols-outlined text-xl">how_to_vote</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-text-heading tracking-tight">Busca TSE — Candidatos</h2>
+            <h2 className="type-section">Busca TSE — Candidatos</h2>
             <p className="text-sm text-text-subtle">Pesquise pelo nome no banco de dados oficial do TSE</p>
           </div>
         </div>
@@ -444,12 +438,12 @@ const Dashboard: React.FC = () => {
                 {/* Expanded: election history */}
                 {expandedCandidate === group.key && (
                   <div className="border-t border-border-light bg-surface px-5 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <p className="text-xs font-bold text-text-subtle uppercase tracking-widest mb-3">Histórico Eleitoral</p>
+                    <p className="type-label mb-3">Histórico Eleitoral</p>
                     <div className="space-y-2">
                       {group.rows.map(r => (
                         <div key={r.id} className="flex items-center justify-between bg-white border border-border-light rounded-xl px-4 py-3 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="text-sm font-black text-primary shrink-0">{r.election_year}</span>
+                            <span className="text-sm font-bold text-primary shrink-0">{r.election_year}</span>
                             <div className="min-w-0">
                               <p className="text-sm font-bold text-text-heading truncate">{r.election_type}</p>
                               <p className="text-xs text-text-subtle truncate">{r.municipality} · Nº {r.candidate_number}</p>
@@ -458,7 +452,7 @@ const Dashboard: React.FC = () => {
                           <div className="text-right shrink-0">
                             {r.votes > 0 ? (
                               <>
-                                <p className="text-sm font-black text-text-heading">{formatVotes(r.votes)}</p>
+                                <p className="text-sm font-bold text-text-heading">{formatVotes(r.votes)}</p>
                                 <p className="text-xs text-text-subtle">votos</p>
                               </>
                             ) : r.coalition ? (
@@ -505,7 +499,7 @@ const Dashboard: React.FC = () => {
       <div className="mt-6">
         <SpotlightCard className="p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-text-heading tracking-tight flex items-center gap-2">
+            <h2 className="type-section flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">history</span>
               Análises Recentes
             </h2>
@@ -553,7 +547,7 @@ const Dashboard: React.FC = () => {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-text-heading group-hover:text-primary transition-colors text-lg truncate pr-2">{item.handle}</p>
+                      <p className="font-semibold text-text-heading group-hover:text-primary transition-colors text-sm truncate pr-2">{item.handle}</p>
                       <p className="text-sm font-medium text-text-subtle">
                         {new Date(item.created_at).toLocaleDateString('pt-BR')} às {new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -571,7 +565,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-light rounded-2xl bg-surface">
               <span className="material-symbols-outlined text-4xl text-text-subtle mb-4">analytics</span>
-              <p className="text-lg font-bold text-text-heading">Nenhuma análise no histórico</p>
+              <p className="type-section">Nenhuma análise no histórico</p>
               <p className="text-sm text-text-body max-w-xs mt-2">Realize uma nova análise no campo principal para popular seu QG.</p>
             </div>
           )}
