@@ -285,6 +285,8 @@ async function handlePoliticalInsight(
     return res.status(400).json({ error: 'Handle too long (max 100 chars)' });
   }
 
+  const safeHandle = sanitizeInput(handle, { maxLength: 100, allowNewlines: false, allowSpecialChars: false });
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const expertInstructions = buildExpertInstructions(wsCtx.state);
 
@@ -318,14 +320,14 @@ async function handlePoliticalInsight(
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `ANÁLISE DE PERFIL POLÍTICO: @${handle}.
+    contents: `ANÁLISE DE PERFIL POLÍTICO: @${safeHandle}.
     ${regionalContext}
     ${expertInstructions}
 
     ${analysisExample}
 
     TAREFA:
-    1. Pesquise na internet para encontrar fatos recentes sobre @${handle} — notícias, declarações, entregas, posicionamentos.
+    1. Pesquise na internet para encontrar fatos recentes sobre @${safeHandle} — notícias, declarações, entregas, posicionamentos.
     2. Analise o momento político atual com equilíbrio: o que está funcionando, o que pode melhorar, onde há riscos.
     3. Identifique oportunidades de narrativa que o candidato ainda não explorou.
 
@@ -375,12 +377,14 @@ async function handleComparativeInsight(
     return res.status(400).json({ error: 'Invalid handle format' });
   }
 
+  const safeHandles = handles.map(h => sanitizeInput(h, { maxLength: 100, allowNewlines: false, allowSpecialChars: false }));
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const expertInstructions = buildExpertInstructions(wsCtx.state);
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Compare os perfis: ${handles.join(', ')}. ${regionalContext}. ${expertInstructions} Analise a alavancagem psicológica do Candidato A sobre os outros. Retorne JSON.`,
+    contents: `Compare os perfis: ${safeHandles.join(', ')}. ${regionalContext}. ${expertInstructions} Analise a alavancagem psicológica do Candidato A sobre os outros. Retorne JSON.`,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -435,7 +439,6 @@ async function handleCrisisResponse(
   data: {
     incident: string;
     mediaData?: { data: string; mimeType: string };
-    location?: { latitude: number; longitude: number };
   },
   res: VercelResponse,
   wsCtx: WorkspaceContext
@@ -524,8 +527,6 @@ async function handleCrisisResponse(
     groundingChunks.forEach((chunk: any) => {
       if (chunk.web) {
         sources.push({ uri: chunk.web.uri, title: chunk.web.title });
-      } else if (chunk.maps) {
-        sources.push({ uri: chunk.maps.uri, title: chunk.maps.title });
       }
     });
   }
@@ -552,13 +553,23 @@ async function handleEvaluateResponse(
     return res.status(400).json({ error: 'Input too long' });
   }
 
+  const safeIncident = sanitizeInput(incident, { maxLength: 5000 });
+  if (detectPromptInjection(safeIncident)) {
+    return res.status(400).json({ error: 'Descrição do incidente contém padrões inválidos.' });
+  }
+
+  const safeProposedResponse = sanitizeInput(proposedResponse, { maxLength: 10000 });
+  if (detectPromptInjection(safeProposedResponse)) {
+    return res.status(400).json({ error: 'Resposta proposta contém padrões inválidos.' });
+  }
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const expertInstructions = buildExpertInstructions(wsCtx.state);
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Analise a eficácia desta resposta para o incidente: "${incident}".
-    Resposta Proposta: "${proposedResponse}"
+    contents: `Analise a eficácia desta resposta para o incidente: "${safeIncident}".
+    Resposta Proposta: "${safeProposedResponse}"
     ${regionalContext}
     ${expertInstructions}
     Retorne JSON.`,
@@ -608,7 +619,8 @@ async function handleSentiment(
     return res.status(400).json({ error: 'Too many articles (max 20)' });
   }
 
-  const titlesText = articleTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const safeTitles = articleTitles.map(t => sanitizeInput(String(t), { maxLength: 200, allowNewlines: false }));
+  const titlesText = safeTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
@@ -697,6 +709,10 @@ async function handleChat(
     config: { systemInstruction }
   });
 
+  if (!response.text) {
+    return res.status(500).json({ error: 'AI returned empty response' });
+  }
+
   return res.status(200).json({
     success: true,
     data: response.text
@@ -749,7 +765,7 @@ Dados do Monitoramento:
 - Tendência geral: ${metrics.overallTrend}
 - Termo mais quente: ${metrics.hottestTerm || 'nenhum'}
 - Alertas ativos: ${alerts?.total || 0} (${alerts?.dangerCount || 0} perigos, ${alerts?.opportunityCount || 0} oportunidades)
-${alerts?.topAlert ? `- Alerta principal: ${alerts.topAlert}` : ''}
+${alerts?.topAlert ? `- Alerta principal: ${sanitizeInput(String(alerts.topAlert), { maxLength: 300, allowNewlines: false })}` : ''}
 ${articlesContext}
 
 ${regionalContext}
@@ -811,11 +827,14 @@ async function handleThermometer(
     return res.status(400).json({ error: 'candidateName e party são obrigatórios' });
   }
 
+  const safeCandidateName = sanitizeInput(String(candidateName), { maxLength: 200, allowNewlines: false, allowSpecialChars: false });
+  const safeParty = sanitizeInput(String(party), { maxLength: 100, allowNewlines: false, allowSpecialChars: false });
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
   const prompt = `Você é um analista eleitoral sênior especializado em ${stateName}.
-Analise a posição do candidato ${candidateName} (${party}) com base nos dados históricos do TSE.
+Analise a posição do candidato ${safeCandidateName} (${safeParty}) com base nos dados históricos do TSE.
 
 DADOS HISTÓRICOS DE ELEIÇÕES (por zona eleitoral):
 ${JSON.stringify(electionData?.slice(0, 50) || [], null, 1)}
