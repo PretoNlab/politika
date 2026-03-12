@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, sendRateLimitResponse } from './_rateLimit.js';
+import { sanitizeInput, detectPromptInjection } from '../utils/security.js';
 
 // API key segura no servidor (variável de ambiente)
 const getAI = () => {
@@ -128,7 +129,11 @@ function safeParseAIResponse(text: string | undefined, requiredFields: string[])
     const match = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
     if (match) {
       const clean = (match[1] || match[0]).replace(/```json/g, '').replace(/```/g, '').trim();
-      parsed = JSON.parse(clean);
+      try {
+        parsed = JSON.parse(clean);
+      } catch {
+        throw new Error('Failed to parse extracted JSON from AI response');
+      }
     } else {
       throw new Error('Failed to parse AI response as JSON');
     }
@@ -151,10 +156,6 @@ interface WorkspaceContext {
   region?: string;
   customContext?: string;
 }
-
-const ALLOWED_ORIGIN = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : '*';
 
 export const maxDuration = 60;
 
@@ -204,8 +205,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const { action, data, workspaceContext } = body;
-
-    console.log(`[API GEMINI] Recebido action: "${action}"`); // LOG PARA INVESTIGAR BUG INVALID ACTION
 
     if (!action || typeof action !== 'string') {
       return res.status(400).json({ error: 'Action is required' });
@@ -441,7 +440,7 @@ async function handleCrisisResponse(
   res: VercelResponse,
   wsCtx: WorkspaceContext
 ) {
-  const { incident, mediaData, location } = data;
+  const { incident, mediaData } = data;
 
   if (!incident && !mediaData) {
     return res.status(400).json({ error: 'Incident description or media is required' });
@@ -451,13 +450,19 @@ async function handleCrisisResponse(
     return res.status(400).json({ error: 'Incident too long (max 5000 chars)' });
   }
 
+  // Sanitização e detecção de prompt injection no incidente
+  const safeIncident = incident ? sanitizeInput(incident, { maxLength: 5000 }) : '';
+  if (safeIncident && detectPromptInjection(safeIncident)) {
+    return res.status(400).json({ error: 'Descrição do incidente contém padrões inválidos.' });
+  }
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
   const parts: any[] = [{
     text: `Você é um Spin Doctor especialista em ${stateName}. Analise a crise e retorne um objeto JSON estrito.
     Se houver mídia, analise tom de voz e imagem.
-    Incidente: "${incident}"
+    Incidente: "${safeIncident}"
 
     ${regionalContext}
 
@@ -483,23 +488,15 @@ async function handleCrisisResponse(
     model: 'gemini-2.5-flash',
     contents: { parts },
     config: {
-      tools: [
-        { googleSearch: {} },
-        { googleMaps: {} }
-      ],
-      toolConfig: location ? {
-        retrievalConfig: {
-          latLng: {
-            latitude: location.latitude,
-            longitude: location.longitude
-          }
-        }
-      } : undefined
+      tools: [{ googleSearch: {} }]
     }
   });
 
   // Parse JSON from response
   const text = response.text;
+  if (!text) {
+    return res.status(500).json({ error: 'AI returned empty response' });
+  }
   let parsed: any;
 
   try {
@@ -673,13 +670,17 @@ async function handleChat(
     return res.status(400).json({ error: 'Message too long (max 3000 chars)' });
   }
 
+  if (detectPromptInjection(message)) {
+    return res.status(400).json({ error: 'Mensagem contém padrões inválidos. Por favor, reformule.' });
+  }
+
   if (history && (!Array.isArray(history) || history.length > 50)) {
     return res.status(400).json({ error: 'Invalid chat history' });
   }
 
   const formattedHistory = (history || []).map(h => ({
     role: h.role,
-    parts: [{ text: h.parts }]
+    parts: [{ text: typeof h.parts === 'string' ? h.parts : (h.parts?.[0]?.text ?? '') }]
   }));
 
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
@@ -728,8 +729,12 @@ async function handleBriefing(
     return res.status(400).json({ error: 'Metrics data is required' });
   }
 
-  const articlesContext = topArticles && topArticles.length > 0
-    ? `\nManchetes recentes:\n${topArticles.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}`
+  const safeArticles = (topArticles || [])
+    .slice(0, 20)
+    .map((t: string) => sanitizeInput(String(t), { maxLength: 200, allowNewlines: false }));
+
+  const articlesContext = safeArticles.length > 0
+    ? `\nManchetes recentes:\n${safeArticles.map((t, i) => `${i + 1}. ${t}`).join('\n')}`
     : '';
 
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
@@ -884,6 +889,16 @@ async function handleBattleMap(
     return res.status(400).json({ error: 'candidates[] é obrigatório' });
   }
 
+  if (candidates.length > 10) {
+    return res.status(400).json({ error: 'Máximo de 10 candidatos por vez' });
+  }
+
+  const safeCandidates = candidates.map((c: any) => ({
+    name: sanitizeInput(String(c.name ?? ''), { maxLength: 100, allowNewlines: false }),
+    party: sanitizeInput(String(c.party ?? ''), { maxLength: 50, allowNewlines: false }),
+    number: Number(c.number) || 0,
+  }));
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
@@ -891,7 +906,7 @@ async function handleBattleMap(
 Classifique cada zona eleitoral por disputabilidade com base nos dados históricos.
 
 CANDIDATOS EM ANÁLISE:
-${candidates.map(c => `- ${c.name} (${c.party}) #${c.number}`).join('\n')}
+${safeCandidates.map(c => `- ${c.name} (${c.party}) #${c.number}`).join('\n')}
 
 DADOS HISTÓRICOS DE ELEIÇÕES (por zona):
 ${JSON.stringify(electionData?.slice(0, 80) || [], null, 1)}
@@ -964,6 +979,17 @@ async function handleSimulator(
     return res.status(400).json({ error: 'scenario.type e scenario.description são obrigatórios' });
   }
 
+  if (typeof scenario.description !== 'string' || scenario.description.length > 2000) {
+    return res.status(400).json({ error: 'scenario.description inválido (max 2000 chars)' });
+  }
+
+  const safeScenarioType = sanitizeInput(String(scenario.type), { maxLength: 100, allowNewlines: false });
+  const safeScenarioDesc = sanitizeInput(scenario.description, { maxLength: 2000 });
+
+  if (detectPromptInjection(safeScenarioDesc) || detectPromptInjection(safeScenarioType)) {
+    return res.status(400).json({ error: 'Descrição do cenário contém padrões inválidos.' });
+  }
+
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
   const stateName = wsCtx.state || 'Brasil';
 
@@ -971,8 +997,8 @@ async function handleSimulator(
 Projete o impacto de uma decisão estratégica usando dados históricos como base.
 
 CENÁRIO PROPOSTO:
-- Tipo: ${scenario.type}
-- Descrição: ${scenario.description}
+- Tipo: ${safeScenarioType}
+- Descrição: ${safeScenarioDesc}
 ${scenario.targetZones?.length ? `- Zonas-alvo: ${scenario.targetZones.join(', ')}` : ''}
 
 DADOS DE BASELINE (resultados históricos):
@@ -1056,8 +1082,16 @@ async function handleSituationalReport(
     return res.status(400).json({ error: 'Metrics data is required' });
   }
 
-  const articlesContext = topArticles && topArticles.length > 0
-    ? `\nManchetes recentes:\n${topArticles.join('\n')}`
+  const safeArticlesSR = (topArticles || [])
+    .slice(0, 20)
+    .map((t: string) => sanitizeInput(String(t), { maxLength: 200, allowNewlines: false }));
+
+  const safeRecentAlerts = (alerts?.recentAlerts || [])
+    .slice(0, 10)
+    .map((a: string) => sanitizeInput(String(a), { maxLength: 200, allowNewlines: false }));
+
+  const articlesContext = safeArticlesSR.length > 0
+    ? `\nManchetes recentes:\n${safeArticlesSR.join('\n')}`
     : '';
 
   const regionalContext = buildRegionalContext(wsCtx.state, wsCtx.region, wsCtx.customContext);
@@ -1075,7 +1109,7 @@ DADOS DO MONITORAMENTO ATUAL:
 - Termos em alta: ${Object.keys(metrics.termMetrics || {}).join(', ')}
 
 ALERTAS ATIVOS: ${alerts?.total || 0} (${alerts?.dangerCount || 0} perigos, ${alerts?.opportunityCount || 0} oportunidades)
-${alerts?.recentAlerts ? alerts.recentAlerts.join('\n') : ''}
+${safeRecentAlerts.join('\n')}
 ${articlesContext}
 
 ${regionalContext}
