@@ -138,13 +138,13 @@ export const TERM_COLORS = [
   '#84cc16', // lima
 ];
 
-// Free tier limits (mensal)
+// Free tier limits (mensal) — temporariamente ilimitado
 export const FREE_TIER_LIMITS = {
-  analyses: 15,
-  comparisons: 5,
-  crises: 10,
-  chats: 50,
-  predictions: 20,
+  analyses: 9999,
+  comparisons: 9999,
+  crises: 9999,
+  chats: 9999,
+  predictions: 9999,
 } as const;
 
 export type UsageCategory = keyof typeof FREE_TIER_LIMITS;
